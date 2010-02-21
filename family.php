@@ -56,6 +56,10 @@ if (PGV_USE_LIGHTBOX) {
 $PEDIGREE_FULL_DETAILS = "1";		// Override GEDCOM configuration
 $show_full = "1";
 
+if ($TEXT_DIRECTION == 'ltr')
+	 $align = 'left';
+else $align = 'right';
+
 ?>
 <?php if ($controller->family->isMarkedDeleted()) echo "<span class=\"error\">".$pgv_lang["record_marked_deleted"]."</span>"; ?>
 <script language="JavaScript" type="text/javascript">
@@ -133,11 +137,11 @@ $show_full = "1";
 </table>
 <table align="center" width="95%">
 	<tr valign="top">
-		<td align="left" valign="top" style="width: <?php echo $pbwidth+30 ?>px;"><!--//List of children//-->
+		<td align=$align valign="top" style="width: <?php echo $pbwidth+30 ?>px;"><!--//List of children//-->
 			<?php print_family_children($controller->getFamilyID());?>
 		</td>
 		<td> <!--//parents pedigree chart and Family Details//-->
-			<table align="left" width="100%">
+			<table align=$align width="100%">
 				<tr>
 					<td class="subheaders" valign="top"><?php echo $pgv_lang["parents"];?></td>
 					<td class="subheaders" valign="top"><?php echo $pgv_lang["gparents"];?></td>
@@ -164,7 +168,7 @@ $show_full = "1";
 					</td>
 				</tr>
 				<tr>
-					<td align="left" colspan="2">
+					<td align=$align colspan="2">
 						<br /><hr />
 						<?php print_family_facts($controller->family);?>
 					</td>

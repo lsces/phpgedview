@@ -286,7 +286,10 @@ function print_family_children($famid, $childid = "", $sosa = 0, $label="", $per
 	print "<table border=\"0\" cellpadding=\"0\" cellspacing=\"2\"><tr>";
 	if ($sosa>0) print "<td></td>";
 	print "<td><span class=\"subheaders\">".$pgv_lang["children"]."</span>";
-	echo '<span class="font11">&nbsp;&nbsp;', getLRM(), '(';
+    if ($TEXT_DIRECTION == 'ltr')
+    	 echo '<span class="font11">&nbsp;&nbsp;', getLRM(), '(';
+	else echo '<span class="font11">&nbsp;&nbsp;', getRLM(), '(';
+	
 	if ($numchil==0) {
 		echo $pgv_lang["no_children"];
 	} else if ($numchil==1) {
