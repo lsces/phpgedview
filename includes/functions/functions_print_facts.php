@@ -48,7 +48,7 @@ function expand_urls($text) {
 	// This matches far too much while a "precise" regex is several pages long.
 	// This is a compromise.
 	$URL_REGEX='((https?|ftp]):)(//([^\s/?#<>]*))?([^\s?#<>]*)(\?([^\s#<>]*))?(#[^\s?#<>]+)?';
-	
+
 	return preg_replace_callback(
 		'/'.addcslashes("(?!>)$URL_REGEX(?!</a>)", '/').'/i',
 		create_function( // Insert soft hyphens into the replaced string
@@ -194,10 +194,10 @@ function print_fact(&$eventObj, $noedit=false) {
 					echo " <div style=\"width:25px;\">";
 					$menu->printMenu();
 					echo "</div>";
-				} else { 
+				} else {
 					echo " <ul>";
 					$menu->printMenu();
-					echo "</ul>";					
+					echo "</ul>";
 				}
 			}
 			echo "</td>";
@@ -498,7 +498,7 @@ function print_fact(&$eventObj, $noedit=false) {
  */
 function print_submitter_info($sid) {
 	global $GEDCOM;
-	$ged_id=get_id_from_gedcom();
+	$ged_id=get_id_from_gedcom($GEDCOM);
 	$srec = find_gedcom_record($sid, $ged_id);
 	preg_match("/1 NAME (.*)/", $srec, $match);
 	// PAF creates REPO record without a name
@@ -1040,7 +1040,7 @@ function printSourceStructure($textSOUR) {
 		}
 		foreach($textSOUR["TEXT"] as $text) {
 			$data.="<br />&nbsp;&nbsp;<span class=\"label\">".$factarray["TEXT"].":&nbsp;</span><span class=\"field\">".PrintReady(expand_urls($text))."</span>";
-			if (!empty($text) && !empty($note_data)) $data.="<br />";	 
+			if (!empty($text) && !empty($note_data)) $data.="<br />";
 			$data.=$note_data;
 		}
 	}
@@ -1232,7 +1232,7 @@ function print_main_notes($factrec, $level, $pid, $linenum, $noedit=false) {
 				require PGV_ROOT.'modules/GEDFact_assistant/_CENS/census_note_decode.php';
 			}
 		}
-		
+
 		$align = "";
 		if (!empty($text)) {
 			if ($TEXT_DIRECTION=="rtl" && !hasRTLText($text) && hasLTRText($text)) $align=" align=\"left\"";
