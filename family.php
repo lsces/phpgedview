@@ -137,11 +137,11 @@ else $align = 'right';
 </table>
 <table align="center" width="95%">
 	<tr valign="top">
-		<td align=$align valign="top" style="width: <?php echo $pbwidth+30 ?>px;"><!--//List of children//-->
+		<td align="<?php echo $align;?>" valign="top" style="width: <?php echo $pbwidth+30 ?>px;"><!--//List of children//-->
 			<?php print_family_children($controller->getFamilyID());?>
 		</td>
 		<td> <!--//parents pedigree chart and Family Details//-->
-			<table align=$align width="100%">
+			<table align="<?php echo $align;?>" width="100%">
 				<tr>
 					<td class="subheaders" valign="top"><?php echo $pgv_lang["parents"];?></td>
 					<td class="subheaders" valign="top"><?php echo $pgv_lang["gparents"];?></td>
@@ -168,7 +168,7 @@ else $align = 'right';
 					</td>
 				</tr>
 				<tr>
-					<td align=$align colspan="2">
+					<td align="<?php echo $align; ?>" colspan="2">
 						<br /><hr />
 						<?php print_family_facts($controller->family);?>
 					</td>
