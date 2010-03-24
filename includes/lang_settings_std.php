@@ -637,6 +637,36 @@ $language_settings['serbian-la']=array(
 'COLLATION'=>'utf8_slovenian_ci'
 );
 
+//-- settings for croatian
+$language_settings['croatian']=array(
+'pgv_langname'=>'croatian',
+'pgv_lang_use'=>false,
+'pgv_lang_self'=>'Hrvatski',
+'lang_short_cut'=>'hr',
+'langcode'=>'hr;',
+'pgv_language'=>'languages/lang.hr.php',
+'confighelpfile'=>'languages/configure_help.hr.php',
+'helptextfile'=>'languages/help_text.hr.php',
+'flagsfile'=>'images/flags/croatia.gif',
+'factsfile'=>'languages/facts.hr.php',
+'adminfile'=>'languages/admin.hr.php',
+'editorfile'=>'languages/editor.hr.php',
+'countryfile'=>'languages/countries.hr.php',
+'faqlistfile'=>'languages/faqlist.hr.php',
+'extrafile'=>'languages/extra.hr.php',
+'DATE_FORMAT'=>'D M Y',
+'TIME_FORMAT'=>'g:i:sa',
+'WEEK_START'=>'0',
+'TEXT_DIRECTION'=>'ltr',
+'NAME_REVERSE'=>false,
+'ALPHABET_upper'=>'ABCČĆDǄĐEFGHIJKLǇMNǊOPRSŠTUVZŽ',
+'ALPHABET_lower'=>'abcčćdǆđefghijklǉmnǌoprsštuvzž',
+'MULTI_LETTER_ALPHABET'=>'dž,lj,nj',
+'MULTI_LETTER_EQUIV'=>'DŽ=Ǆ,Dž=ǅ,dž=ǆ,LJ=Ǉ,Lj=ǈ,lj=ǉ,NJ=Ǌ,Nj=ǋ,nj=ǌ',
+'DICTIONARY_SORT'=>true,
+'COLLATION'=>'utf8_slovenian_ci'
+);
+
 //-- settings for slovenian
 $language_settings['slovenian']=array(
 'pgv_langname'=>'slovenian',
