@@ -294,7 +294,7 @@ $pgv_lang["ged_export"]							= "Exportar";
 $pgv_lang["ged_check"]							= "Comprobar";
 $pgv_lang["gedcom_adm_head"]					= "Administración GEDCOM";
 $pgv_lang["gedcom_config_write_error"]			= "¡¡¡ E R R O R !!!<br />No se pudo escribir el archivo <i>#GLOBALS[whichFile]#</i>. Verifique si posee permisos de escritura adecuados.";
-$pgv_lang["gedcom_downloadable"]				= "¡Este archivo GEDCOM puede descargarse desde Internet!<br/>Por favor, vea la sección SECURITY del archivo <a hef=\"readme.txt\">readme.txt</a> para solventar este problema.";
+$pgv_lang["gedcom_downloadable"]				= "¡Este archivo GEDCOM puede descargarse desde Internet!<br/>Por favor, vea la sección SECURITY del archivo <a href=\"readme.txt\">readme.txt</a> para solventar este problema.";
 $pgv_lang["gedcom_file"]						= "Archivo GEDCOM:";
 $pgv_lang["gedcom_not_imported"]				= "Este GEDCOM no ha sido importado todavía.";
 $pgv_lang["ibase"]								= "InterBase";
