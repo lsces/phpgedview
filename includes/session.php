@@ -514,10 +514,10 @@ if ((empty($LANGUAGE) || $ENABLE_MULTI_LANGUAGE) && empty($_SESSION['CLANGUAGE']
 	$browserLangList = preg_split('/(,\s*)|(;\s*)/', $browserLangPrefs);
 	if (empty($LANGUAGE)) $LANGUAGE = 'english';		// Use English if we can't match any of the browser's preferred languages
 	foreach ($browserLangList as $browserLang) {
-		$browserLang = strtolower(trim($browserLang)).';';
+		$browserLang = ';'.strtolower(trim($browserLang));
 		foreach ($pgv_lang_use as $language => $active) {
 			if ($CONFIGURED && !$active) continue;	// Don't consider any language marked as "inactive"
-			if (strpos($lang_langcode[$language], $browserLang) === false) continue;
+			if (strpos(';'.$lang_langcode[$language], $browserLang) === false) continue;
 			$LANGUAGE = $language;	// We have a match
 			break 2;
 		}
