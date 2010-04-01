@@ -320,7 +320,7 @@ $bots_not_allowed = array(
 'clippings',
 'gedrecord.php'
 );
-if ($SEARCH_SPIDER && !in_array(PGV_SCRIPT_NAME, $bots_not_allowed)) {
+if ($SEARCH_SPIDER && in_array(PGV_SCRIPT_NAME, $bots_not_allowed)) {
 	header("HTTP/1.0 403 Forbidden");
 	print "Sorry, this page is not available for search engine bots.";
 	exit;
