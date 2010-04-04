@@ -9,6 +9,7 @@
 =====================================================================
 
 Version 4.3.0
+ - Changed: New rules for finding highlighted object on charts, Indi, and Family pages (canajun2eh)
  - Fixed: [ 2947598 ] Site Map missing the $SERVER_URLvar? (fisharebest)
  - Changed: Behaviour of autocomplete for INDI fields, input of an id grabs only the exact id and extends by a further digit, makes it much faster for large gedcoms (volschin)
  - Fixed: [ 2945678 ] [6910] Add new child/autocomplete (fisharebest)
