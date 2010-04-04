@@ -896,7 +896,7 @@ $pgv_lang["niece"]					= "Nicht";
 $pgv_lang["firstcousin"]			= "Neef/nicht";
 $pgv_lang["femalecousin"]			= "Nicht";
 $pgv_lang["malecousin"]				= "Neef";
-$pgv_lang["relationship_to_me"]		"Relatie met mij";
+$pgv_lang["relationship_to_me"]		= "Relatie met mij";
 $pgv_lang["rela_husb"]				= "Relatie tot partner";
 $pgv_lang["rela_wife"]				= "Relatie tot partner";
 $pgv_lang["next_path"]				= "Zoek volgend pad";
