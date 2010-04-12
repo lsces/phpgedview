@@ -6,7 +6,7 @@
 * ( Currently used with Facts and Details tab, and Album Tab pages )
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2007 to 2008  PGV Development Team.  All rights reserved.
+* Copyright (C) 2007 to 2010  PGV Development Team.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -703,20 +703,28 @@ function print_pedigree_person_nav($pid, $style=1, $show_famlink=true, $count=0,
 								}
 							}
 						}
-						$spouselinks .= "<ul class=\"clist ".$TEXT_DIRECTION."\">\n";
 						// Children ------------------------------   @var $child Person
+						$hasChildren = 'No';
 						foreach($children as $c=>$child) {
 							if ($child) {
+								if ($hasChildren == 'No') {
+									$hasChildren = 'Yes';
+									$spouselinks .= "\n<ul class=\"clist ".$TEXT_DIRECTION."\">";
+								}
 								$persons="Yes";
-									$title = $pgv_lang["indi_info"].": ".$child->getXref();
-									$spouselinks .= "<li>";
-									$spouselinks .= "<a href=\"".encode_url($child->getLinkUrl()."&amp;tab={$tabno}")."\">";
-									$spouselinks .= PrintReady($child->getFullName());
-									$spouselinks .= "</a>";
-									$spouselinks .= "</li>\n";
+								$title = $pgv_lang["indi_info"].": ".$child->getXref();
+								$spouselinks .= "\n<li>";
+								$spouselinks .= "<a href=\"".encode_url($child->getLinkUrl()."&amp;tab={$tabno}")."\">";
+								$spouselinks .= PrintReady($child->getFullName());
+								$spouselinks .= "</a>";
+								$spouselinks .= "</li>";
 							}
 						}
-						$spouselinks .= "</ul>";
+						if ($hasChildren == 'Yes') {
+							$spouselinks .= "\n</ul>";
+						} else {
+							$spouselinks .= '<br />';
+						}
 					}
 				}
 
