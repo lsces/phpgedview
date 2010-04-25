@@ -713,6 +713,7 @@ if ($action=="add") {
 	//-->
 </script>
 
+<?php $i=0; ?>
 <form method="post" id="editplaces" name="editplaces" action="module.php?mod=googlemap&amp;pgvaction=places_edit">
 	<input type="hidden" name="action" value="<?php echo $action;?>record" />
 	<input type="hidden" name="placeid" value="<?php echo $placeid;?>" />
