@@ -811,7 +811,7 @@ function fetch_linked_obje($xref, $link, $ged_id) {
 		" FROM {$TBLPREFIX}media".
 		" JOIN {$TBLPREFIX}link ON (m_gedfile=l_file AND m_media=l_from)".
 		" LEFT JOIN {$TBLPREFIX}name ON (m_gedfile=n_file AND m_media=n_id AND n_num=0)".
-		" WHERE m_gedfile=? AND l_type=? AND l_to=? AND n_num=?".
+		" WHERE m_gedfile=? AND l_type=? AND l_to=?".	
 		" ORDER BY n_sort"
 	)->execute(array($ged_id, $link, $xref))->fetchAll(PDO::FETCH_ASSOC);
 
@@ -2586,11 +2586,13 @@ function delete_user($user_id) {
 
 	$user_name=get_user_name($user_id);
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}user      WHERE user_id =?"        )->execute(array($user_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks    WHERE b_username =?"     )->execute(array($user_name));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}favorites WHERE fv_username=?"     )->execute(array($user_name));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}messages  WHERE m_from=? OR m_to=?")->execute(array($user_name, $user_name));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}news      WHERE n_username =?"     )->execute(array($user_name));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}user      				WHERE user_id =?"        )->execute(array($user_id));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}user_gedcom_setting 	WHERE user_id =?"        )->execute(array($user_id));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}user_setting        	WHERE user_id =?"        )->execute(array($user_id));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks    				WHERE b_username =?"     )->execute(array($user_name));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}favorites 				WHERE fv_username=?"     )->execute(array($user_name));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}messages  				WHERE m_from=? OR m_to=?")->execute(array($user_name, $user_name));
+	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}news      				WHERE n_username =?"     )->execute(array($user_name));
 }
 
 function get_all_users($order='ASC', $key1='lastname', $key2='firstname') {
