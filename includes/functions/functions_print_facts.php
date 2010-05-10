@@ -269,16 +269,20 @@ function print_fact(&$eventObj, $noedit=false) {
 			if ($fact!="EVEN" && $fact!="FACT") {
 				if (preg_match("/2 TYPE (.*)/", $factrec, $match)) {
 					$type = trim($match[1]);
-					if (isset ($factarray["MARR_".UTF8_strtoupper($type)])) {
-						echo $factarray["MARR_".UTF8_strtoupper($type)];
-					} elseif (isset($factarray[$type])) {
-						echo $factarray[$type];
-					} elseif (isset($pgv_lang[$type])) {
-						echo $pgv_lang[$type];
-					} else {
-						echo $type;
+					//do not print the label twice and do not print a new line
+					if (isset($factarray[$type]) && $label==$factarray[$type]);
+					else {
+						if (isset ($factarray["MARR_".UTF8_strtoupper($type)])) {
+							echo $factarray["MARR_".UTF8_strtoupper($type)];
+						} elseif (isset($factarray[$type])) {
+							echo $factarray[$type];
+						} elseif (isset($pgv_lang[$type])) {
+							echo $pgv_lang[$type];
+						} else {
+							echo $type;
+						}
+						echo "<br />";
 					}
-					echo "<br />";
 				}
 			}
 			//-- print spouse name for marriage events
