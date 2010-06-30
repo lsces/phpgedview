@@ -166,6 +166,6 @@ $pgv_lang["PEDIGREE_MAP_clustersize_help"]	= "~#pgv_lang[PEDIGREE_MAP_clustersiz
 $pgv_lang["PEDIGREE_MAP_hidelines"]			= "Ocultar líneas";
 $pgv_lang["PEDIGREE_MAP_hidelines_help"]	= "~#pgv_lang[PEDIGREE_MAP_hidelines]#~<br /><br />Ocultar las líneas que conectan una persona a sus padres si existen en el mapa.";
 $pgv_lang["PEDIGREE_MAP_hideflags"]			= "Ocultar banderas";
-$pgv_lang["PEDIGREE_MAP_hideflags_help"]	= "~#pgv_lang[PEDIGREE_MAP_hideflags]#~<br /><br />Ocultar las banderas configuradas en el módulo googlemap.  Generalmente son las de países y provincias o estados.&nbsp; Sirven como pista visual de que los marcadores alrededor de la vabdera son del área general y no del punto del mapa específico.";
+$pgv_lang["PEDIGREE_MAP_hideflags_help"]	= "~#pgv_lang[PEDIGREE_MAP_hideflags]#~<br /><br />Ocultar las banderas configuradas en el módulo googlemap.  Generalmente son las de países y provincias o estados.&nbsp; Sirven como pista visual de que los marcadores alrededor de la bandera son del área general y no del punto del mapa específico.";
 $pgv_lang["PEDIGREE_MAP_help"]				= "~#pgv_lang[PEDIGREE_MAP_help1]#~<br /><br />#pgv_lang[PEDIGREE_MAP_help4]#<br />#pgv_lang[PEDIGREE_MAP_help5]#<br /><br />#pgv_lang[PEDIGREE_MAP_help2]#<br /><br />#pgv_lang[PEDIGREE_MAP_help3]#<br /><br />#pgv_lang[PEDIGREE_MAP_clustersize_help]#<br /><br />#pgv_lang[PEDIGREE_MAP_hidelines_help]#<br /><br />#pgv_lang[PEDIGREE_MAP_hideflags_help]#<br /><br />";
 ?>

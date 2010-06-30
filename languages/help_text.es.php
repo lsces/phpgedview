@@ -286,7 +286,7 @@ $pgv_lang["register_info_03"]		= "~SOLICITAR NUEVA CUENTA DE USUARIO~<br /><br /
 
 
 //-- Descendancy-page
-$pgv_lang["help_descendancy.php"]		= "~LA PÁGINA DE DESCENDENCIA~<br /><br />Esta página le mostrará los descendientes de una persona.<br /><br />Puede escoger la persona de comienzo (raíz) para este diagrama de descendencia o puede haber llegado a esta página haciendo clic en el enlace <b>#pgv_lang[descend_chart]#</b> de otra página.  Haga clic en los iconos de flecha para navegar este árbol en la dirección de la flecha.  Haga clic en el icono Diagrama en la caja de cualquier pesona para cambiar la raíz del árbol a esa persona.<br /><br />";
+$pgv_lang["help_descendancy.php"]		= "~LA PÁGINA DE DESCENDENCIA~<br /><br />Esta página le mostrará los descendientes de una persona.<br /><br />Puede escoger la persona de comienzo (raíz) para este diagrama de descendencia o puede haber llegado a esta página haciendo clic en el enlace <b>#pgv_lang[descend_chart]#</b> de otra página.  Haga clic en los iconos de flecha para navegar este árbol en la dirección de la flecha.  Haga clic en el icono Diagrama en la caja de cualquier persona para cambiar la raíz del árbol a esa persona.<br /><br />";
 $pgv_lang["desc_rootid_help"]			= "#pgv_lang[rootid_help]#";
 $pgv_lang["desc_generations_help"]		= "#pgv_lang[PEDIGREE_GENERATIONS_help]#";
 
