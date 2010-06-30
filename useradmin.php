@@ -570,7 +570,7 @@ if ($action == "listusers") {
 			}
 		}
 		else if ($filter == "gedadmin") {
-			if (get_user_gedcom_setting($user_id, $ged, 'canedit') != "admin") {
+			if (get_user_gedcom_setting($user_id, $ged_id, 'canedit') != "admin") {
 				unset($users[$user_id]);
 			}
 		}
