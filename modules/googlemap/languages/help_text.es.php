@@ -45,7 +45,7 @@ $pgv_lang["GOOGLEMAP_MAP_TYPE"]         = "Tipo de Google-map";
 $pgv_lang["GOOGLEMAP_MAP_TYPE_help"]    = "~#pgv_lang[GOOGLEMAP_MAP_TYPE]#~<br /><br />El tipo de mapa que se mostrará por omisión. Puede ser Mapa, Satélite o Híbrido.";
 
 $pgv_lang["GOOGLEMAP_MAP_SIZE"]         = "Tamaño de Google-map";
-$pgv_lang["GOOGLEMAP_MAP_SIZE_help"]    = "~#pgv_lang[GOOGLEMAP_MAP_SIZE]#~<br /><br />Tamaño del mapa (en pixels) en la página de Persona.";
+$pgv_lang["GOOGLEMAP_MAP_SIZE_help"]    = "~#pgv_lang[GOOGLEMAP_MAP_SIZE]#~<br /><br />Tamaño del mapa (en píxeles) en la página de Persona.";
 
 $pgv_lang["GOOGLEMAP_MAP_ZOOM"]         = "Factor de ampliación de Google-map";
 $pgv_lang["GOOGLEMAP_MAP_ZOOM_help"]    = "~#pgv_lang[GOOGLEMAP_MAP_ZOOM]#~<br /><br />Los factores mínimo y máximo de ampliación para el mapa Google. Un 1 indica el mapa completo, 15 sería un edificio específico. Tome nota de que 15 sólo está disponible en algunas áreas.";
@@ -124,8 +124,8 @@ $pgv_lang["PLIF_CLEAN_help"]            = "~#pgv_lang[PLIF_CLEAN]#~<br /><br />S
 $pgv_lang["PLIF_UPDATE"]                = "Actualizar los registros existentes";
 $pgv_lang["PLIF_UPDATE_help"]           = "~#pgv_lang[PLIF_UPDATE]#~<br /><br />Sólo actualizar los registros existentes.<br/>Si se selecciona esta opción, sólo se actualizarán los registros existentes. Esto puede utilizarse para rellenar la latitud y longitud de los lugares que se han importado de un GEDCOM. No se agregarán nuevos lugares a la base de datos.";
 
-$pgv_lang["PLIF_OVERWRITE"]             = "Sobreescribir los datos de posición";
-$pgv_lang["PLIF_OVERWRITE_help"]        = "~#pgv_lang[PLIF_OVERWRITE]#~<br /><br />Sobreescribir los datos de posición de la base de datos con los datos del archivo.<br/>Si se selecciona esta opción, los datos de posición en la base de datos ((latitud, longitud, nivel de ampliación y bandera) se sobreescriben con los datos del archivo, si están disponibles. Si el registro no está ya en la base de datos, se creará uno nuevo, a menos que se seleccione la opción de Sólo Actualizar se seleccione también.";
+$pgv_lang["PLIF_OVERWRITE"]             = "Sobrescribir los datos de posición";
+$pgv_lang["PLIF_OVERWRITE_help"]        = "~#pgv_lang[PLIF_OVERWRITE]#~<br /><br />Sobrescribir los datos de posición de la base de datos con los datos del archivo.<br/>Si se selecciona esta opción, los datos de posición en la base de datos ((latitud, longitud, nivel de ampliación y bandera) se sobrescriben con los datos del archivo, si están disponibles. Si el registro no está ya en la base de datos, se creará uno nuevo, a menos que se seleccione la opción de Sólo Actualizar se seleccione también.";
 
 $pgv_lang["PLE_ACTIVE"]             	= "Listar lugares inactivos";
 $pgv_lang["PLE_ACTIVE_help"]        	= "~#pgv_lang[PLE_ACTIVE]#~<br /><br /><strong>Lista los lugares en la tabla GoogleMaps que no están usados por ningún GEDCOM actual.</strong><br/><br/>La presentación se fija, por omisión, para mostrar solamente para modificación los lugares que existen tanto en sus archivos GEDCOM como en sus tablas GoogleMaps.<br/><br/>Si se marca esta opción y se hace clic en \"Ver\", la lista de lugares mostrará TODOS los lugares a este nivel.<br/><br/>Esto está diseñado para acelerar la presentación de la lista cuando se han importado grandes listas de lugares, pero no se han utilizado todos.<br/><br/>NOTA - si la opción se marca, la lista completa puede costar mostrarla varios minutos";
@@ -140,7 +140,7 @@ $pgv_lang["PLACECHECK_MATCH_help"]  	= "~#pgv_lang[PLACECHECK_MATCH]#~<br /><br 
 
 //wooc Options for Place Hierarchy display
 $pgv_lang["GOOGLEMAP_PH"]             	= "Usar Googlemap para la jerarquía de lugares";
-$pgv_lang["GOOGLEMAP_PH_help"]        	= "~#pgv_lang[GOOGLEMAP_PH]#~<br /><br />Utilice esta opción para activar (Sí) o desartivar (No) la posibilidad de utilizar Googlemap en lugar del sistema normal de PhpGedView para la jerarquía de lugares. Para poder activar esta opción, el módulo Googlemap también debe estar activado. Antes de utilizarlo se recomienda agregar todos los lugares ya existentes en sus GEDCOMs a las tablas de Googlemap.";
+$pgv_lang["GOOGLEMAP_PH_help"]        	= "~#pgv_lang[GOOGLEMAP_PH]#~<br /><br />Utilice esta opción para activar (Sí) o desactivar (No) la posibilidad de utilizar Googlemap en lugar del sistema normal de PhpGedView para la jerarquía de lugares. Para poder activar esta opción, el módulo Googlemap también debe estar activado. Antes de utilizarlo se recomienda agregar todos los lugares ya existentes en sus GEDCOMs a las tablas de Googlemap.";
 $pgv_lang["GOOGLEMAP_PH_MAP_SIZE"]		= "Tamaño del mapa en la jerarquía de lugares (en píxeles)";
 $pgv_lang["GOOGLEMAP_PH_MAP_SIZE_help"]	= "~#pgv_lang[GOOGLEMAP_MAP_SIZE]#~<br /><br />El tamaño del mapa (en píxeles) en las páginas de la jerarquía de lugares.";
 $pgv_lang["GOOGLEMAP_PH_MARKER"]		= "Tipo de marcadores de lugar en la jerarquía de lugares";
@@ -148,7 +148,7 @@ $pgv_lang["GOOGLEMAP_PH_MARKER_help"]	= "~#pgv_lang[GOOGLEMAP_PH_MARKER]#~<br />
 $pgv_lang["GM_DISP_SHORT_PLACE"]		= "Mostrar nombres recortados para los lugares";
 $pgv_lang["GM_DISP_SHORT_PLACE_help"]	= "~#pgv_lang[GM_DISP_SHORT_PLACE]#~<br /><br />Aquí puede elegir entre dos formas de mostrar los nombres de los lugares en la jerarquía. Si pone Sí el lugar usará un nombre corto o el nombre del nivel.  Si no, se utilizará el nombre completo.<br /><b>Ejemplos:<br />Nombre completo: </b>Chicago, Illinois, USA<br /><b>Nombre corto: </b>Chicago<br /><b>Nombre completo: </b>Illinois, USA<br /><b>Nombre corto: </b>Illinois";
 $pgv_lang["GM_DISP_COUNT"]				= "Mostrar totales de personas y familias";
-$pgv_lang["GM_DISP_COUNT_help"]			= "~#pgv_lang[GM_DISP_COUNT]#~<br /><br />Aquí puede especificar si se muestran los totals de personas y familias relacionadas con el lugar. Si el archivo GEDCOM contiene muchas personas se recomienda desactivarlo.";
+$pgv_lang["GM_DISP_COUNT_help"]			= "~#pgv_lang[GM_DISP_COUNT]#~<br /><br />Aquí puede especificar si se muestran los totales de personas y familias relacionadas con el lugar. Si el archivo GEDCOM contiene muchas personas se recomienda desactivarlo.";
 $pgv_lang["GOOGLEMAP_PH_WHEEL"]			= "Usar la rueda para acercar y alejar";
 $pgv_lang["GOOGLEMAP_PH_WHEEL_help"]	= "~#pgv_lang[GOOGLEMAP_PH_WHEEL]#~<br /><br />Aquí puede indicar si la rueda del #pgv_lang_es_mouse[mouse] se utiliza para acercar y alejar.";
 $pgv_lang["GOOGLEMAP_PH_CONTROLS"]		= "Ocultar los controles del mapa";

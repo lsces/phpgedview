@@ -3,7 +3,7 @@
  * Spanish language file for PhpGedView
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ if (!defined('PGV_PHPGEDVIEW')) {
 }
 
 $pgv_lang["SITEMAP"]                = "Información del mapa del sitio";
-$pgv_lang["SITEMAP_help"]           = "~#pgv_lang[SITEMAP]#~<br /><br />Mediante esta página puede generar un mapa del sitio. Un mapa del sitio pueden utilizarlo los motores de búsqueda para optimizar la indexación de su sitio.  Esto se hace proporcionando un archivo con vínculos a todas las páginas que quiera que muestre el motor de búsqueda.<br/>Esta herramienta generará un archivo sitemap por cada GEDCOM y (si se genera más de un archivo sitemap), un archivo siteindex. Los archivos generados deberían colocarse en la raíz de su instalación de phpGedView.<br/>En este momento, solamente Google utiliza los archivos. Para más información, vea esta página (en inglés):<br/><a href=\"https://www.google.com/webmasters/sitemaps/docs/en/about.html\">About Google webmaster tools</a>";
+$pgv_lang["SITEMAP_help"]           = "~#pgv_lang[SITEMAP]#~<br /><br />Mediante esta página puede generar un mapa del sitio. Un mapa del sitio pueden utilizarlo los motores de búsqueda para optimizar la indexación de su sitio.  Esto se hace proporcionando un archivo con vínculos a todas las páginas que quiera que muestre el motor de búsqueda.<br/>Esta herramienta generará un archivo sitemap por cada GEDCOM y (si se genera más de un archivo sitemap), un archivo siteindex. Los archivos generados deberían colocarse en la raíz de su instalación de PhpGedView.<br/>En este momento, solamente Google utiliza los archivos. Para más información, vea esta página (en inglés):<br/><a href=\"https://www.google.com/webmasters/sitemaps/docs/en/about.html\">About Google webmaster tools</a>";
 
 $pgv_lang["SM_GEDCOM_SELECT"]       = "Seleccionar GEDCOMs";
 $pgv_lang["SM_GEDCOM_SELECT_help"]  = "~#pgv_lang[SM_GEDCOM_SELECT]#~<br /><br />Seleccionar los GEDCOMs para los que desea crear un archivo sitemap. Seleccione al menos uno.<br/>Si se selecciona la opción \"Sin vínculos a información privada\", sólo se incluirán los vínculos a los datos disponibles públicamente.";

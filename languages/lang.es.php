@@ -651,7 +651,7 @@ $pgv_lang["total_shared_notes"]			= "Total notas compartidas";
 //-- BUILDINDEX FILE MESSAGES
 $pgv_lang["invalid_gedformat"]		= "Formato GEDCOM inválido";
 $pgv_lang["exec_time"]				= "Tiempo de ejecución:";
-$pgv_lang["unable_to_create_index"] = "No se pudo crear un archivo índice. Asegúrese de que los permisos de escritura están habilitados en el directorio de PhpGedView.  Es posiblem volver a cambiar los permisos una vez hayan sido escritos los archivos índice.";
+$pgv_lang["unable_to_create_index"] = "No se pudo crear un archivo índice. Asegúrese de que los permisos de escritura están habilitados en el directorio de PhpGedView.  Es posible volver a cambiar los permisos una vez hayan sido escritos los archivos índice.";
 $pgv_lang["changes_present"]		= "Hay cambios pendientes de revisión en el GEDCOM actual.  Si prosigue con la Importación, los cambios pendientes se perderán. Debería revisar los cambios pendientes antes de proseguir con la importación.";
 $pgv_lang["sec"]					= "sec.";
 
@@ -735,7 +735,7 @@ $pgv_lang["easter"]     = "Pascua";
 $pgv_lang["ascension"]  = "Ascensión";
 $pgv_lang["pentecost"]  = "Pentecostés";
 $pgv_lang["assumption"] = "Asunción";
-$pgv_lang["all_saints"] = "Todos los santos";
+$pgv_lang["all_saints"] = "Todos los Santos";
 $pgv_lang["christmas"]  = "Navidad";
 
 // am/pm suffixes for 12 hour clocks
@@ -766,8 +766,8 @@ $pgv_lang["pluv"]         = "pluvioso";
 $pgv_lang["vent"]         = "ventoso";
 $pgv_lang["germ"]         = "germinal";
 $pgv_lang["flor"]         = "floreal";
-$pgv_lang["prai"]         = "pradeal";
-$pgv_lang["mess"]         = "messidor";
+$pgv_lang["prai"]         = "pradial";
+$pgv_lang["mess"]         = "mesidor";
 $pgv_lang["ther"]         = "termidor";
 $pgv_lang["fruc"]         = "fructidor";
 $pgv_lang["comp"]         = "días complementarios";
@@ -1076,7 +1076,7 @@ $pgv_lang["male_cousin_14"]             = "primo decimocuarto";
 $pgv_lang["male_cousin_15"]             = "primo decimoquinto";
 $pgv_lang["male_cousin_16"]             = "primo decimosexto";
 $pgv_lang["male_cousin_17"]             = "primo decimoséptimo";
-$pgv_lang["male_cousin_18"]             = "primo decimooctavo";
+$pgv_lang["male_cousin_18"]             = "primo decimoctavo";
 $pgv_lang["male_cousin_19"]             = "primo decimonoveno";
 $pgv_lang["male_cousin_20"]             = "primo vigésimo";
 $pgv_lang["male_cousin_n"]              = "%dº primo";
@@ -1096,8 +1096,8 @@ $pgv_lang["female_cousin_13"]           = "prima decimotercera";
 $pgv_lang["female_cousin_14"]           = "prima decimocuarta";
 $pgv_lang["female_cousin_15"]           = "prima decimoquinta";
 $pgv_lang["female_cousin_16"]           = "prima decimosexta";
-$pgv_lang["female_cousin_17"]           = "prima decimoseptima";
-$pgv_lang["female_cousin_18"]           = "prima decimooctava";
+$pgv_lang["female_cousin_17"]           = "prima decimoséptima";
+$pgv_lang["female_cousin_18"]           = "prima decimoctava";
 $pgv_lang["female_cousin_19"]           = "prima decimonovena";
 $pgv_lang["female_cousin_20"]           = "prima vigésima";
 $pgv_lang["female_cousin_n"]            = "%dª prima";
@@ -1369,7 +1369,7 @@ $pgv_lang["user_messages_descr"]	= "El Bloque de Mensajes al Usuario muestra una
 $pgv_lang["user_favorites_block"]	= "Favoritos del usuario";
 $pgv_lang["user_favorites_descr"]	= "El Bloque de Favoritos del Usuario muestra al usuario un listado de sus personas favoritas de la base de datos haciéndolas fácilmente accesibles.";
 $pgv_lang["welcome_block"]			= "Bloque de Bienvenida al Usuario";
-$pgv_lang["welcome_descr"]			= "El Bloque de Bienvenida al Usuario muestra al usuario la fecha y hora actual, vínculos rápidos para modificar su cuenta o dirigirse a su propio Árbol de Ascendientes y un vínculo para personalizar su página Mi GedView.";
+$pgv_lang["welcome_descr"]			= "El Bloque de Bienvenida al Usuario muestra al usuario la fecha y hora actual, vínculos rápidos para modificar su cuenta o dirigirse a su propio Árbol de Ascendientes y un vínculo para personalizar su página MiGedView.";
 $pgv_lang["random_media_block"] 	= "Objeto audiovisual al azar";
 $pgv_lang["random_media_descr"] 	= "El bloque de Objeto Audiovisual al Azar muestra de forma aleatoria una foto u otro elemento audiovisual de la base de datos activa en el momento y lo muestra al usuario.<br /><br />El administrador determina si este bloque puede mostrar elementos asociados con personas o con eventos.";
 $pgv_lang["random_media_persons_or_all"]	= "¿Mostrar sólo personas, eventos o todo?";
@@ -1395,7 +1395,7 @@ $pgv_lang["block_givn_top10"]			= "Los 10 nombres de pila más corrientes";
 $pgv_lang["block_givn_top10_descr"]		= "Este bloque muestra la tabla de los 10 nombres de pila más frecuentes en la base de datos.  En número de nombres que se muestra en este bloque es configurable.";
 
 $pgv_lang["gedcom_news_block"]		= "Bloque de Novedades GEDCOM";
-$pgv_lang["gedcom_news_descr"]		= "El bloque de Novedades del GEDCOM muestra al usuario novedades o artículos agragados por un usuario administrador.<br /><br />El bloque de Novedades es un buen sitio para anunciar una actualización de la base de datos, una reunión familiar o el nacimiento de un hijo.";
+$pgv_lang["gedcom_news_descr"]		= "El bloque de Novedades del GEDCOM muestra al usuario novedades o artículos agregados por un usuario administrador.<br /><br />El bloque de Novedades es un buen sitio para anunciar una actualización de la base de datos, una reunión familiar o el nacimiento de un hijo.";
 $pgv_lang["gedcom_news_limit"]		= "Limitar la presentación por:";
 $pgv_lang["gedcom_news_limit_nolimit"]	= "Sin límite";
 $pgv_lang["gedcom_news_limit_date"]		= "Antigüedad de la entrada";
@@ -1481,7 +1481,7 @@ $pgv_lang["ahnentafel_on"]			= " ";
 
 //-- Changes report
 $pgv_lang["changes_report"]			= "Informe de cambios";
-$pgv_lang["changes_pending_tot"]	= "Cambios pedientes en total: ";
+$pgv_lang["changes_pending_tot"]	= "Cambios pendientes en total: ";
 $pgv_lang["changes_accepted_tot"]	= "Cambios aceptados en total: ";
 
 //-- Descendancy report
@@ -1680,7 +1680,7 @@ $pgv_lang["without_sources"]	= "Sin fuentes";
 $pgv_lang["stat_sindi"]			= "Personas con fuentes";
 $pgv_lang["stat_sfam"]			= "Familias con fuentes";
 $pgv_lang["statvars"]			= "Rellene las siguientes variables para el gráfico";
-$pgv_lang["statlxa"]			= "Seleccion tipo de gráfico;";
+$pgv_lang["statlxa"]			= "Selección tipo de gráfico;";
 $pgv_lang["statlya"]			= "resultados:";
 $pgv_lang["statlza"]			= "Categorías:";
 $pgv_lang["map_type"]			= "Tipo de mapa";
@@ -1931,9 +1931,9 @@ $pgv_lang["TYPE__other"] = "Otro";
 
 //-- Other media suff
 $pgv_lang["view_slideshow"]			= "Ver como presentación";
-$pgv_lang["download_image"]			= "Descargar arhivo";
+$pgv_lang["download_image"]			= "Descargar archivo";
 $pgv_lang["no_media"]				= "No se encontró el objeto audiovisual";
-$pgv_lang["media_privacy"]			= "Las retricciones de privacidad no le permiten ver este elemento";
+$pgv_lang["media_privacy"]			= "Las restricciones de privacidad no le permiten ver este elemento";
 $pgv_lang["relations_heading"]		= "La imagen está relacionada con:";
 $pgv_lang["file_size"]				= "Tamaño del archivo";
 $pgv_lang["img_size"]				= "Dimensiones de la imagen";

@@ -3,7 +3,7 @@
  * Spanish language file for PhpGedView
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ $pgv_lang["add_task"]							= "Agregar tarea";
 $pgv_lang["view_folders"]						= "Ver carpetas";
 $pgv_lang["view_probabilities"]					= "Ver probabilidades";
 $pgv_lang["up_folder"]							= "Subir a la carpeta superior";
-$pgv_lang["edit_folder"]						= "Agregar/Modificar Carpeta";
+$pgv_lang["edit_folder"]						= "Agregar/modificar carpeta";
 $pgv_lang["gen_tasks"]							= "Auto-generar tareas";
 
 // -- RA GENERAL MESSAGES
@@ -101,7 +101,7 @@ $pgv_lang["radiobutton"]						= "Botón de radio";
 $pgv_lang["EnterResults"]						= "Introducir resultados";
 $pgv_lang["ra_submit"]							= "Enviar";
 $pgv_lang["ra_generate_tasks"]					= "Generar tareas a partir de TODO (pendientes)";
-$pgv_lang["TaskDescription"]					= "Descripción de la Tarea";
+$pgv_lang["TaskDescription"]					= "Descripción de la tarea";
 $pgv_lang["SelectFolder"]                       = "Seleccionar carpeta:";
 $pgv_lang["ra_done"]							= "Hecho";
 $pgv_lang["ra_generate"]						= "Generar";
@@ -154,12 +154,12 @@ $pgv_lang["no_folder"]						= "No existe ninguna carpeta aún. Cree por favor un
 
 //-- HELP MESSAGES
 $pgv_lang["ra_fold_name_help"]				= "~Vista de carpeta~<ul><li><b>Nombre de la carpeta:</b> Esta columna contiene los nombres de las carpetas que ha creado.</li><li><b>Descripción:</b> Esta columna contiene la descripción de las carpetas.</li></ul>";
-$pgv_lang["ra_add_task_help"]				= "~Agregar Nueva Tarea~<ul><li><b>Título:</b> Esto debería contener el título de la tarea que está agregando.</li><li><b>Carpeta:</b> En este campo debería asignar a qué carpeta quiere que vaya su nueva tarea.</li><li><b>Descripción:</b> Introduzca una descripción de la tarea que desea agregar.</li><li><b>Fuentes:</b> Asignar las fuentes que tenga para la tarea.</li><li><b>Personas:</b> Asignar las personas asociadas para la nueva tarea.</li></ul>";
+$pgv_lang["ra_add_task_help"]				= "~Agregar nueva tarea~<ul><li><b>Título:</b> Esto debería contener el título de la tarea que está agregando.</li><li><b>Carpeta:</b> En este campo debería asignar a qué carpeta quiere que vaya su nueva tarea.</li><li><b>Descripción:</b> Introduzca una descripción de la tarea que desea agregar.</li><li><b>Fuentes:</b> Asignar las fuentes que tenga para la tarea.</li><li><b>Personas:</b> Asignar las personas asociadas para la nueva tarea.</li></ul>";
 $pgv_lang["ra_edit_folder_help"]			= "~Modificar carpeta~<ul><li><b>Nombre de la carpeta:</b> Aquí es donde debería añadir el título de la carpeta que está modificando.</b></li><li><b>Carpeta superior:</b> Aquí puede asignar la carpeta que contiene a ésta carpeta, si es una subcarpeta lo que está modificando.</b></li><li><b>Descripción de la carpeta:</b> Ésta es la descripción de la carpeta que está modificando.</b></li></ul>";
-$pgv_lang["ra_add_folder_help"]				= "~Agregar Carpeta~<ul><li><b>Nombre de la carpeta:</b> Aquí es donde debería añadir el título de la carpeta que está agregando.</b></li><li><b>Carpeta superior:</b> Aquí puede asignar la carpeta que contiene a esta carpeta, si es una subcarpeta la que está agregando.</b></li><li><b>Descripción de la carpeta:</b> Ésta es la descripción de la carpeta que está agregando.</b></li></ul>";
+$pgv_lang["ra_add_folder_help"]				= "~Agregar carpeta~<ul><li><b>Nombre de la carpeta:</b> Aquí es donde debería añadir el título de la carpeta que está agregando.</b></li><li><b>Carpeta superior:</b> Aquí puede asignar la carpeta que contiene a esta carpeta, si es una subcarpeta la que está agregando.</b></li><li><b>Descripción de la carpeta:</b> Ésta es la descripción de la carpeta que está agregando.</b></li></ul>";
 $pgv_lang["ra_view_task_help"]				= "~Vista de tareas~<ul><li><b>Nombre de la tarea:</b> Esta columna contiene el nombre de cada tarea.</b></li><li><b>Fecha de comienzo:</b> Este campo contendrá las fechas de comienzo para todas las tareas.</li><li><b>Completado:</b> Esto mostrará si está terminada o no una tarea.</li><li><b>Modificar:</b> Esto le llevará a modificar la tarea</li><li><b>Borrar:</b> Esto borrará la tarea.</li><li><b>Completar:</b> Esto le llevará a escoger el formulario y modificar la tarea</li></ul>";
 $pgv_lang["ra_task_view_help"]				= "~Ver Tarea~<ul><li><b>Título:</b> Esto debería contener el título de la tarea que está agregando.</li><li><b>Personas:</b> Asigne las personas asociadas para la nueva tarea.</li><li><b>Descripción:</b> Introduzca una descripción de la tarea que desea agregar.</li><li><b>Fuentes:</b> Asigne las fuentes que tenga para la tarea.</li><li>Haga clic en <b>Modificar Tarea</b> para modificar los detalles de la tarea.</li></ul>";
-$pgv_lang["ra_comments_help"]				= "~Comentarios~<ul><li>Esto contendrá cualquier comentario relacionado con la tarea. Haga clic en <b>Agregar Nuevo Comentario</b> para agregar cualquier comentario.</li></ul>";
+$pgv_lang["ra_comments_help"]				= "~Comentarios~<ul><li>Esto contendrá cualquier comentario relacionado con la tarea. Haga clic en <b>Agregar nuevo comentario</b> para agregar cualquier comentario.</li></ul>";
 $pgv_lang["ra_GenerateTasks_help"]			= "~Generar Tareas~<p>Este formulario genera tareas a partir de las etiquetas _TODO del archivo GEDCOM.</p><ul><li><b>Generar:</b> marque cada tarea a generar cuando haga clic en <b>Generar</b>.</li><li><b>Nombre de la tarea:</b> Es el nombre que se dará a la tarea.  Por omisión es el texto en la etiqueta _TODO real, excluyendo las etiquetas CONT, si es que existen</li><li><b>Descripción de la tarea:</b> La descripción que se dará a la tarea.  Esto se genera del texto en la etiqueta _TODO más todas las etiquetas CONT asociadas.  </li><li><b>Modificar:</b> haga clic en el vínculo para modificar esa tarea.</li><li><b>Seleccionar Carpeta:</b> seleccionar la carpeta en la que poner las tareas generadas.</li><li><b>Generar:</b> genera las tareas que se han marcado.</li><li><b>Hecho:</b> le redirige a la página de Ver Carpeta.</li></ul>";
 $pgv_lang["ra_EditGenerateTasks_help"]		= "~Modificar la Tarea Generada~<p>Este formulario le permite modificar las tareas generadas a partir de las etiquetas _TODO del archivo GEDCOM.</p><ul><li><b>Nombre de la tarea:</b> Es el nombre que se dará a la tarea.  </li><li><b>Descripción de la tarea:</b> La descripción que se dará a la tarea. </li><li><b>Personas:</b> haga clic en el vínculo para seleccionar la persona con la que asociar la tarea.</li><li><b>Fuente:</b> hacer clic en el vínculo para seleccionar la fuente con la que asociar la tarea.</li><li><b>Guardar:</b> guarda todos los cambios y le redirige a la página de Generar tareas.</li><li><b>Cancelar:</b> descarta todos los cambios y le redirige a la página de Generar tareas.</li></ul>";
 $pgv_lang["ra_configure_privacy_help"]		= "~Configurar privacidad~<ul><li><b>#pgv_lang[PRIV_PUBLIC]#:</b> La tarea especificada está disponible para todos.</li><li><b>#pgv_lang[PRIV_USER]#:</b> La tarea especificada está disponible solamente para usuarios autenticados.</li><li><b>#pgv_lang[PRIV_NONE]#</b> La tarea especificada está disponible solamente a usuarios con derechos de administración.</li><li><b>#pgv_lang[PRIV_HIDE]#:</b> La tarea especificada no está disponible para nadie.</li></ul>";
@@ -170,7 +170,7 @@ $pgv_lang["view_task"]						= "Ver tarea";
 $pgv_lang["add_new_comment"]				= "Agregar nuevo comentario";
 $pgv_lang["no_indi_tasks"]					= "No hay tareas asociadas con esta persona.";
 $pgv_lang["no_sour_tasks"]					= "No hay tareas asociadas con esta fuente.";
-$pgv_lang["edit_comment"]					= "Modificar Comentario";
+$pgv_lang["edit_comment"]					= "Modificar comentario";
 $pgv_lang["comment_success"]				= "Su comentario se agregó con éxito.";
 $pgv_lang["comment_body"]					= 'Comentario';
 
@@ -178,7 +178,7 @@ $pgv_lang["comment_body"]					= 'Comentario';
 $pgv_lang["comment_delete_check"]		= "¿Está seguro de que quiere borrar este comentario?";
 
 //-- RA_ADDTASK MESSAGES
-$pgv_lang["add_new_task"]				= "Agregar Nueva Tarea";
+$pgv_lang["add_new_task"]				= "Agregar nueva tarea";
 $pgv_lang["submit"]						= "Enviar";
 $pgv_lang["save_and_complete"]          = "Guardar y completar";
 $pgv_lang["assign_task"]				= "Asignar tarea";
@@ -207,11 +207,11 @@ $pgv_lang["choose_form_label"]			= "Escoja un formulario de investigación comú
 $pgv_lang["book"]                 		= "Libro";
 $pgv_lang["folio"]                   	= "Folio";
 $pgv_lang["uk_county"]					= "Condado";
-$pgv_lang["uk_boro"]						= "Población o Distrito";
+$pgv_lang["uk_boro"]						= "Población o distrito";
 $pgv_lang["uk_place"]					= "Lugar";
 
-$pgv_lang["AssIndiFacts"]				= "Asociar Hechos Personales";
-$pgv_lang["AssFamFacts"]				= "Asociar Hechos Familiares";
+$pgv_lang["AssIndiFacts"]				= "Asociar hechos personales";
+$pgv_lang["AssFamFacts"]				= "Asociar hechos familiares";
 $pgv_lang["ra_facts"]					= "Hechos";
 $pgv_lang["ra_fact"]					= "Hecho";
 $pgv_lang["ra_remove"]					= "eliminar";
@@ -220,7 +220,7 @@ $pgv_lang["ra_person"]					= "Persona";
 $pgv_lang["ra_reason"]					= "Razón";
 $pgv_lang["success"]					= "¡Éxito!";
 
-$pgv_lang["registration_no"]			= "Número de Registro:";
+$pgv_lang["registration_no"]			= "Número de registro:";
 $pgv_lang["serial_no"]					= "Número de serie:";
 $pgv_lang["ra_no"]						= "Número:";
 $pgv_lang["order_no"]					= "Número de orden:";

@@ -62,7 +62,7 @@ $pgv_lang["lb_details"]			= "Detalles";
 $pgv_lang["lb_detail_info"]		= "Ver los detalles de este objeto ...  Y otras opciones de objetos - Página del visor de objetos";
 $pgv_lang["lb_pause_ss"]		= "Pausar la presentación";
 $pgv_lang["lb_start_ss"]		= "Comenzar la presentación";
-$pgv_lang["lb_music"]			= "Activar/descativar música";
+$pgv_lang["lb_music"]			= "Activar/desactivar música";
 $pgv_lang["lb_zoom_off"]		= "Desactivar el zoom";
 $pgv_lang["lb_zoom_on"]			= "Zoom activado ... Use la rueda o las teclas i y o para acercar y alejar";
 $pgv_lang["lb_close_win"]		= "Cerrar la ventana de Lightbox";
@@ -88,7 +88,7 @@ $pgv_lang["lb_al_thumb_links"]			= "Página de persona - Miniaturas en la pesta�
 $pgv_lang["lb_ml_thumb_links"]			= "Página de objetos audiovisuales - Miniaturas";
 $pgv_lang["lb_music_file"]				= "Banda sonora para la presentación";
 $pgv_lang["lb_musicFileAdvice"]			= "Ubicación del archivo con la banda sonora (déjelo en blanco si no hay banda sonora)";
-$pgv_lang["lb_ss_speed"]				= "<b>Velocidad de la Presentación</b>";
+$pgv_lang["lb_ss_speed"]				= "<b>Velocidad de la presentación</b>";
 $pgv_lang["lb_ss_SpeedAdvice"]			= "Tiempo de permanencia de la imagen en segundos";
 
 $pgv_lang["lb_transition"]				= "Velocidad de transición entre imágenes";
@@ -139,8 +139,8 @@ $pgv_lang["turn_edit_OFF"] 		= "Desactivar el modo de edición";
 $pgv_lang["lb_source_avail"] 	= "Hay información de la fuente - Haga clic aquí.";
 
 $pgv_lang["lb_private"] 		= "Imagen vinculada a <br /> una persona privada";
-$pgv_lang["lb_view_source_tip"] = "Ver fuente : ";
-$pgv_lang["lb_view_details_tip"] = "Ver detalles del objeto : ";
+$pgv_lang["lb_view_source_tip"] = "Ver fuente: ";
+$pgv_lang["lb_view_details_tip"] = "Ver detalles del objeto: ";
 
 
 

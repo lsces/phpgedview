@@ -3,7 +3,7 @@
  * Spanish language file for PhpGedView
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ $pgv_lang["replace"]				= "Sustituir registro";
 $pgv_lang["append"] 				= "Agregar registro";
 $pgv_lang["review_changes"] 		= "Reseña de los cambios en el GEDCOM";
 $pgv_lang["remove_object"]			= "Eliminar objeto";
-$pgv_lang["remove_links"]			= "Eliminar vinculos";
+$pgv_lang["remove_links"]			= "Eliminar vínculos";
 $pgv_lang["media_not_deleted"]		= "Directorio de objetos audiovisuales no eliminado.";
 $pgv_lang["thumbs_not_deleted"]		= "Directorio de miniaturas no eliminado.";
 $pgv_lang["thumbs_deleted"]			= "Directorio de miniaturas eliminado con éxito.";
@@ -244,7 +244,7 @@ $pgv_lang["upload"]					= "Subir";
 $pgv_lang["upload_error"]			= "Hubo un error al subir su archivo.";
 $pgv_lang["copy_error"]				= "No se pudo copiar al archivo #GLOBALS[whichFile2]# el contenido del archivo #GLOBALS[whichFile1]#";
 $pgv_lang["upload_media"]			= "Subir archivos audiovisuales";
-$pgv_lang["upload_media_help"]		= "~#pgv_lang[upload_media]#~<br /><br />Seleccione los archivos de su equipo local a subir a su servidor.  Todos los archivos se subirán al directorio <b>#MEDIA_DIRECTORY#</b> o a uno de sus subdirectorios.<br /><br />Los nombres de carpeta que indique se añadirán a #MEDIA_DIRECTORY#. Por ejemplo, #MEDIA_DIRECTORY#myfamily. Si no existe el directorio de miniaturas, se creará automáticamente.";
+$pgv_lang["upload_media_help"]		= "~#pgv_lang[upload_media]#~<br /><br />Seleccione los archivos de su equipo local a subir a su servidor.  Todos los archivos se subirán al directorio <b>#MEDIA_DIRECTORY#</b> o a uno de sus subdirectorios.<br /><br />Los nombres de carpeta que indique se añadirán a #MEDIA_DIRECTORY#. Por ejemplo, #MEDIA_DIRECTORY#mifamilia. Si no existe el directorio de miniaturas, se creará automáticamente.";
 $pgv_lang["upload_successful"]		= "Proceso completo";
 $pgv_lang["view_change_diff"]		= "Ver modificaciones";
 
