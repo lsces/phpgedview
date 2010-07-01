@@ -824,7 +824,7 @@ $pgv_lang["saveandgo"]		= "Guardar e ir al siguiente registro";
 $pgv_lang["delete"] 				= "Borrar";
 $pgv_lang["edit"]					= "Editar";
 $pgv_lang["no_login"]				= "No es posible autenticar al usuario.";
-$pgv_lang["basic_realm"]			= "Sistema de autenticación de phpGedView";
+$pgv_lang["basic_realm"]			= "Sistema de autenticación de PhpGedView";
 $pgv_lang["basic_auth_failure"]		= "Debe introducir usuario y contraseña válidos para acceder a este recurso";
 $pgv_lang["basic_auth"]				= "Autenticación básica";
 $pgv_lang["digest_auth"]				= "Autenticación por función resumen (Digest Authentication)"; //not used in code yet
@@ -1257,7 +1257,7 @@ $pgv_lang["pwreqinfo"]				= "Hola...<br /><br />Se ha enviado un correo a la dir
 
 $pgv_lang["myuserdata"] 			= "Mi cuenta";
 $pgv_lang["user_theme"] 			= "Mi Tema";
-$pgv_lang["mgv"]					= "Mi GedView";
+$pgv_lang["mgv"]					= "MiGedView";
 $pgv_lang["mygedview"]				= "MiGedView";
 $pgv_lang["passwordlength"] 		= "La contraseña debe tener al menos 6 caracteres .";
 $pgv_lang["welcome_text_auth_mode_1"]	= "<center><b>Bienvenido a este sito de Genealogía</b></center><br />Se permite el acceso a cualquier visitante que tenga una cuenta de usuario.<br /><br />Si tiene una cuenta de usuario, puede identificarse en esta página.  Si no tiene cuenta de usuario, puede solicitarla haciendo clic en el vínculo apropiado más abajo.<br /><br />Después de verificar su solicitud, el administrador del sitio activará su cuenta.  Recibirá un correo electrónico cuando se apruebe su solicitud.";

@@ -162,7 +162,7 @@ $pgv_lang["PEDIGREE_MAP_help4"]		= "Haga clic en un nombre de la lista a la dere
 $pgv_lang["PEDIGREE_MAP_help5"]		= "Haga clic en los detalles en esa ventana de información para actualizar el mapa con esa persona como raíz.";
 
 $pgv_lang["PEDIGREE_MAP_clustersize"]		= "Tamaño del grupo";
-$pgv_lang["PEDIGREE_MAP_clustersize_help"]	= "~#pgv_lang[PEDIGREE_MAP_clustersize]#~<br /><br />El número de marcadores a colocar en un punto antes de pasar a mostrar un rastro de agujas en una línea hacia el noreste tras las generaciones más jóvenes.  El 'rastro' sólo es visible si se acerca mucho el mapa.";
+$pgv_lang["PEDIGREE_MAP_clustersize_help"]	= "~#pgv_lang[PEDIGREE_MAP_clustersize]#~<br /><br />El número de marcadores a colocar en un punto antes de pasar a mostrar un rastro de agujas en una línea hacia el nordeste tras las generaciones más jóvenes.  El 'rastro' sólo es visible si se acerca mucho el mapa.";
 $pgv_lang["PEDIGREE_MAP_hidelines"]			= "Ocultar líneas";
 $pgv_lang["PEDIGREE_MAP_hidelines_help"]	= "~#pgv_lang[PEDIGREE_MAP_hidelines]#~<br /><br />Ocultar las líneas que conectan una persona a sus padres si existen en el mapa.";
 $pgv_lang["PEDIGREE_MAP_hideflags"]			= "Ocultar banderas";

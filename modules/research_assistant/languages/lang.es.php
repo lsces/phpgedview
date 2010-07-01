@@ -186,7 +186,7 @@ $pgv_lang["AddTask"]					= "Agregar tarea";
 
 //-- RA_CONFIGURE PRIVACY MESSAGES
 $pgv_lang["configure_privacy"]		    = "Configurar privacidad";
-$pgv_lang["show_my_tasks"]              = "Mostrar mis tareas";
+$pgv_lang["show_my_tasks"]              = "Mostrar Mis Tareas";
 $pgv_lang["show_add_task"]		        = "Mostrar Agregar Tarea";
 $pgv_lang["show_auto_gen_task"]         = "Mostrar Generación Automática de Tarea";
 $pgv_lang["show_view_folders"]		    = "Mostrar Ver Carpetas";
