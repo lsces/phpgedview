@@ -172,10 +172,10 @@ $pgv_lang["pm_individual_private"]		= "persona es privada.";
 $pgv_lang["pm_individuals_private"]		= "personas son privadas.";
 $pgv_lang["pm_missing_birth"]			= "persona no tiene coordenadas de mapa para el lugar de nacimiento:";
 $pgv_lang["pm_2missing_births"]			= "personas no tienen coordenadas de mapa para el lugar de nacimiento:";	// For Polish 2,3,4 or 22,23,24 or 32,33,34 etc.
-// $pgv_lang["pm_missing_births"]			= "individuals are missing birth place map coordinates:";
-$pgv_lang["pm_missings"]				= "No hay ascendientes en la base de datos.";
+$pgv_lang["pm_missing_births"]			= "personas no tienen coordenadas de mapa para el lugar de nacimiento:";
+$pgv_lang["pm_missings"]				= "No faltan datos de nacimiento en la base de datos para ninguna de esas personas.";
 $pgv_lang["pm_from"]					= "correspondientes a";
-$pgv_lang["pm_for"]						= "durante";
+$pgv_lang["pm_for"]						= "para";
 $pgv_lang["pm_gens"]					= "generaciones";
 $pgv_lang["pm_root"]					= "Raíz";
 ?>
