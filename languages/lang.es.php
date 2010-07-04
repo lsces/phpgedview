@@ -345,7 +345,7 @@ $pgv_lang["qm"] 					= "?";
 $pgv_lang["qm_ah"]					= "?";
 $pgv_lang["page_help"]				= "Ayuda";
 $pgv_lang["help_for_this_page"] 	= "Ayuda con esta página";
-$pgv_lang["help_contents"]			= "Contenido de ayuda";
+$pgv_lang["help_contents"]			= "Temas de ayuda";
 $pgv_lang["show_context_help"]		= "Mostrar ayuda contextual";
 $pgv_lang["hide_context_help"]		= "Ocultar ayuda contextual";
 $pgv_lang["sorry"]					= "<b>Lo siento, no se ha finalizado aún el texto de ayuda para esta página</b>";
@@ -381,7 +381,7 @@ $pgv_lang["change_theme"]			= "Cambiar el tema";
 
 //-- INDEX (PEDIGREE_TREE) FILE MESSAGES
 $pgv_lang["index_header"]			= "Árbol de ascendientes";
-$pgv_lang["gen_ped_chart"]			= "#PEDIGREE_GENERATIONS# Generaciones de Ascendientes";
+$pgv_lang["gen_ped_chart"]			= "Árbol de ascendientes de #PEDIGREE_GENERATIONS# generaciones";
 $pgv_lang["generations"]			= "Generaciones";
 $pgv_lang["view"]					= "Ver";
 $pgv_lang["fam_spouse"] 			= "Familia con el cónyuge";
@@ -1150,7 +1150,7 @@ $pgv_lang["access_denied"]			= "<b>Acceso denegado</b><br />No tiene permiso par
 $pgv_lang["changes_exist"]			= "Se han hecho cambios a este GEDCOM.";
 $pgv_lang["find_place"] 			= "Buscar lugar";
 $pgv_lang["close_window"]			= "Cerrar ventana";
-$pgv_lang["close_window_without_refresh"] = "Cerrar ventana sin actualizar";
+$pgv_lang["close_window_without_refresh"] = "Cerrar ventana sin actualizar la visualización";
 $pgv_lang["place_contains"] 		= "El lugar contiene:";
 $pgv_lang["add"]					= "Añadir";
 $pgv_lang["custom_event"]			= "Evento personalizado";
@@ -1527,7 +1527,7 @@ $pgv_lang["sort_by"]				= "Ordenar por";
 $pgv_lang["cemetery_report"]		= "Informe de cementerios";
 $pgv_lang["burialplace"]			= "El lugar de entierro contiene";
 $pgv_lang["fact_sources_report"]	= "Fuentes de los hechos";
-$pgv_lang["missing_facts_report"]	= "Hechos de parientes no identificados";
+$pgv_lang["missing_facts_report"]	= "Hechos que faltan de los parientes";
 $pgv_lang["sources_to_events"]		= "Fuentes de los eventos";
 
 $pgv_lang["cleanup"]				= "Limpieza";
@@ -1615,9 +1615,9 @@ $pgv_lang["fan_chart"]				= "Diagrama circular";
 $pgv_lang["gen_fan_chart"]  		= "Diagrama en abanico de #PEDIGREE_GENERATIONS# generaciones";
 $pgv_lang["fan_width"]				= "Anchura del abanico";
 $pgv_lang["gd_library"]				= "Problema en la configuración del servidor PHP: se necesita la biblioteca GD 2.x para utilizar las funciones de imágenes.";
-$pgv_lang["gd_freetype"]			= "Problema en la configuración del servidor PHP: se necesita la biblioteca FreeType para utilizar las fuentes TrueType.";
+$pgv_lang["gd_freetype"]			= "Problema en la configuración del servidor PHP: se necesita la biblioteca FreeType para utilizar los tipos de letra TrueType.";
 $pgv_lang["gd_helplink"]			= "http://www.php.net/gd";
-$pgv_lang["fontfile_error"]			= "No se encontró el archivo de fuente en el servidor PHP";
+$pgv_lang["fontfile_error"]			= "No se encontró el archivo de tipo de letra en el servidor PHP";
 $pgv_lang["fanchart_IE"]			= "No es posible con su navegador imprimir directamente esta diagrama en abanico. Use el botón derecho del #pgv_lang[pgv_lang_es_mouse]# para guardarla e imprimirla posteriormente.";
 
 //-- RSS Feed
@@ -1753,7 +1753,7 @@ $pgv_lang["stat_last_divorce"]		= "Divorcio más tardío";
 $pgv_lang["stat_last_death"]		= "Defunción más tardía";
 $pgv_lang["stat_lifespan"]			= "Período de vida";
 $pgv_lang["stat_lived_longest"]		= "Máxima edad de defunción";
-$pgv_lang["stat_live_longest"]		= "Personas más longevas";
+$pgv_lang["stat_live_longest"]		= "Personas vivas de más edad";
 $pgv_lang["stat_marr_age"]			= "Duración del matrimonio";
 $pgv_lang["stat_long_marr_age"]		= "Matrimonio más duradero";
 $pgv_lang["stat_short_marr_age"]	= "Matrimonio más breve";

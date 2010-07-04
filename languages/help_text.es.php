@@ -514,12 +514,12 @@ $pgv_lang["help_relativelist.xml"]	= "~#pgv_lang[relatives_report]#~<br />Este i
 $pgv_lang["help_xml_reports"]	= "~Motor de Informes~<br />El Motor de Informes de PhpGedView utiliza archivos plantilla XML para generar automáticamente informes PDF.<br /><br />Los informes disponibles en la lista <b>#pgv_lang[select_report]#</b> se generan automáticamente a partir de los archivos XML encontrados en el directorio \"reports\".  Puede crear sus propios informes haciendo una copia de cualquiera de las plantillas que se proporcionan y modificándola.  Para añadir su informe personalizado, póngalo en el directorio \"reports\" y PhpGedView lo detectará automáticamente y lo añadirá a la lista desplegables <b>#pgv_lang[select_report]#</b>.<br /><br />";
 
 //-- Help Contents
-$pgv_lang["help_contents_head_help"]		= "<b>CONTENIDO DE AYUDA</b><br /><br />";
+$pgv_lang["help_contents_head_help"]		= "<b>TEMAS DE AYUDA</b><br /><br />";
 $pgv_lang["help_contents_gedcom_info"]		= "Información del GEDCOM";
 $pgv_lang["help_contents_gedcom_places"]	= "Lugares en el GEDCOM";
 
 //-- Admin Help Contents Items
-$pgv_lang["admin_help_contents_head_help"]	= "<b>CONTENIDO DE LA AYUDA<br /><br />TEMAS DE AYUDA DEL ADMINISTRADOR</b> agregados al comienzo de la lista.<br /><br />";
+$pgv_lang["admin_help_contents_head_help"]	= "<b>TEMAS DE AYUDA<br /><br />TEMAS DE AYUDA DEL ADMINISTRADOR</b> agregados al comienzo de la lista.<br /><br />";
 // $pgv_lang["ah1_help"]				= "_Upgrade";
 $pgv_lang["ah2_help"]				= "_Configurar PhpGedView";
 $pgv_lang["ah3_help"]				= "_GEDCOM: Añadir comparado con Subir";
