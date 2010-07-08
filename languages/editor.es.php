@@ -110,9 +110,9 @@ $pgv_lang["label_add_remote_link"]  = "Agregar vínculo";
 $pgv_lang["label_gedcom_id"]        = "ID de la base de datos";
 $pgv_lang["label_local_id"]         = "ID de la persona";
 $pgv_lang["accept"] 				= "Aceptar";
-$pgv_lang["accept_all"] 			= "Aceptar todas las modificaciones";
-$pgv_lang["accept_gedcom"]			= "Decida para cada cambio si aceptarlo o rechazarlo.<br /><br />Para aceptar todos los cambios de una vez, haga clic en <b>\"Aceptar todas las modificaciones\"</b> en la caja inferior.<br />Para obtener más información sobre un cambio,<br />haga clic en <b>\"Ver modificaciones\"</b> para ver las diferencias,<br />o haga clic en <b>\"Ver el registro GEDCOM\"</b> para ver los nuevos datos en formato GEDCOM.";
-$pgv_lang["accept_successful"]		= "Modificaciones aceptadas con éxito en la base de datos";
+$pgv_lang["accept_all"] 			= "Aceptar todos los cambios";
+$pgv_lang["accept_gedcom"]			= "Decida para cada cambio si aceptarlo o rechazarlo.<br /><br />Para aceptar todos los cambios de una vez, haga clic en <b>\"Aceptar todos los cambios\"</b> en la caja inferior.<br />Para obtener más información sobre un cambio,<br />haga clic en <b>\"Ver cambios\"</b> para ver las diferencias,<br />o haga clic en <b>\"Ver el registro GEDCOM\"</b> para ver los nuevos datos en formato GEDCOM.";
+$pgv_lang["accept_successful"]		= "Cambios aceptados con éxito en la base de datos";
 $pgv_lang["add_child"]				= "Agregar hijo";
 $pgv_lang["add_child_to_family"]	= "Agregar un hijo a esta familia";
 $pgv_lang["add_fact"]				= "Añadir nuevo hecho";
@@ -246,6 +246,6 @@ $pgv_lang["copy_error"]				= "No se pudo copiar al archivo #GLOBALS[whichFile2]#
 $pgv_lang["upload_media"]			= "Subir archivos audiovisuales";
 $pgv_lang["upload_media_help"]		= "~#pgv_lang[upload_media]#~<br /><br />Seleccione los archivos de su equipo local a subir a su servidor.  Todos los archivos se subirán al directorio <b>#MEDIA_DIRECTORY#</b> o a uno de sus subdirectorios.<br /><br />Los nombres de carpeta que indique se añadirán a #MEDIA_DIRECTORY#. Por ejemplo, #MEDIA_DIRECTORY#mifamilia. Si no existe el directorio de miniaturas, se creará automáticamente.";
 $pgv_lang["upload_successful"]		= "Proceso completo";
-$pgv_lang["view_change_diff"]		= "Ver modificaciones";
+$pgv_lang["view_change_diff"]		= "Ver cambios";
 
 ?>
