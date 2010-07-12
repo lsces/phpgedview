@@ -3,7 +3,7 @@
  * Spanish Language file for PhpGedView.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team. All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ $pgv_lang["bu_death_y"]="Agregar registros ausentes de defunción";
 $pgv_lang["bu_death_y_desc"]="Puede mejorar el rendimiento de PGV asegurándose de que todas las personas tengan (si procede) un evento de &laquo;fin de vida&raquo;.";
 
 $pgv_lang["bu_married_names"]="Agregar nombres ausentes de casada";
-$pgv_lang["bu_married_names_desc"]="Puede hacer más fácil la búsqueda de mujeres casadas registrando su nombre de casada.<br/>Sin embargo, no todas las mujeres adoptan el apellido de su esposo, así que tenga cuidado de no introducir datos incorrectos en su GEDCOM.";
+$pgv_lang["bu_married_names_desc"]="Puede hacer más fácil la búsqueda de mujeres casadas registrando su nombre de casada.<br />Sin embargo, no todas las mujeres adoptan el apellido de su esposo, así que tenga cuidado de no introducir datos incorrectos en su GEDCOM.";
 $pgv_lang["bu_surname_option"]="Opción de apellidos";
 $pgv_lang["bu_surname_replace"]="El apellido de la esposa se cambia al del esposo";
 $pgv_lang["bu_surname_add"]="El apellido de soltera de la esposa se convierte en un nuevo nombre de pila";
