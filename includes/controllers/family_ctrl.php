@@ -355,16 +355,16 @@ class FamilyRoot extends BaseController {
 		$menu->addClass("submenuitem{$ff}", "submenuitem_hover{$ff}", "submenu{$ff}");
 
 		// edit_fam / edit_fam
-		$submenu = new Menu($pgv_lang['edit_fam']);
-		$submenu->addOnclick("return edit_family('".$this->getFamilyID()."');");
-		if (!empty($PGV_IMAGES["edit_fam"]["small"])) {
-			$submenu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['edit_fam']['small']}");
-		}
-		$submenu->addClass("submenuitem{$ff}", "submenuitem_hover{$ff}");
-		$menu->addSubmenu($submenu);
+		// $submenu = new Menu($pgv_lang['edit_fam']);
+		// $submenu->addOnclick("return edit_family('".$this->getFamilyID()."');");
+		// if (!empty($PGV_IMAGES["edit_fam"]["small"])) {
+		//	$submenu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['edit_fam']['small']}");
+		// }
+		// $submenu->addClass("submenuitem{$ff}", "submenuitem_hover{$ff}");
+		// $menu->addSubmenu($submenu);
 
 		// edit_fam / members
-		$submenu = new Menu($pgv_lang['change_family_members']);
+		$submenu = new Menu($pgv_lang['edit_fam']);
 		$submenu->addOnclick("return change_family_members('".$this->getFamilyID()."');");
 		if (!empty($PGV_IMAGES["edit_fam"]["small"])) {
 			$submenu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['edit_fam']['small']}");
