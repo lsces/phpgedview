@@ -43,6 +43,8 @@ VERSION 4.3.0
 
 ?$pgv_lang["whatever"]								dd Monthname, year		Change	codes and comments
 ----------------------------------------------------------------------------------------
+$pgv_lang["edituser_rootid_help"]					12 Aug 2009				w
+
 
 VERSION 4.2.3
 

@@ -39,12 +39,13 @@ Additional codes, to help Translators, follow the date as follows:
 
 The above list of codes may be amended as new situations arise.
 
-VERSION 4.3.0
+VERSION 4.2.4
 
 ?$pgv_lang["whatever"]								dd Monthname, year		Change	codes and comments
 ----------------------------------------------------------------------------------------
 *$pgv_lang["pgv_requires_version"]					02 Feb 2010				w		Change made in *all* language files
 *$pgv_lang["using_php_version"]	 					02 Feb 2010				w		Change made in *all* language files
+
 
 VERSION 4.2.3
 
@@ -70,6 +71,7 @@ VERSION 4.2.3
 -$pgv_lang["pgv_registry"]              			30 Sep 2009       		D
 -$pgv_lang["ALLOW_REMEMBER_ME"]         			30 Sep 2009       		D
 *$pgv_lang["PGV_SMTP_SSL"]							10 Aug 2009				W
+
 
 VERSION 4.2.2
 

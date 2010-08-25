@@ -39,7 +39,7 @@ Additional codes, to help Translators, follow the date as follows:
 
 The above list of codes may be amended as new situations arise.
 
-VERSION 4.3.0
+VERSION 4.2.4
 
 ?$pgv_lang["whatever"]								dd Monthname, year		Change	codes and comments
 ----------------------------------------------------------------------------------------
@@ -71,6 +71,18 @@ VERSION 4.3.0
 +$factarray["MARB:SOUR"]							03 Jan 2010				A
 +$factarray["MARR:SOUR"]							03 Jan 2010				A
 *$factarray["MARB"]									01 Jan 2010				S     Spelling mistake
+
+
+VERSION 4.2.3
+
+?$pgv_lang["whatever"]								dd Monthname, year		Change codes and comments
+-----------------------------------------------------------------------------------------
+
+
+VERSION 4.2.2
+
+?$pgv_lang["whatever"]								dd Monthname, year		Change codes and comments
+-----------------------------------------------------------------------------------------
 
 
 VERSION 4.2.1
