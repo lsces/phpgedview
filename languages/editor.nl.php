@@ -21,11 +21,8 @@
  *
  *
  * @package PhpGedView
- * @author Eduard Wustenveld
- * @author Erik Bent
- * @author Boudewijn Sjouke
  * @subpackage Languages
- * @last change Jans Luder 25 march 2010
+ * @authors Erik Bent, Jans B. Luder, Boudewijn Sjouke, Eduard Wustenveld
  * @version $Id$
  */
 

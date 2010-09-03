@@ -21,11 +21,8 @@
  *
  *
  * @package PhpGedView
- * @author Eduard Wustenveld
- * @author Erik Bent
- * @author Boudewijn Sjouke
  * @subpackage Languages
- * @last change Jans Luder 25 march 2010
+ * @authors Erik Bent, Jans B. Luder, Boudewijn Sjouke, Eduard Wustenveld
  * @version $Id$
  */
 
@@ -326,8 +323,8 @@ $pgv_lang["label_server_url"]       = "URL/IP";
 $pgv_lang["label_username_id"]		= "Gebruikersnaam";
 $pgv_lang["label_view_local"]       = "Bekijk lokale informatie van een persoon";
 $pgv_lang["label_view_remote"]      = "Bekijk gekoppelde informatie van een persoon";
-$pgv_lang["LANGUAGE_DEFAULT"]		= "U heeft de talen niet ingesteld, die op uw website worden ondersteund.<br />PhpGedView gebruikt de standaardinstellingen.";
 $pgv_lang["LANG_SELECTION"] 		= "Ondersteunde talen";
+$pgv_lang["LANGUAGE_DEFAULT"]		= "U heeft de talen niet ingesteld, die op uw website worden ondersteund.<br />PhpGedView gebruikt de standaardinstellingen.";
 $pgv_lang["last_login"]				= "Laatst aangemeld";
 $pgv_lang["lasttab"]				= "Laatst bezocht Tabblad voor Personen";
 $pgv_lang["leave_blank"]			= "Laat het wachtwoord leeg als u het huidige wachtwoord wilt behouden.";

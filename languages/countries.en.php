@@ -328,7 +328,7 @@ $countries["???"]="Unknown";
  * as "Current name".  You can list the various names like this:
  *
  * $countries["XYZ"]="Current name";
- * $altCountryName["XYZ"]="Name1; Name2; Name3";
+ * $altCountryNames["XYZ"]="Name1; Name2; Name3";
  *
  * The Chapman-to-country conversion will always use the $countries list of
  * the current page language, no matter what the original country name was.

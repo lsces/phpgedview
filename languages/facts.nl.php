@@ -19,12 +19,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
  * @package PhpGedView
- * @author Eduard Wustenveld
- * @author Erik Bent
- * @author Boudewijn Sjouke
- * @last change Jans Luder 25 march 2010
- * @version $Id$
+ * @subpackage Languages
+ * @authors Erik Bent, Jans B. Luder, Boudewijn Sjouke, Eduard Wustenveld
  */
 
 if (!defined('PGV_PHPGEDVIEW')) {
@@ -32,7 +30,7 @@ if (!defined('PGV_PHPGEDVIEW')) {
 	exit;
 }
 
-// -- Define a fact array to map GEDCOM tags with their English values
+// -- Define a fact array to map GEDCOM tags with their Dutch values
 $factarray["ABBR"] 		= "Afkorting";
 $factarray["ADDR"] 		= "Adres";
 $factarray["ADR1"] 		= "Adres 1";
@@ -63,7 +61,7 @@ $factarray["CENS"] 		= "Volkstelling";
 $factarray["CHAN"] 		= "Laatste wijziging";
 $factarray["CHAR"] 		= "Karakterset";
 $factarray["CHIL"] 		= "Kind";
-$factarray["CHR"] 		= "Gedoopt";
+$factarray["CHR"] 		= "Doop";
 $factarray["CHRA"] 		= "Volwassen doop";
 $factarray["CITY"] 		= "Stad";
 $factarray["CONF"] 		= "Bevestiging";
@@ -186,15 +184,15 @@ $factarray["FAMC:WIFE:BIRT:PLAC"] 		= "Moeder's Geboorteplaats";
 $factarray["FAMC:MARR:PLAC"] 			= "Ouders' Huwelijks plaats";
 $factarray["FAMC:HUSB:OCCU"] 			= "Vader's Beroep";
 $factarray[":BIRT:PLAC"] 				= "Geboorteplaats";
-$factarray["FAMS:MARR:PLAC"] 			= "Huwelijks plaats";
 $factarray["FAMS:MARR:DATE"] 			= "Huwelijks datum";
+$factarray["FAMS:MARR:PLAC"] 			= "Huwelijks plaats";
 $factarray["FAMS:SPOUSE:DEAT:PLAC"] 	= "Partner's Plaats v. overlijden";
 $factarray["FAMC:HUSB:GIVN"] 			= "Vader's Voornaam";
 $factarray["FAMS:SPOUSE:BIRT:PLAC"] 	= "Partner's Geboorteplaats";
 $factarray["FAMC:WIFE:GIVN"] 			= "Moeder's Voornaam";
 $factarray["FAMC:HUSB:FAMC:HUSB:GIVN"] 	= "(Vaders zijde) Grootvader's Voornaam";
 $factarray["FAMC:WIFE:FAMC:WIFE:GIVN"] 	= "(Moeders zijde) Grootmoeder's Voornaam";
-$factarray["FAMC:WIFE:FAMC:HUSB:GIVN"] 	= "(Moeders zijde) Grootvader's Voornaam";
+$factarray["FAMC:WIFE:FAMC:HUSB:GIVN"] 	= "(Moeders zijde) Grootvader's Voornaam"; 
 $factarray["FAMC:HUSB:FAMC:WIFE:GIVN"] 	= "(Vaders zijde) Grootmoeder's Voornaam";
 $factarray["FAMS:CHIL:BIRT:PLAC"] 		= "Geboorteplaats Kind";
 $factarray["FAMS:NOTE"] 				= "Partner's Notitie";
@@ -207,45 +205,45 @@ $factarray["FAMS:SLGS:PLAC"] 			= "HLD Partner's Verzegeling Plaats";
 $factarray["FAMS:SLGS:TEMP"] 			= "HLD Partner's Verzegeling Tempel";
 
 // These facts are all colon delimited
-$factarray["BIRT:PLAC"] 	= "Geboorteplaats";
-$factarray["BIRT:DATE"] 	= "Geboortedatum";
-$factarray["BIRT:SOUR"]		= "Geboortebron";
+$factarray["BIRT:PLAC"] 	= "Plaats v. geboorte";
+$factarray["BIRT:DATE"] 	= "Datum v. geboorte";
+$factarray["BIRT:SOUR"] 	= "Bron v. geboorte";
 $factarray["DEAT:PLAC"] 	= "Plaats v. overlijden";
 $factarray["DEAT:DATE"] 	= "Datum v. overlijden";
-$factarray["DEAT:SOUR"]		= "Bron v. overlijden";
+$factarray["DEAT:SOUR"] 	= "Bron v. overlijden";
 $factarray["CHR:PLAC"] 		= "Plaats v. Doopsel";
 $factarray["CHR:DATE"] 		= "Datum v. Doopsel";
 $factarray["CHR:SOUR"]		= "Bron v. Doopsel";
-$factarray["CONF:PLAC"]		= "Plaats v. Bevestiging";
-$factarray["CONF:DATE"]		= "Datum v. Bevestiging";
-$factarray["CONF:SOUR"]		= "Bron v. Bevestiging";
-$factarray["BAPM:PLAC"] 	= "Plaats v. Doop";
-$factarray["BAPM:DATE"] 	= "Datum v. Doop";
-$factarray["BAPM:SOUR"]		= "Bron v. Doop";
-$factarray["_BRTM:PLAC"]	= "Plaats v. Besnijdenis";
-$factarray["_BRTM:DATE"]	= "Datum v. Besnijdenis";
-$factarray["_BRTM:SOUR"]	= "Bron v. Besnijdenis";
-$factarray["BARM:PLAC"]		= "Plaats v. Bar mitswa";
-$factarray["BARM:DATE"]		= "Datum v. Bar mitswa";
-$factarray["BARM:SOUR"]		= "Bron v. Bar mitswa";
-$factarray["BASM:PLAC"]		= "Plaats v. Bas mitswa";
-$factarray["BASM:DATE"]		= "Datum v. Bas mitswa"; 
-$factarray["BASM:SOUR"]		= "Bron v. Bas mitswa";  
-$factarray["BURI:PLAC"] 	= "Plaats begrafenis";
-$factarray["BURI:DATE"] 	= "Datum begrafenis";
-$factarray["BURI:SOUR"]		= "Bron begrafenis";
-$factarray["FCOM:PLAC"]		= "Plaats v. Eerste communie";
-$factarray["FCOM:DATE"]		= "Datum v. Eerste communie";
-$factarray["FCOM:SOUR"]		= "Bron v. Eerste communie";
-$factarray["MARB:PLAC"]		= "Plaats v. Ondertrouw";
-$factarray["MARB:DATE"]		= "Datum v. Ondertrouw";
-$factarray["MARB:SOUR"]		= "Bron v. Ondertrouw";
-$factarray["MARR:PLAC"] 	= "Huwelijksplaats";
-$factarray["MARR:DATE"] 	= "Huwelijksdatum";
-$factarray["MARR:SOUR"]		= "Huwelijksbron";
-$factarray["ENGA:PLAC"]		= "Verlovingsplaats";
-$factarray["ENGA:DATE"]		= "Verlovingsdatum"; 
-$factarray["ENGA:SOUR"]		= "Verlovingsbron";  
+$factarray["CONF:PLAC"]		= "Plaats v. bevestiging";
+$factarray["CONF:DATE"]		= "Datum v. bevestiging";
+$factarray["CONF:SOUR"]		= "Bron v. bevestiging";
+$factarray["BAPM:PLAC"] 	= "Plaats v. doop";
+$factarray["BAPM:DATE"] 	= "Datum v. doop";
+$factarray["BAPM:SOUR"]		= "Bron v. doop";
+$factarray["_BRTM:PLAC"]	= "Plaats v. besnijdenis";
+$factarray["_BRTM:DATE"]	= "Datum v. besnijdenis";
+$factarray["_BRTM:SOUR"]	= "Bron v. besnijdenis";
+$factarray["BARM:PLAC"]		= "Plaats v. Bar Mitzvah";
+$factarray["BARM:DATE"]		= "Datum v. Bar Mitzvah";
+$factarray["BARM:SOUR"]		= "Bron v. Bar Mitzvah";
+$factarray["BASM:PLAC"]		= "Plaats v. Bas Mitzvah";
+$factarray["BASM:DATE"]		= "Datum v. Bas Mitzvah";
+$factarray["BASM:SOUR"]		= "Bron v. Bas Mitzvah";
+$factarray["BURI:PLAC"] 	= "Plaats v. begrafenis";
+$factarray["BURI:DATE"] 	= "Datum v. begrafenis";
+$factarray["BURI:SOUR"]		= "Bron v. begrafenis";
+$factarray["FCOM:PLAC"]		= "Plaats v. eerste communie";
+$factarray["FCOM:DATE"]		= "Datum v. eerste communie";
+$factarray["FCOM:SOUR"]		= "Bron v. eerste communie";
+$factarray["MARB:PLAC"]		= "Plaats v. ondertrouw";
+$factarray["MARB:DATE"]		= "Datum v. ondertrouw";
+$factarray["MARB:SOUR"]		= "Bron v. ondertrouwn";
+$factarray["MARR:PLAC"] 	= "Plaats v. huwelijk";
+$factarray["MARR:DATE"] 	= "Datum v. huwelijk";
+$factarray["MARR:SOUR"] 	= "Bron v. huwelijk";
+$factarray["ENGA:PLAC"]		= "Plaats v. verloving";
+$factarray["ENGA:DATE"]		= "Datum v. verloving";
+$factarray["ENGA:SOUR"]		= "Bron v. verloving";
 
 // These facts are specific to GEDCOM exports from Family Tree Maker
 $factarray["_MDCL"] 	= "Medisch";
@@ -399,7 +397,7 @@ $factarray["_DEAT_SIBL"] 	= "Overlijden van een broer/zus";
 $factarray["_BURI_SIBL"]	= "Begrafenis van broer/zus";
 $factarray["_CREM_SIBL"]	= "Crematie van broer/zus";
 
-$factarray["_BIRT_HSIB"] 	= "Geboorte van een halfbroer/-zus";
+$factarray["_BIRT_HSIB"] 	= "Geboorte van een half-broer/zus";
 $factarray["_CHR_HSIB"]		= "Doop van half-broer/zus";
 $factarray["_BAPM_HSIB"] 	= "Doop van een half-broer/zus";
 $factarray["__BRTM_HSIB"]	= "Besnijdenis van half-broer/zus";
@@ -411,7 +409,7 @@ $factarray["_BURI_HSIB"]	= "Begrafenis van half-broer/zus";
 $factarray["_CREM_HSIB"]	= "Crematie van half-broer/zus";
 
 $factarray["_BIRT_NEPH"] 	= "Geboorte van een neef/nicht";
-$factarray["_CHR_NEPH"]		= "Doop van een neef of nicht";
+$factarray["_CHR_NEPH"]		= "Doop van een neef/nicht";
 $factarray["_BAPM_NEPH"] 	= "Doop van een neef/nicht";
 $factarray["__BRTM_NEPH"]	= "Besnijdenis van een neef";
 $factarray["_ADOP_NEPH"] 	= "Adoptie van een neef/nicht";
