@@ -43,13 +43,17 @@ VERSION 4.3.0
 
 ?$pgv_lang["whatever"]								dd Monthname, year		Change	codes and comments
 ----------------------------------------------------------------------------------------
-+$pgv_lang["index_top10_given_names_help"]			09 Sep 2010				A
-+$pgv_lang["index_top10_surnames_help"]				09 Sep 2010				A
-*$pgv_lang["index_events_help"]						09 Sep 2010				W
-*$pgv_lang["yahrzeit_help"]							09 Sep 2010				W
-+$pgv_lang["cal_download_user_help"]				09 Sep 2010				A
-*$pgv_lang["index_onthisday_help"]					09 Sep 2010				W
-*$pgv_lang["edituser_rootid_help"]					09 Sep 2010				w
+*$pgv_lang["index_common_given_names_help"]			09 Sep 2010				W
+-$pgv_lang["index_top10_given_names_help"]			09 Sep 2010				D
+*$pgv_lang["index_common_names_help"]				09 Sep 2010				W
+-$pgv_lang["index_top10_surnames_help"]				09 Sep 2010				D
++$pgv_lang["index_top10_given_names_help"]			08 Sep 2010				A
++$pgv_lang["index_top10_surnames_help"]				08 Sep 2010				A
+*$pgv_lang["index_events_help"]						08 Sep 2010				W
+*$pgv_lang["yahrzeit_help"]							08 Sep 2010				W
++$pgv_lang["cal_download_user_help"]				08 Sep 2010				A
+*$pgv_lang["index_onthisday_help"]					08 Sep 2010				W
+*$pgv_lang["edituser_rootid_help"]					08 Sep 2010				w
 *$pgv_lang["edituser_rootid_help"]					12 Aug 2010				w
 
 
