@@ -128,7 +128,7 @@ class PGV_DB {
 			self::$TEXT_TYPE    ='TEXT';
 			self::$LONGTEXT_TYPE='LONGTEXT';
 			if ($DB_UTF8_COLLATION) {
-				self::$pdo->exec("SET NAMES UTF8");
+				self::$pdo->exec("SET NAMES 'utf8', SQL_BIG_SELECTS=1");
 				self::$UTF8_TABLE   ='CHARACTER SET utf8 COLLATE utf8_unicode_ci';
 			} else {
 				self::$UTF8_TABLE   ='';
