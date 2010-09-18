@@ -639,6 +639,19 @@ function displayDetailsById($pid, $type = "INDI", $sitemap = false) {
 		}
 		$privacy_cache[$pkey] = $disp;
 		return $disp;
+	if ($type=="NOTE") {
+		global $TBLPREFIX;
+		// Hide notes if they are attached to private records
+		$linked_gids=PGV_DB::prepare(
+			"SELECT l_from FROM `{$TBLPREFIX}link` WHERE l_to=? AND l_file=?"
+		)->execute(array($pid, $ged_id))->fetchOneColumn();
+		var_dump($pid);
+		foreach ($linked_gids as $linked_gid) {
+			if (!displayDetailsById($linked_gid)) {
+				return $privacy_cache[$pkey] = false;
+			}
+		}
+	}
 	}
 	$privacy_cache[$pkey] = true;
 	return true;
