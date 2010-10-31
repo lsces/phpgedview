@@ -3,7 +3,7 @@
  * Italian texts
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- * @author Lorenzo Simionato, Fabio Parri
+ * @author Lorenzo Simionato, Fabio Parri, Marco Renini
  * @package PhpGedView
  * @subpackage Languages
  * @version $Id$
@@ -189,7 +189,9 @@ $pgv_lang["thumb_media_fail1"]			= "Il file di anteprima <b>#GLOBALS[oldMediaNam
 $pgv_lang["thumb_media_fail2"]			= "Il file di anteprima <b>#GLOBALS[oldMediaName]#</b> non può essere spostato da <b>#GLOBALS[oldThumbFolder]#</b> a <b>#GLOBALS[newThumbFolder]#</b>.";
 $pgv_lang["thumb_media_fail3"]			= "Il file di anteprima non può essere spostato e rinominato da <b>#GLOBALS[oldThumbFolder]##GLOBALS[oldMediaName]#</b> a <b>#GLOBALS[newThumbFolder]##GLOBALS[newMediaName]#</b>.";
 $pgv_lang["create_shared_note"]		= "Crea una nuova nota condivisa";
-$pgv_lang["create_shared_note_assisted"]	= "Crea una nuova nota condivisa utilizzando l'assistente";
+$pgv_lang["create_shared_note_assisted"]	= "Crea una nuova nota condivisa, utilizzando l'assistente";
+$pgv_lang["shared_note_assisted"] = "Nota condivisa, utilizzando l'assistente";
+$pgv_lang["add_new_event_assisted"] = "Crea un nuovo Evento, utilizzando l'assistente";
 $pgv_lang["current_person"]         = "Come attuale";
 $pgv_lang["delete_dir_success"]		= "Cartelle dei file multimediali e delle anteprime spostate con successo.";
 $pgv_lang["delete_repo"]			= "Elimina deposito";
