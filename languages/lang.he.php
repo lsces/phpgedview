@@ -3,7 +3,7 @@
  * Hebrew Language Help-file
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team
+ * Copyright (C) 2002 to 2010  PGV Development Team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1846,38 +1846,6 @@ $pgv_lang["repo_contains"]		= "מאגר מכיל:";
 $pgv_lang["shared_note_contains"]	= "ההערה המשותפת מכילה:";
 $pgv_lang["source_contains"]		= "מקור מכיל:";
 $pgv_lang["display_all"]		= "הצג הכול";
-
-//-- accesskey navigation
-$pgv_lang["accesskeys"]				= "קיצורי לוח המקשים";
-$pgv_lang["accesskey_skip_to_content"]		= "ת"; //C
-$pgv_lang["accesskey_search"]			= "ח"; //S
-$pgv_lang["accesskey_skip_to_content_desc"]	= "דלג לתוכן";
-$pgv_lang["accesskey_viewing_advice"]		= "0";
-$pgv_lang["accesskey_viewing_advice_desc"]	= "עצת הסתכלות";
-$pgv_lang["accesskey_home_page"]			= "1";
-$pgv_lang["accesskey_help_content"]		= "2";
-$pgv_lang["accesskey_help_current_page"]		= "3";
-$pgv_lang["accesskey_contact"]			= "4";
-
-$pgv_lang["accesskey_individual_details"]		= "ע"; //I
-$pgv_lang["accesskey_individual_relatives"]		= "מ"; //R
-$pgv_lang["accesskey_individual_notes"]		= "ה"; //N
-$pgv_lang["accesskey_individual_sources"]		= "ק"; //O
-
-$pgv_lang["accesskey_individual_media"]		= "ד"; //A clash with IE addBookmark but not a likely problem
-$pgv_lang["accesskey_individual_research_log"]	= "י";  //L
-$pgv_lang["accesskey_individual_pedigree"]		= "א"; //P
-$pgv_lang["accesskey_individual_descendancy"]	= "צ"; //D
-$pgv_lang["accesskey_individual_timeline"]		= "ו";  //T
-$pgv_lang["accesskey_individual_relation_to_me"]	= "ר"; //M
-
-$pgv_lang["accesskey_individual_gedcom"]		= "ג"; //G clash with rarely used Netscape/Mozilla Go menu
-
-$pgv_lang["accesskey_family_parents_timeline"]	= "א"; //P
-$pgv_lang["accesskey_family_children_timeline"]	= "צ"; //D
-$pgv_lang["accesskey_family_timeline"]		= "ו";  //T
-
-$pgv_lang["accesskey_family_gedcom"]		= "ג"; //G clash with rarely used English Netscape/Mozilla English Go menu
 
 // FAQ Page
 $pgv_lang["add_faq_header"] 	= "כותרת ה-FAQ";
