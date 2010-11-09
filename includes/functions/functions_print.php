@@ -788,9 +788,6 @@ function user_contact_link($user_id, $method=null) {
 
 	if (is_null($method)) {
 		$method=get_user_setting($user_id, 'contactmethod');
-		$access='';
-	} else {
-		$access="accesskey='{$pgv_lang['accesskey_contact']}'";
 	}
 
 	// Webmaster/contact addresses can be an email address as well as a user-id
@@ -809,9 +806,9 @@ function user_contact_link($user_id, $method=null) {
 	case 'none':
 		return '';
 	case 'mailto':
-		return "<a href='mailto:{$email}' {$access}>{$fullname}</a>";
+		return "<a href='mailto:{$email}'>{$fullname}</a>";
 	default:
-		return "<a href='javascript:;' onclick='message(\"".get_user_name($user_id)."\", \"{$method}\");return false;' {$access}>{$fullname}</a>";
+		return "<a href='javascript:;' onclick='message(\"".get_user_name($user_id)."\", \"{$method}\");return false;'>{$fullname}</a>";
 	}
 }
 

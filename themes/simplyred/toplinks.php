@@ -3,7 +3,7 @@
  * Top-of-page menu for SimplyRed theme
  *
  * PhpGedView: Genealogy Viewer
- * Copyright (c) 2002 to 2008  John Finlay and others.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,7 +119,6 @@ $menubar = new MenuBar();
 	</table>
 	<br />
 </div>
-<?php require PGV_ROOT.'includes/accesskeyHeaders.php'; ?>
 </div>
 <!-- close div for div id="header" -->
 <?php print "<div id=\"content\" style=\"direction: $TEXT_DIRECTION;\">\n"; ?>

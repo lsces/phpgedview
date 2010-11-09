@@ -3,7 +3,7 @@
  * File contains var's to glue Help_text for PHPGedView together
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,7 +190,7 @@ $pgv_lang["h31"]	= "help_ancestry.php,ancestry_chart";
 $pgv_lang["h32"]	= "help_fanchart.php,fan_chart";
 $pgv_lang["h33"]	= "help_reportengine.php,reports";
 $pgv_lang["h34"]	= "def_help_items,definitions";
-$pgv_lang["h35"]	= "accesskey_viewing_advice_help,accesskeys";
+$pgv_lang["h35"]	= "";
 $pgv_lang["h36"]	= "help_faq.php,faq_list";
 $pgv_lang["h37"]	= "hs_title_help,hs_title";
 $pgv_lang["h38"]	= "help_hourglass.php,hourglass_chart";
@@ -212,7 +212,6 @@ while (isset($pgv_lang["h$i"])) {
 
 //-- Help Contents for admin
 
-// $pgv_lang["ah1"]	= "how_upgrade_help,ah1_help";
 $pgv_lang["ah1"]	= "";
 $pgv_lang["ah2"]	= "help_editconfig.php,ah2_help";
 $pgv_lang["ah3"]	= "add_upload_gedcom_help,ah3_help";
@@ -231,7 +230,6 @@ $pgv_lang["ah15"]	= "convert_ansi2utf_help,ah15_help";
 $pgv_lang["ah16"]	= "help_edit_privacy.php,ah16_help";
 $pgv_lang["ah17"]	= "help_useradmin.php,ah17_help";
 $pgv_lang["ah18"]	= "help_admin.php,ah18_help";
-//$pgv_lang["ah19"]	= "addmedia_tool_help,ah19_help";
 $pgv_lang["ah19"]	= "";
 $pgv_lang["ah20"]	= "change_indi2id_help,ah20_help";
 $pgv_lang["ah21"]	= "help_editlang.php,ah21_help";

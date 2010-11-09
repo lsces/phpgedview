@@ -903,12 +903,6 @@ h4 {
 	font: 20px tahoma, arial, helvetica, sans-serif;
 }
 
-.accesskeys{
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-}
-
 /* Style for the top and bottom bar */
 .topbottombar {
 	color: #333333;

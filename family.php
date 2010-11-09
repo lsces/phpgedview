@@ -175,19 +175,7 @@ else $align = 'right';
 				</tr>
 			</table>
 		</td>
-		<td class="noprint"> <!--//blank cell for access keys//-->
-			<div class="accesskeys">
-			<?php
-				if (empty($SEARCH_SPIDER)) {
-				?>
-				<a class="accesskeys" href="<?php echo 'timeline.php?pids[0]=' . $controller->parents['HUSB'].'&amp;pids[1]='.$controller->parents['WIFE'];?>" title="<?php echo $pgv_lang['parents_timeline'] ?>" tabindex="-1" accesskey="<?php echo $pgv_lang['accesskey_family_parents_timeline']; ?>"><?php echo $pgv_lang['parents_timeline'] ?></a>
-				<a class="accesskeys" href="<?php echo 'timeline.php?' . $controller->getChildrenUrlTimeline();?>" title="<?php echo $pgv_lang["children_timeline"] ?>" tabindex="-1" accesskey="<?php echo $pgv_lang['accesskey_family_children_timeline']; ?>"><?php echo $pgv_lang['children_timeline'] ?></a>
-				<a class="accesskeys" href="<?php echo 'timeline.php?pids[0]=' .$controller->getHusband().'&amp;pids[1]='.$controller->getWife().'&amp;'.$controller->getChildrenUrlTimeline(2);?>" title="<?php echo $pgv_lang['family_timeline'] ?>" tabindex="-1" accesskey="<?php echo $pgv_lang['accesskey_family_timeline']; ?>"><?php echo $pgv_lang['family_timeline'] ?></a>
-					<?php if ($SHOW_GEDCOM_RECORD) { ?>
-				<a class="accesskeys" href="javascript:show_gedcom_record();" title="<?php echo $pgv_lang["view_gedcom"] ?>" tabindex="-1" accesskey="<?php echo $pgv_lang["accesskey_family_gedcom"]; ?>"><?php echo $pgv_lang["view_gedcom"] ?></a>
-					<?php } ?>
-			<?php } ?>
-			</div>
+		<td class="noprint">
 			<?php
 				if ($controller->accept_success) {
 					echo "<b>".$pgv_lang["accept_successful"]."</b><br />";

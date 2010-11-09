@@ -3,7 +3,7 @@
  * Top-of-page menu for Standard theme
  *
  * PhpGedView: Genealogy Viewer
- * Copyright (c) 2002 to 2008  John Finlay and others.  All rights resserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,6 +112,5 @@ $menubar = new MenuBar();
 	</table>
 	<img align="middle" src="<?php print $PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]; ?>" width="99%" height="3" alt="" />
 </div>
-<?php require PGV_ROOT.'includes/accesskeyHeaders.php'; ?>
 </div>
 <div id="content">

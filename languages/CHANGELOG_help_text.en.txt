@@ -39,10 +39,11 @@ Additional codes, to help Translators, follow the date as follows:
 
 The above list of codes may be amended as new situations arise.
 
-VERSION 4.3.0
+VERSION 4.2.4
 
 ?$pgv_lang["whatever"]								dd Monthname, year		Change	codes and comments
 ----------------------------------------------------------------------------------------
+-$pgv_lang["accesskey_viewing_advice_help"]			08 Nov 2010				D
 *$pgv_lang["index_common_given_names_help"]			09 Sep 2010				W
 -$pgv_lang["index_top10_given_names_help"]			09 Sep 2010				D
 *$pgv_lang["index_common_names_help"]				09 Sep 2010				W

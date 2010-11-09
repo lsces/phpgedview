@@ -43,6 +43,31 @@ VERSION 4.2.4
 
 ?$pgv_lang["whatever"]								dd Monthname, year		Change	codes and comments
 ----------------------------------------------------------------------------------------
+-$pgv_lang["accesskeys"]                            8 Nov 2010				D
+-$pgv_lang["accesskey_skip_to_content"]             8 Nov 2010				D
+-$pgv_lang["accesskey_search"]                      8 Nov 2010				D
+-$pgv_lang["accesskey_skip_to_content_desc"]        8 Nov 2010				D
+-$pgv_lang["accesskey_viewing_advice"]              8 Nov 2010				D
+-$pgv_lang["accesskey_viewing_advice_desc"]         8 Nov 2010				D
+-$pgv_lang["accesskey_home_page"]                   8 Nov 2010				D
+-$pgv_lang["accesskey_help_content"]                8 Nov 2010				D
+-$pgv_lang["accesskey_help_current_page"]           8 Nov 2010				D
+-$pgv_lang["accesskey_contact"]                     8 Nov 2010				D
+-$pgv_lang["accesskey_individual_details"]          8 Nov 2010				D
+-$pgv_lang["accesskey_individual_relatives"]        8 Nov 2010				D
+-$pgv_lang["accesskey_individual_notes"]            8 Nov 2010				D
+-$pgv_lang["accesskey_individual_sources"]          8 Nov 2010				D
+-$pgv_lang["accesskey_individual_media"]            8 Nov 2010				D
+-$pgv_lang["accesskey_individual_research_log"]     8 Nov 2010				D
+-$pgv_lang["accesskey_individual_pedigree"]         8 Nov 2010				D
+-$pgv_lang["accesskey_individual_descendancy"]      8 Nov 2010				D
+-$pgv_lang["accesskey_individual_timeline"]         8 Nov 2010				D
+-$pgv_lang["accesskey_individual_relation_to_me"]   8 Nov 2010				D
+-$pgv_lang["accesskey_individual_gedcom"]           8 Nov 2010				D
+-$pgv_lang["accesskey_family_parents_timeline"]     8 Nov 2010				D
+-$pgv_lang["accesskey_family_children_timeline"]    8 Nov 2010				D
+-$pgv_lang["accesskey_family_timeline"]             8 Nov 2010				D
+-$pgv_lang["accesskey_family_gedcom"]               8 Nov 2010				D
 *$pgv_lang["no_children"]							31 Jan 2010				w
 +$pgv_lang["known_child"]							31 Jan 2010				A
 *$pgv_lang["known_children"]						31 Jan 2010				w

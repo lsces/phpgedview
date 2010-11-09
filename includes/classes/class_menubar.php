@@ -62,7 +62,6 @@ class MenuBar
 		if (!empty($PGV_IMAGES['gedcom']['large']))
 			$menu->addIcon($PGV_IMAGE_DIR.'/'.$PGV_IMAGES['gedcom']['large']);
 		$menu->addClass("menuitem$ff", "menuitem_hover$ff", "submenu$ff", 'icon_large_gedcom');
-		$menu->addAccesskey($pgv_lang['accesskey_home_page']);
 		//-- gedcom list
 		$gedcom_titles=get_gedcom_titles();
 		if ($ALLOW_CHANGE_GEDCOM && count($gedcom_titles)>1) {
@@ -109,7 +108,6 @@ class MenuBar
 			$menu->addIcon($PGV_IMAGE_DIR."/".$PGV_IMAGES["gedcom"]["large"]);
 		}
 		$menu->addClass("menuitem$ff", "menuitem_hover$ff", "submenu$ff", "icon_large_mygedview");
-		$menu->addAccesskey($pgv_lang["accesskey_home_page"]);
 
 		//-- mygedview submenu
 		$submenu = new Menu($pgv_lang["mgv"], "index.php?ctype=user");
