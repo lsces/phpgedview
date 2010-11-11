@@ -2,7 +2,7 @@
 /**
  * Menu for research assistant
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2007 John Finlay and Others
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ class research_assistant_ModuleMenu {
 		if (PGV_USER_ACCESS_LEVEL<= $SHOW_MY_TASKS)
 		{
 			$submenu= new Menu($pgv_lang["my_tasks"], "module.php?mod=research_assistant&amp;action=mytasks");
-			if(!empty($PGV_IMAGES['ra_mytasks']['small'])){$menu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['ra_mytasks']['small']}");}
+			if(!empty($PGV_IMAGES['ra_mytasks']['small'])){$submenu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['ra_mytasks']['small']}");}
 			else $submenu->addIcon('modules/research_assistant/images/folder_blue_icon.gif');
 			$submenu->addClass("submenuitem$ff", "submenuitem_hover$ff", "", "icon_small_ra_mytasks");
 			$menu->addSubmenu($submenu);
@@ -70,22 +70,22 @@ class research_assistant_ModuleMenu {
 		if (PGV_USER_ACCESS_LEVEL<= $SHOW_ADD_TASK)
 		{
 		$submenu = new Menu($pgv_lang["add_task"], "module.php?mod=research_assistant&amp;action=addtask");
-		if(!empty($PGV_IMAGES['ra_addtask']['small'])){$menu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['ra_addtask']['small']}");}
+		if(!empty($PGV_IMAGES['ra_addtask']['small'])){$submenu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['ra_addtask']['small']}");}
 		else $submenu->addIcon('modules/research_assistant/images/add_task.gif');
 		$submenu->addClass("submenuitem$ff", "submenuitem_hover$ff", "", "icon_small_ra_addtask");
 		$menu->addSubmenu($submenu);
 		}
-		
+
 		//'View Folders' ddl menu item
 		if (PGV_USER_ACCESS_LEVEL<= $SHOW_VIEW_FOLDERS)
 		{
 		$submenu = new Menu($pgv_lang["view_folders"], "module.php?mod=research_assistant&amp;action=view_folders");
-		if(!empty($PGV_IMAGES['ra_folder']['small'])){$menu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['ra_folders']['small']}");}
+		if(!empty($PGV_IMAGES['ra_folder']['small'])){$submenu->addIcon("{$PGV_IMAGE_DIR}/{$PGV_IMAGES['ra_folders']['small']}");}
 		else $submenu->addIcon('modules/research_assistant/images/folder_blue_icon.gif');
 		$submenu->addClass("submenuitem$ff", "submenuitem_hover$ff", "", "icon_small_ra_folder");
 		$menu->addSubmenu($submenu);
 		}
-		
+
 		return $menu;
 	}
 }
