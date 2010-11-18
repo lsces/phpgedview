@@ -617,12 +617,10 @@ class PGVServiceLogic extends GenealogyService {
 				// loop thru the returned result of the method call
 
 				foreach ($search_results as $gid=>$indi) {
-					// privatize the gedcoms returned
-					$gedrec = privatize_gedcom($indi["gedcom"]);
+					$gedrec = $indi->getGedcomRecord();
 					// set the fields that exist and return all the results that are not private
 					if (preg_match("~".$query."~i",$gedrec)>0) {
 						$search_result_element = $this->createPerson($gid, $gedrec, "item", false);
-						//$search_result_element['gedcom'] = $gedrec;
 						$results_array[] = $search_result_element;
 					}
 				}
@@ -650,16 +648,9 @@ class PGVServiceLogic extends GenealogyService {
 				// $part[0] = field $part[1] = value;
 				$array_querys[$part[0]] = $part[1];
 			}
-			/*
-			$results_from_dates;
-			$results_from_name;
-			$results_from_birth_date;
-			$results_from_death_date;
-			$newarray;
-			*/
 			// a search on the name supply in $query if it exists
 			if (array_key_exists('NAME', $array_querys)) {
-				$results_from_name = search_indis_names($array_querys['NAME']);
+				$results_from_name = search_indis_names(array($array_querys['NAME']), array(PGV_GED_ID), 'AND');
 			}
 
 			// used to change if both dates exist in $query
@@ -728,38 +719,9 @@ class PGVServiceLogic extends GenealogyService {
 			$results_array = array();
 			foreach ($newarray as $gid=>$indi) {
 
-				// need to check to see if all the values asked for in the query are still there after the privatizing
-				$all_crit_exist_in_gedcom = true;
-				$search_result_element = $this->createPerson($gid, $indi['gedcom'], "item", false);
-				if (!empty($array_querys['NAME']) && (stristr($search_result_element->value['gedcomName'], $array_querys['NAME']) === false)) {
-					$all_crit_exist_in_gedcom = false;
-				}
-
-				if (!empty($array_querys['BIRTHDATE']) && (stristr($search_result_element->value['birthDate'], $array_querys['BIRTHDATE']) === false)) {
-					$all_crit_exist_in_gedcom = false;
-				}
-
-				if (!empty($array_querys['BIRTHPLACE']) && (stristr($search_result_element->value['birthPlace'], $array_querys['BIRTHPLACE']) === false)) {
-					$all_crit_exist_in_gedcom = false;
-				}
-
-				if (!empty($array_querys['DEATHDATE']) && (stristr($search_result_element->value['deathDate'], $array_querys['DEATHDATE']) === false)) {
-					$all_crit_exist_in_gedcom = false;
-				}
-
-				if (!empty($array_querys['DEATHPLACE']) && (stristr($search_result_element->value['deathPlace'], $array_querys['DEATHPLACE']) === false)) {
-					$all_crit_exist_in_gedcom = false;
-				}
-
-				if (!empty($array_querys['GENDER']) && $search_result_element->value['gender'] != $array_querys['GENDER'] ) {
-					$all_crit_exist_in_gedcom = false;
-				}
-
-
-				// if all the critian still exist after privatize thenset it to the array
-				if ($all_crit_exist_in_gedcom) {
-					$results_array[] = $search_result_element;
-				}
+				$search_result_element = $this->createPerson($gid, $indi->getGedcomRecord(), "item", false);
+				
+				$results_array[] = $search_result_element;
 
 				// sample how to get information for the result set
 				//$birtdate = get_gedcom_value("BIRT:DATE", 1, $gedrec, '', false);
