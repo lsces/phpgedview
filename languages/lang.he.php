@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Hebrew Language Help-file
  *
@@ -887,8 +887,8 @@ $pgv_lang["brother"]			= "אח";
 $pgv_lang["sister"]			= "אחות";
 $pgv_lang["aunt"]			= "דודה";
 $pgv_lang["uncle"]			= "דוד";
-$pgv_lang["nephew"]			= "אחיינית";
-$pgv_lang["niece"]			= "אחיין";
+$pgv_lang["nephew"]			= "אחיין";
+$pgv_lang["niece"]			= "אחיינית";
 $pgv_lang["firstcousin"]		= "דודן/דודנית מדרגה ראשונה";
 $pgv_lang["femalecousin"]		= "דודנית";
 $pgv_lang["malecousin"]		= "דודן";
