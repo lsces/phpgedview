@@ -204,6 +204,7 @@ $known_spiders = array(
 	'Feedfetcher-Google',
 	'Twiceler',
 	'archive.org_bot'
+);
 
 // We overlay the following name with carefully selected characters.
 // This is to avoid XSS problems.  Alpha : . / - _ only.  Yes, the following string is 72 chars.
