@@ -3,7 +3,7 @@
  * Indonesian texts
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ $pgv_lang["repo_menu"]				= "Pilihan untuk repositori";
 $pgv_lang["other_records"]			= "Rekaman yang terkait ke Sumber ini:";
 $pgv_lang["other_repo_records"]			= "Rekaman yang terkait ke Repositori ini:";
 $pgv_lang["repo_info"]				= "Informasi Repositori";
-$pgv_lang["enter_terms"]			= "Masukkan term pencarian";
+$pgv_lang["enter_terms"]			= "Masukkan frasa pencarian";
 $pgv_lang["search_asso_label"]			= "Kerabat";
 $pgv_lang["search_asso_text"]			= "Perlihatkan keluarga/orang yang berkerabat";
 $pgv_lang["search_DM"]				= "Daitch-Mokotoff";
@@ -153,8 +153,8 @@ $pgv_lang["ex-husband"]				= "Mantan Suami";
 $pgv_lang["noemail"] 				= "Alamat tanpa email";
 $pgv_lang["onlyemail"] 				= "Hanya alamat dengan email";
 $pgv_lang["maxviews_exceeded"]			= "Jumlah tampilan halaman yang diizinkan #GLOBALS[MAX_VIEWS]# tiap #GLOBALS[MAX_VIEW_TIME]# detik terlampaui.";
-$pgv_lang["broadcast_not_logged_6mo"]		= "Kirim pesan kepada para pengguna yang tidak mencatatmasuk selama 6 bulan";
-$pgv_lang["broadcast_never_logged_in"]		= "Kirim pesan kepada para pengguna yang tidak pernah mencatatmasuk";
+$pgv_lang["broadcast_not_logged_6mo"]		= "Kirim pesan kepada para pengguna yang tidak masuk log selama 6 bulan";
+$pgv_lang["broadcast_never_logged_in"]		= "Kirim pesan kepada para pengguna yang tidak pernah masuk log";
 $pgv_lang["stats_to_show"]			= "Pilih status yang akan diperlihatkan pada blok ini";
 $pgv_lang["stat_avg_age_at_death"]		= "Umur rata-rata saat meninggal";
 $pgv_lang["stat_longest_life"]			= "Orang yang hidup terlama";
@@ -196,7 +196,7 @@ $pgv_lang["family_of"]				= "Keluarga:&nbsp;";
 $pgv_lang["descent_steps"]			= "Langkah Turun";
 
 $pgv_lang["cancel"]				= "Batal";
-$pgv_lang["cookie_help"]			= "Situs ini menggunakan cookies untuk melacak status catatanmasuk Anda.<br /><br />Cookies tampaknya tidak diaktifkan pada perambah Anda. Anda harus mengaktifkan cookies untuk situs ini sebelum Anda dapat mencatatmasuk.  Anda dapat melihat dokumentasi bantuan perambah Anda untuk informasi mengaktifkan cookies.";
+$pgv_lang["cookie_help"]			= "Situs ini menggunakan cookies untuk melacak status catatanmasuk Anda.<br /><br />Cookies tampaknya tidak diaktifkan pada perambah Anda. Anda harus mengaktifkan cookies untuk situs ini sebelum Anda dapat masuk log.  Anda dapat melihat dokumentasi bantuan perambah Anda untuk informasi mengaktifkan cookies.";
 //new stuff
 //Individual
 $pgv_lang["indi_is_remote"]			= "Informasi untuk individu ini dikaitkan dari situs luar.";
@@ -267,7 +267,7 @@ $pgv_lang["total_living"]			= "Total orang yang hidup";
 $pgv_lang["total_dead"]				= "Total orang yang wafat";
 $pgv_lang["total_not_born"]			= "Total orang yang belum lahir";
 $pgv_lang["remove_custom_tags"]			= "Ambil tag PGV pilihan? (eg. _PGVU, _THUM)";
-$pgv_lang["cookie_login_help"]			= "Situs ini mengingat Anda dari catatanmasuk terdahulu.  Hal ini memungkinkan Anda untuk mengakses informasi pribadi dan fitur berdasar-pengguna yang lain, namun untuk menyunting atau mengatur situs, Anda harus mencatatmasuk lagi untuk meningkatkan keamanan.";
+$pgv_lang["cookie_login_help"]			= "Situs ini mengingat Anda dari catatanmasuk terdahulu.  Hal ini memungkinkan Anda untuk mengakses informasi pribadi dan fitur berdasar-pengguna yang lain, namun untuk menyunting atau mengatur situs, Anda harus masuk log lagi untuk meningkatkan keamanan.";
 $pgv_lang["remember_me"]			= "Ingat Saya dari komputer ini?";
 $pgv_lang["fams_with_surname"]			= "Keluarga dengan marga #surname#";
 $pgv_lang["support_contact"]			= "Kontak bantuan teknis";
@@ -292,12 +292,12 @@ $pgv_lang["first_letter_fname"]			= "Pilih huruf untuk menunjukkan individu yang
 $pgv_lang["total_names"]			= "Total Nama";
 $pgv_lang["top10_pageviews_nohits"]		= "Saat ini tidak ada kunjungan untuk diperlihatkan.";
 $pgv_lang["top10_pageviews_msg"]		= "Penghitung kunjungan harus diaktifkan pada pengaturan GEDCOM, bagian Tampilan dan Layout, kelompok Sembunyikan dan Perlihatkan.";
-$pgv_lang["review_changes_descr"]		= "blok Perubahan Tertunda akan memberi pengguna dengan hak Sunting daftar rekaman yang telah berubah secara online yang hal tersebut masih perlu diteliti dan diterima. Perubahan ini tertunda penerimaan atau penolakannya.<br /><br />Jika blok ini diaktifkan, pengguna dengan hak Terima akan menerima email sekali sehari yang memberitahukan bahwa perubahan tersebut perlu diteliti.";
+$pgv_lang["review_changes_descr"]		= "blok Perubahan Tertunda akan memberi pengguna dengan hak Sunting daftar rekaman yang telah berubah secara daring yang hal tersebut masih perlu diteliti dan diterima. Perubahan ini tertunda penerimaan atau penolakannya.<br /><br />Jika blok ini diaktifkan, pengguna dengan hak Terima akan menerima email sekali sehari yang memberitahukan bahwa perubahan tersebut perlu diteliti.";
 $pgv_lang["review_changes_block"]		= "Perubahan Tertunda";
 $pgv_lang["review_changes_email"]		= "Kirim email pengingat?";
 $pgv_lang["review_changes_email_freq"]		= "Frekuensi email pengingat (hari)";
-$pgv_lang["review_changes_subject"]		= "PhpGedView - Review perubahan";
-$pgv_lang["review_changes_body"]		= "Perubahan online telah dibuat terhadap basisdata genealogis. Perubahan tersebut perlu diteliti dan diterima sebelum ditampilkan ke para pengguna. Silakan gunakan URL di bawah untuk memasuki situs PhpGedView itu dan catatmasuk untuk meneliti perubahan.";
+$pgv_lang["review_changes_subject"]		= "PhpGedView - Periksa kembali perubahan";
+$pgv_lang["review_changes_body"]		= "Perubahan daring telah dibuat terhadap basisdata genealogis. Perubahan tersebut perlu diteliti dan diterima sebelum ditampilkan ke para pengguna. Silakan gunakan URL di bawah untuk memasuki situs PhpGedView itu dan masuk log untuk meneliti perubahan.";
 $pgv_lang["show_pending"]			= "Perlihatkan perubahan tertunda";
 $pgv_lang["show_spouses"]			= "Perlihatkan pasangan";
 $pgv_lang["quick_update_title"]			= "Pemutakhiran Cepat";
@@ -339,7 +339,7 @@ $pgv_lang["header"] 				= "Catatan Kepala";
 $pgv_lang["imageview"]				= "Penampil Gambar";
 
 //-- CONFIG FILE MESSAGES
-$pgv_lang["login_head"] 			= "Catatmasuk Pengguna PhpGedView";
+$pgv_lang["login_head"] 			= "Masuk log Pengguna PhpGedView";
 $pgv_lang["for_support"]			= "Untuk dukungan dan informasi teknis hubungi";
 $pgv_lang["for_contact"]			= "Untuk bantuan tentang pertanyaan genealogi hubungi";
 $pgv_lang["for_all_contact"]			= "Untuk dukungan teknis atau pertanyaan genealogi, silakan hubungi";
@@ -352,10 +352,10 @@ $pgv_lang["lastname"]				= "Nama Belakang";
 $pgv_lang["choose_password"]			= "Sandi yang diinginkan";
 $pgv_lang["password"]				= "Sandi";
 $pgv_lang["confirm"]				= "Konfirmasi Sandi";
-$pgv_lang["login"]				= "Catatmasuk";
-$pgv_lang["logout"] 				= "Catatkeluar";
+$pgv_lang["login"]				= "Masuk log";
+$pgv_lang["logout"] 				= "Keluar log";
 $pgv_lang["admin"]				= "Admin";
-$pgv_lang["logged_in_as"]			= "Tercatatmasuk sebagai ";
+$pgv_lang["logged_in_as"]			= "Masuk log sebagai ";
 $pgv_lang["my_pedigree"]			= "Kerabat Saya";
 $pgv_lang["my_indi"]				= "Rekaman Pribadi Saya";
 $pgv_lang["yes"]				= "Ya";
@@ -778,7 +778,7 @@ $pgv_lang["delete"] 					= "Hapus";
 $pgv_lang["edit"]					= "Sunting";
 $pgv_lang["no_login"]					= "Tidak dapat mengotentifikasi pengguna.";
 $pgv_lang["basic_realm"]				= "Sistem Otentifikasi PhpGedView";
-$pgv_lang["basic_auth_failure"]				= "Anda harus memasukkan ID catatmasuk dan sandi yang benar untuk mengakses sumberdaya ini";
+$pgv_lang["basic_auth_failure"]				= "Anda harus memasukkan ID masuk log dan sandi yang benar untuk mengakses sumberdaya ini";
 $pgv_lang["basic_auth"]					= "Otentifikasi Dasar";
 $pgv_lang["digest_auth"]				= "Otentifikasi Digest"; //not used in code yet
 $pgv_lang["no_auth_needed"]				= "Tidak ada Otentifikasi";
@@ -1035,7 +1035,7 @@ $pgv_lang["female_cousin_13"]           	= "sepupu perempuan tigabelas kali";
 $pgv_lang["female_cousin_14"]           	= "sepupu perempuan empatbelas kali";
 $pgv_lang["female_cousin_15"]           	= "sepupu perempuan lima belas kali";
 $pgv_lang["female_cousin_16"]           	= "sepupu perempuan enambelas kali";
-$pgv_lang["female_cousin_17"]           	= "sepupu perempuan tujuhbelas kali";
+$pgv_lang["female_cousin_17"]           	= "sepupu perempuan tujuhbelas kali";;
 $pgv_lang["female_cousin_18"]           	= "sepupu perempuan delapanbelas kali";
 $pgv_lang["female_cousin_19"]           	= "sepupu perempuan sembilanbelas kali";
 $pgv_lang["female_cousin_20"]           	= "sepupu perempuan duapuluh kali";
@@ -1152,14 +1152,14 @@ $pgv_lang["mail01_subject"] 			= "Pendaftaran Anda di #SERVER_NAME#";
 $pgv_lang["mail02_line01"]			= "Halo Administrator ...";
 $pgv_lang["mail02_line02"]			= "Pengguna prospektif mengdaftarkan dirinya dengan PhpGedView di #SERVER_NAME#.";
 $pgv_lang["mail02_line03"]			= "Pengguna menerima email dengan informasi yang diperlukan untuk mengonfirmasi permintaan aksesnya.";
-$pgv_lang["mail02_line04"]			= "Anda akan diberitahu lewat email saat pengguna prospektif ini telah mengonfirmasikan permintaannya. Anda kemudian dapat menyempurnakan proses dengan mengaktifkan nama penggunanya. Pengguna baru tidak akan dapat mencatatmasuk hingga Anda mengaktifkan akunnya.";
+$pgv_lang["mail02_line04"]			= "Anda akan diberitahu lewat email saat pengguna prospektif ini telah mengonfirmasikan permintaannya. Anda kemudian dapat menyempurnakan proses dengan mengaktifkan nama penggunanya. Pengguna baru tidak akan dapat masuk log hingga Anda mengaktifkan akunnya.";
 $pgv_lang["mail02_line04a"]			= "You will be informed by email when this prospective user has confirmed his request. After this, the user will be able to login without any action on your part.";
 $pgv_lang["mail02_subject"] 			= "Pendaftaraan baru di #SERVER_NAME#";
 
 $pgv_lang["hashcode"]				= "Kode verifikasi:";
 $pgv_lang["thankyou"]				= "Halo #user_fullname# ...<br />Terima kasih atas pendaftaran Anda.";
-$pgv_lang["pls_note06"] 			= "Sekarang Kami akan mengirim email konfirmasi ke alamat <b>#user_email#</b>. Anda harus memverifikasi permintaan akun Anda dengan mengikuti petunjuk pada email konfirmasi. Jika Anda tidak mengonfirmasi permintaan akun Anda selama tujuh hari, pengajuan Anda otomatis akan ditolak. Anda harus mengajukan lagi.<br /><br />Setelah Anda mengikuti petunjuk di email konfirmasi, administrator masih harus menyetujui permintaan Anda sebelum akun Anda dapat digunakan.<br /><br />Untuk tercatatmasuk ke situs ini, Anda harus mengetahui nama pengguna dan sandi Anda.<br /><br />";
-$pgv_lang["pls_note06a"] 			= "Sekarang Kami akan mengirim email konfirmasi ke alamat <b>#user_email#</b>. Anda harus memverifikasi permintaan akun Anda dengan mengikuti petunjuk pada email konfirmasi. Jika Anda tidak mengonfirmasi permintaan akun Anda selama tujuh hari, pengajuan Anda otomatis akan ditolak. Anda harus mengajukan lagi.<br /><br />Setelah Anda mengikuti petunjuk di email konfirmasi, Anda dapat tercatatmasuk. Untuk tercatatmasuk ke situs ini, Anda harus mengetahui nama pengguna dan sandi Anda.<br /><br />";
+$pgv_lang["pls_note06"] 			= "Sekarang Kami akan mengirim email konfirmasi ke alamat <b>#user_email#</b>. Anda harus memverifikasi permintaan akun Anda dengan mengikuti petunjuk pada email konfirmasi. Jika Anda tidak mengonfirmasi permintaan akun Anda selama tujuh hari, pengajuan Anda otomatis akan ditolak. Anda harus mengajukan lagi.<br /><br />Setelah Anda mengikuti petunjuk di email konfirmasi, administrator masih harus menyetujui permintaan Anda sebelum akun Anda dapat digunakan.<br /><br />Untuk masuk log ke situs ini, Anda harus mengetahui nama pengguna dan sandi Anda.<br /><br />";
+$pgv_lang["pls_note06a"] 			= "Sekarang Kami akan mengirim email konfirmasi ke alamat <b>#user_email#</b>. Anda harus memverifikasi permintaan akun Anda dengan mengikuti petunjuk pada email konfirmasi. Jika Anda tidak mengonfirmasi permintaan akun Anda selama tujuh hari, pengajuan Anda otomatis akan ditolak. Anda harus mengajukan lagi.<br /><br />Setelah Anda mengikuti petunjuk di email konfirmasi, Anda dapat masuk log. Untuk masuk log situs ini, Anda harus mengetahui nama pengguna dan sandi Anda.<br /><br />";
 
 $pgv_lang["registernew"]			= "Konfirmasi Akun Baru";
 $pgv_lang["user_verify"]			= "Verifikasi pengguna";
@@ -1170,36 +1170,36 @@ $pgv_lang["pls_note08"] 			= "Data untuk pengguna <b>#user_name#</b> telah diper
 
 $pgv_lang["mail03_line01"]			= "Halo Administrator ...";
 $pgv_lang["mail03_line02"]			= "Pengguna #newuser[username]# (#newuser[fullname]#) telah mengonfirmasikan permintaannya untuk sebuah akun.";
-$pgv_lang["mail03_line03"]			= "Silakan klik pada pranala di bawah untuk mencatatmasuk ke situs Anda. Anda harus menyunting pengguna untuk mengaktifkan akunnya sehingga ia dapat tercatatmasuk ke situs Anda.";
-$pgv_lang["mail03_line03a"]			= "Anda tidak harus mengambil tindakan apapun; pengguna sekarang dapat tercatatmasuk.";
+$pgv_lang["mail03_line03"]			= "Silakan klik pada pranala di bawah untuk masuk log ke situs Anda. Anda harus menyunting pengguna untuk mengaktifkan akunnya sehingga ia dapat masuk log ke situs Anda.";
+$pgv_lang["mail03_line03a"]			= "Anda tidak harus mengambil tindakan apapun; pengguna sekarang dapat masuk log.";
 $pgv_lang["mail03_subject"] 			= "Pengguna baru di #SERVER_NAME#";
 
 $pgv_lang["pls_note09"] 			= "Anda telah mengkonfirmasikan permintaan Anda menjadi pengguna terdaftar.";
-$pgv_lang["pls_note10"] 			= "Administrator telah diberitahu. Setelah ia memberi Anda izin untuk tercatatmasuk, Anda dapat tercatatmasuk dengan nama pengguna dan sandi Anda.";
-$pgv_lang["pls_note10a"]			= "Sekarang Anda dapat tercatatmasuk dengan nama pengguna dan sandi Anda.";
+$pgv_lang["pls_note10"] 			= "Administrator telah diberitahu. Setelah ia memberi Anda izin untuk masuk log, Anda dapat masuk log dengan nama pengguna dan sandi Anda.";
+$pgv_lang["pls_note10a"]			= "Sekarang Anda dapat masuk log dengan nama pengguna dan sandi Anda.";
 $pgv_lang["data_incorrect"] 			= "Data tidak benar, silakan coba lagi";
 $pgv_lang["user_not_found"] 			= "Tidak dapat memverifikasi informasi yang Anda masukkan. Silakan coba lagi atau hubungi administrator situs untuk informasi lebih lanjut.";
 
 $pgv_lang["lost_pw_reset"]			= "Permintaan kehilangan sandi";
-$pgv_lang["pls_note11"] 			= "Untuk mengembalikan sandi Anda, masukkan nama pengguna Anda.<br /><br />Kami akan menjawab dengan mengirimi Anda email ke alamat yang terdaftar bersama akun Anda. Email tersebut akan mengandung URL dan kode konfirmasi untuk akun Anda. Saat mengunjungi URL ini, Anda dapat mengubah sandi Anda dan tercatatmasuk ke situs ini. Untuk alasan keamanan, Anda sebaiknya tidak memberikan kode informasi ini ke siapapun.<br /><br />Jika Anda memerlukan dampingan administrator situs, silakan gunakan pranala kontak di bawah.";
+$pgv_lang["pls_note11"] 			= "Untuk mengembalikan sandi Anda, masukkan nama pengguna Anda.<br /><br />Kami akan menjawab dengan mengirimi Anda email ke alamat yang terdaftar bersama akun Anda. Email tersebut akan mengandung URL dan kode konfirmasi untuk akun Anda. Saat mengunjungi URL ini, Anda dapat mengubah sandi Anda dan masuk log situs ini. Untuk alasan keamanan, Anda sebaiknya tidak memberikan kode informasi ini ke siapapun.<br /><br />Jika Anda memerlukan dampingan administrator situs, silakan gunakan pranala kontak di bawah.";
 
 $pgv_lang["mail04_line01"]			= "Halo #user_fullname# ...";
 $pgv_lang["mail04_line02"]			= "Sandi baru telah diminta untuk nama pengguna Anda.";
 $pgv_lang["mail04_line03"]			= "Rekomendasi:";
 $pgv_lang["mail04_line04"]			= "Silakan klik pada pranala di bawah atau temaple pada perambah Anda, catatmasuk dengan sandi yang baru, dan segera ganti untuk menjaga integritas keamanan data Anda.";
-$pgv_lang["mail04_line05"]			= "Setelah Anda tercatatmasuk, pilih pranala «#pgv_lang[editowndata]#» di bawah menu «#pgv_lang[mygedview]#» dan isilah isian sandi untuk mengubah sandi Anda.";
+$pgv_lang["mail04_line05"]			= "Setelah Anda masuk log, pilih pranala «#pgv_lang[editowndata]#» di bawah menu «#pgv_lang[mygedview]#» dan isilah isian sandi untuk mengubah sandi Anda.";
 $pgv_lang["mail04_subject"] 			= "Permintaan data di #SERVER_NAME#";
 
-$pgv_lang["pwreqinfo"]				= "Halo...<br /><br />Email dengan sandi baru Anda telah terkirim ke alamat yang kami miliki pada berkas untuk <b>#user[email]#</b>.<br /><br />Silakan periksa akun email Anda; Anda seharusnya segera menerima pesan kami.<br /><br />Rekomendasi:<br />Anda sebaiknya mencatatmasuk ke situs ini dengan sandi baru Anda secepat mungkin, dan Anda sebaiknya mengubah sandi Anda untuk mempertahankam keamanan data Anda.";
+$pgv_lang["pwreqinfo"]				= "Halo...<br /><br />Email dengan sandi baru Anda telah terkirim ke alamat yang kami miliki pada berkas untuk <b>#user[email]#</b>.<br /><br />Silakan periksa akun email Anda; Anda seharusnya segera menerima pesan kami.<br /><br />Rekomendasi:<br />Anda sebaiknya masuk log ke situs ini dengan sandi baru Anda secepat mungkin, dan Anda sebaiknya mengubah sandi Anda untuk mempertahankam keamanan data Anda.";
 
 $pgv_lang["myuserdata"] 			= "Akun Saya";
 $pgv_lang["user_theme"] 			= "Tema Saya";
 $pgv_lang["mgv"]				= "GedViewSaya";
 $pgv_lang["mygedview"]				= "Portal GedViewSaya";
 $pgv_lang["passwordlength"] 			= "Sandi harus mengandung setidaknya 6 karakter.";
-$pgv_lang["welcome_text_auth_mode_1"]		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses ke situs ini diizinkan bagi setiap pengunjung yang mempunyai akun pengguna.<br /><br />Jika Anda memiliki akun pengguna, Anda dapat mencatatmasuk pada halaman ini. Jika Anda tidak mempunyai akun pengguna, Anda dapat mengajukan satu dengan mengklik pranala yang bersesuaian di bawah.<br /><br />Setelah memverifikasi pengajuan Anda, administrator situs akan mengaktifkan akun Anda. Anda akan menerima email saat pengajuan Anda diterima.";
-$pgv_lang["welcome_text_auth_mode_2"]		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses ke situs ini hanya diizinkan bagi <u>pengguna terotorisasi</u> saja.<br /><br />Jika Anda memiliki akun pengguna, Anda dapat mencatatmasuk pada halaman ini. Jika Anda tidak mempunyai akun pengguna, Anda dapat mengajukan satu dengan mengklik pranala yang bersesuaian di bawah.<br /><br />Setelah memverifikasi informasi Anda, administrator akan menerima atau menolak pengajuan akun Anda. Anda akan menerima pesan email saat pengajuan Anda diterima.";
-$pgv_lang["welcome_text_auth_mode_3"]		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses ke situs ini hanya diizinkan bagi <u>anggota keluarga</u> saja.<br /><br />Jika Anda memiliki akun pengguna, Anda dapat mencatatmasuk pada halaman ini. Jika Anda tidak mempunyai akun pengguna, Anda dapat mengajukan satu dengan mengklik pranala yang bersesuaian di bawah.<br /><br />Setelah memverifikasi informasi yang Anda sediakan, administrator akan menerima atau menolak permintaan akun Anda. Anda akan menerima email saat permintaan Anda diterima.";
+$pgv_lang["welcome_text_auth_mode_1"]		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses ke situs ini diizinkan bagi setiap pengunjung yang mempunyai akun pengguna.<br /><br />Jika Anda memiliki akun pengguna, Anda dapat masuk log pada halaman ini. Jika Anda tidak mempunyai akun pengguna, Anda dapat mengajukan satu dengan mengklik pranala yang bersesuaian di bawah.<br /><br />Setelah memverifikasi pengajuan Anda, administrator situs akan mengaktifkan akun Anda. Anda akan menerima email saat pengajuan Anda diterima.";
+$pgv_lang["welcome_text_auth_mode_2"]		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses ke situs ini hanya diizinkan bagi <u>pengguna terotorisasi</u> saja.<br /><br />Jika Anda memiliki akun pengguna, Anda dapat masuk log pada halaman ini. Jika Anda tidak mempunyai akun pengguna, Anda dapat mengajukan satu dengan mengklik pranala yang bersesuaian di bawah.<br /><br />Setelah memverifikasi informasi Anda, administrator akan menerima atau menolak pengajuan akun Anda. Anda akan menerima pesan email saat pengajuan Anda diterima.";
+$pgv_lang["welcome_text_auth_mode_3"]		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses ke situs ini hanya diizinkan bagi <u>anggota keluarga</u> saja.<br /><br />Jika Anda memiliki akun pengguna, Anda dapat masuk log pada halaman ini. Jika Anda tidak mempunyai akun pengguna, Anda dapat mengajukan satu dengan mengklik pranala yang bersesuaian di bawah.<br /><br />Setelah memverifikasi informasi yang Anda sediakan, administrator akan menerima atau menolak permintaan akun Anda. Anda akan menerima email saat permintaan Anda diterima.";
 $pgv_lang["welcome_text_cust_head"] 		= "<center><b>Selamat datang di Situsweb genealogi ini</b></center><br />Akses diizinkan bagi pengguna yang mempunyai akun dan sandi untuk situsweb ini.<br />";
 $pgv_lang["acceptable_use"]			= "<div class=\"largeError\">Perhatian:</div><div class=\"error\">Dengan melengkapi dan mengirim formulir ini, Anda setuju:<ul><li>untuk melindungi privasi orang yang hidup yang terdaftar di situs kami;</li><li>dan isilah kotak teks di bawah, untuk menjelaskan kepada siapa Anda terhubung, atau menyediakan kami informasi tentang seseorang yang sebaiknya terdaftar pada situs kami.</li></ul></div>";
 
@@ -1226,12 +1226,12 @@ $pgv_lang["none_today_all"]			= "Tidak ada peristiwa untuk hari ini.";
 $pgv_lang["none_today_privacy"]			= "Ada peristiwa untuk hari ini, namun batasan pribadi mencegah Anda melihatnya.";
 $pgv_lang["more_today_privacy"]			= "<br />Ada peristiwa lagi untuk hari ini, namun batasan pribadi mencegah Anda melihatnya.";
 $pgv_lang["chat"]				= "Chat";
-$pgv_lang["users_logged_in"]			= "Pengguna yang Tercatatmasuk";
-$pgv_lang["anon_user"]				= "1 pengguna tercatatmasuk secara anonim";
-$pgv_lang["anon_users"]				= "#pgv_lang[global_num1]# pengguna  tercatatmasuk secara anonim";
-$pgv_lang["login_user"]				= "1 pengguna tercatatmasuk";
-$pgv_lang["login_users"]			= "#pgv_lang[global_num1]# pengguna tercatatmasuk";
-$pgv_lang["no_login_users"]			= "Tidak ada pengguna yang tercatatmasuk maupun anonim";
+$pgv_lang["users_logged_in"]			= "Pengguna yang masuk log";
+$pgv_lang["anon_user"]				= "1 pengguna masuk log secara anonim";
+$pgv_lang["anon_users"]				= "#pgv_lang[global_num1]# pengguna  masuk log secara anonim";
+$pgv_lang["login_user"]				= "1 pengguna masuk log";
+$pgv_lang["login_users"]			= "#pgv_lang[global_num1]# pengguna masuk log";
+$pgv_lang["no_login_users"]			= "Tidak ada pengguna yang masuk log maupun anonim";
 $pgv_lang["message"]				= "Kirim Pesan";
 $pgv_lang["my_messages"]			= "Pesan Saya";
 $pgv_lang["date_created"]			= "Tanggal Pengiriman:";
@@ -1296,8 +1296,8 @@ $pgv_lang["todo_show_future"]    		= "Perlihatkan tugas di masa yang akan datang
 $pgv_lang["todo_nothing"]        		= "Tidak ada &quot;To Do&quot; tuga.";
 $pgv_lang["yahrzeit_block"]			= "Yahrzeiten yang Akan Datang";
 $pgv_lang["yahrzeit_descr"]			= "Blok Yahrzeiten yang Akan Datang memperlihatkan ulangtahun tanggal kematian yang akan terjadi di waktu dekat. Anda dapat mengatur periode yang diperlihatkan, dan Administrator dapat mengatur sejauh mana blok ini akan melihat.";
-$pgv_lang["logged_in_users_block"]		= "Pengguna yang Tercatatmasuk";
-$pgv_lang["logged_in_users_descr"]		= "Blok Pengguna yang Tercatatmasuk memperlihatkan daftar pengguna yang sedang tercatatmasuk.";
+$pgv_lang["logged_in_users_block"]		= "Pengguna yang masuk log";
+$pgv_lang["logged_in_users_descr"]		= "Blok Pengguna yang masuk log memperlihatkan daftar pengguna yang sedang masuk log.";
 $pgv_lang["user_messages_block"]		= "Pesan Pengguna";
 $pgv_lang["user_messages_descr"]		= "Blok Pesan Pengguna memperlihatkan daftar pesan terkirim ke pengguna aktif.";
 $pgv_lang["user_favorites_block"]		= "Favorit Pengguna";
@@ -1318,7 +1318,7 @@ $pgv_lang["gedcom_stats_descr"] 		= "Blok Statistik GEDCOM memperlihatkan kepada
 $pgv_lang["gedcom_stats_show_surnames"]		= "Perlihatkan marga umum?";
 $pgv_lang["portal_config_intructions"]		= "~#pgv_lang[customize_page]# <br /> #pgv_lang[customize_gedcom_page]#~<br /><br />Anda dapat mengatur halaman dengan meletakkan blok pada halaman sebagaimana Anda inginkan.<br /><br />Halaman terbagi atas bagian <b>Utama</b> dan <b>Kanan</b>. Blok bagian <b>Utama</b> tampak lebih besar dan di bawah judul halaman. Bagian <b>Kanan</b> bermula dari kanan judul ke sisi bawah kanan halaman.<br /><br />Setiap bagian mempunyai daftar bloknya masing-masing yang akan dicetak pada halaman dengan urutan sebagaimana dalam daftar. Anda dapat menambah, membuang, dan menyusun blok semau Anda.<br /><br />Saat salah satu daftar blok kosong, blok yang tersisa akan mengambil lebar halaman yang tersisa.<br /><br />";
 $pgv_lang["login_block"]			= "Catatmasuk";
-$pgv_lang["login_descr"]			= "Blok Catatmasuk menerima nama pengguna dan sandi bagi pengguna untuk mencatatmasuk.";
+$pgv_lang["login_descr"]			= "Blok Catatmasuk menerima nama pengguna dan sandi bagi pengguna untuk masuk log.";
 $pgv_lang["theme_select_block"] 		= "Pilih Tema";
 $pgv_lang["theme_select_descr"] 		= "Blok Pilih Tema menampilkan Pilihan teman walaupun fitur Ganti Tema dinonaktifkan.";
 $pgv_lang["block_top10_title"]			= "10 Marga Teratas";
@@ -1337,7 +1337,7 @@ $pgv_lang["gedcom_news_limit_count"]		= "Jumlah item";
 $pgv_lang["gedcom_news_flag"]			= "Batasan:";
 $pgv_lang["gedcom_news_archive"] 		= "Tampilkan arsip";
 $pgv_lang["user_news_block"]			= "Jurnal Pengguna";
-$pgv_lang["user_news_descr"]			= "Blok Jurnal Pengguna membolehkan pengguna membuat catatan atau jurnal online.";
+$pgv_lang["user_news_descr"]			= "Blok Jurnal Pengguna membolehkan pengguna membuat catatan atau jurnal daring.";
 $pgv_lang["my_journal"] 			= "Jurnal Saya";
 $pgv_lang["no_journal"] 			= "Anda tidak membuat item Jurnal apapun.";
 $pgv_lang["confirm_journal_delete"]		= "Apakah Anda yakin ingin menghapus masukan Jurnal ini?";
@@ -1540,7 +1540,7 @@ $pgv_lang["rss_logo_descr"]			= "Umpan dibuat oleh PhpGedView";
 $pgv_lang["rss_feeds"]				= "Umpan RSS";
 $pgv_lang["no_feed_title"]			= "Umpan tidak tersedia";
 $pgv_lang["no_feed"]				= "Tidak ada umpan RSS yang tersedia untuk situs PhpGedView ini";
-$pgv_lang["feed_login"]				= "Jika Anda mempunyai akun di situs PhpGedView ini, Anda dapat <a href=\"#AUTH_URL#\">tercatatmasuk</a> ke server menggunakan Otentifikasi HTTP Dasar untuk menampilkan informasi pribadi.";
+$pgv_lang["feed_login"]				= "Jika Anda mempunyai akun di situs PhpGedView ini, Anda dapat <a href=\"#AUTH_URL#\">masuk log</a> ke server menggunakan Otentifikasi HTTP Dasar untuk menampilkan informasi pribadi.";
 $pgv_lang["authenticated_feed"]			= "Umpan Terotentifikasi";
 
 //-- ASSOciates RELAtionship
@@ -1654,6 +1654,38 @@ $pgv_lang["repo_contains"]			= "Repositori mengandung:";
 $pgv_lang["source_contains"]			= "Sumber mengandung:";
 $pgv_lang["display_all"]			= "Tampilkan semua";
 
+//-- accesskey navigation
+$pgv_lang["accesskeys"]				= "Jalanpintas Keyboard";
+$pgv_lang["accesskey_skip_to_content"]		= "C";
+$pgv_lang["accesskey_search"]			= "S";
+$pgv_lang["accesskey_skip_to_content_desc"]	= "Lewati ke DaftarIsi";
+$pgv_lang["accesskey_viewing_advice"]		= "0";
+$pgv_lang["accesskey_viewing_advice_desc"]	= "Saran tampilan";
+$pgv_lang["accesskey_home_page"]		= "1";
+$pgv_lang["accesskey_help_content"]		= "2";
+$pgv_lang["accesskey_help_current_page"]	= "3";
+$pgv_lang["accesskey_contact"]			= "4";
+
+$pgv_lang["accesskey_individual_details"]		= "I";
+$pgv_lang["accesskey_individual_relatives"]		= "R";
+$pgv_lang["accesskey_individual_notes"]			= "N";
+$pgv_lang["accesskey_individual_sources"]		= "O";
+//clash with IE addBookmark but not a likely problem
+$pgv_lang["accesskey_individual_media"]			= "A";
+$pgv_lang["accesskey_individual_research_log"]		= "L";
+$pgv_lang["accesskey_individual_pedigree"]		= "P";
+$pgv_lang["accesskey_individual_descendancy"]		= "D";
+$pgv_lang["accesskey_individual_timeline"]		= "T";
+$pgv_lang["accesskey_individual_relation_to_me"]	= "M";
+//clash with rarely used English Netscape/Mozilla Go menu
+$pgv_lang["accesskey_individual_gedcom"]		= "G";
+
+$pgv_lang["accesskey_family_parents_timeline"]		= "P";
+$pgv_lang["accesskey_family_children_timeline"]		= "D";
+$pgv_lang["accesskey_family_timeline"]	= "T";
+//clash with rarely used English Netscape/Mozilla English Go menu
+$pgv_lang["accesskey_family_gedcom"]			= "G";
+
 // FAQ Page
 $pgv_lang["add_faq_header"] 				= "Catatankepala FAQ";
 $pgv_lang["add_faq_body"] 				= "Badan FAQ";
@@ -1663,7 +1695,7 @@ $pgv_lang["no_faq_items"] 				= "Daftar FAQ kosong.";
 $pgv_lang["position_item"] 				= "Posisi item";
 $pgv_lang["faq_list"] 					= "Daftar FAQ";
 $pgv_lang["confirm_faq_delete"] 			= "Apakah Anda yakin ingin menghapus masukan FAQ?";
-$pgv_lang["preview"] 					=  "Pratampilan";
+$pgv_lang["preview"] 					=  "Pratayang";
 $pgv_lang["no_id"] 					= "Tidak ada ID FAQ yang ditentukan!";
 
 // Help search
