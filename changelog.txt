@@ -9,6 +9,7 @@
 =====================================================================
 
 Version 4.2.4
+ - Fixed: Incorrect URL when using Geonames search in Autocomplete of place names (canajun2eh)
  - Deleted: Keyboard Shortcuts feature (canajun2eh)
  - Changed: New rules for finding highlighted object on charts, Indi, and Family pages (canajun2eh)
  - Fixed: [ 2947598 ] Site Map missing the $SERVER_URLvar? (fisharebest)

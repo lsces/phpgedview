@@ -504,7 +504,7 @@ function autocomplete_PLAC($FILTER, $OPTION) {
 
 	//-- no match => perform a geoNames query if enabled
 	if (empty($data) && $USE_GEONAMES) {
-		$url = "http://ws5.geonames.org/searchJSON".
+		$url = "http://ws.geonames.org/searchJSON".
 					"?name_startsWith=".urlencode($FILTER).
 					"&lang=".$lang_short_cut[$LANGUAGE].
 					"&fcode=CMTY&fcode=ADM4&fcode=PPL&fcode=PPLA&fcode=PPLC".
