@@ -23,7 +23,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // @package PhpGedView
-// @version $Id$
+// @version $Id: class_pgv_db.php 6981 2010-09-12 14:33:19Z okbigkid $
 
 if (!defined('PGV_PHPGEDVIEW')) {
 	header('HTTP/1.0 403 Forbidden');
@@ -128,7 +128,7 @@ class PGV_DB {
 			self::$TEXT_TYPE    ='TEXT';
 			self::$LONGTEXT_TYPE='LONGTEXT';
 			if ($DB_UTF8_COLLATION) {
-				self::$pdo->exec("SET NAMES UTF8");
+				self::$pdo->exec("SET NAMES 'utf8', SQL_BIG_SELECTS=1");
 				self::$UTF8_TABLE   ='CHARACTER SET utf8 COLLATE utf8_unicode_ci';
 			} else {
 				self::$UTF8_TABLE   ='';

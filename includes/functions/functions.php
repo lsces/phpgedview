@@ -1227,29 +1227,27 @@ function find_highlighted_object($pid, $ged_id, $indirec) {
 	}
 
 	//-- find all of the media items for a person
-	$media=
-		PGV_DB::prepare("SELECT m_media, m_file, m_gedrec, mm_gedrec FROM {$TBLPREFIX}media, {$TBLPREFIX}media_mapping WHERE m_media=mm_media AND m_gedfile=mm_gedfile AND m_gedfile=? AND mm_gid=? ORDER BY mm_order")
-		->execute(array($ged_id, $pid))
-		->fetchAll(PDO::FETCH_NUM);
+	$media = $gBitDb->query(
+		"SELECT m_media, m_file, m_gedrec, mm_gedrec FROM {$TBLPREFIX}media, {$TBLPREFIX}media_mapping WHERE m_media=mm_media AND m_gedfile=mm_gedfile AND m_gedfile=? AND mm_gid=? ORDER BY mm_order"
+		, array( $ged_id, $pid));
 
-	foreach ($media as $i=>$row) {
-		if (displayDetailsById($row[0], 'OBJE') && !FactViewRestricted($row[0], $row[2])) {
+	while ( $row = $media->fetchRow() ) {
+		if (displayDetailsById($row['m_media'], 'OBJE') && !FactViewRestricted($row['m_media'], $row['m_gedrec'])) {
 			$level=0;
-			$ct = preg_match("/(\d+) OBJE/", $row[3], $match);
+			$ct = preg_match("/(\d+) OBJE/", $row['mm_gedrec'], $match);
 			if ($ct>0) {
 				$level = $match[1];
 			}
-			if (strstr($row[3], "_PRIM ")) {
-				$thum = get_gedcom_value('_THUM', $level+1, $row[3]);
-				$prim = get_gedcom_value('_PRIM', $level+1, $row[3]);
+			if (strstr($row['mm_gedrec'], "_PRIM ")) {
+				$thum = get_gedcom_value('_THUM', $level+1, $row['mm_gedrec']);
+				$prim = get_gedcom_value('_PRIM', $level+1, $row['mm_gedrec']);
 			} else {
-				$thum = get_gedcom_value('_THUM', 1, $row[2]);
-				$prim = get_gedcom_value('_PRIM', 1, $row[2]);
+				$thum = get_gedcom_value('_THUM', 1, $row['m_gedrec']);
+				$prim = get_gedcom_value('_PRIM', 1, $row['m_gedrec']);
 			}
-
 			if ($prim=='N') continue;		// Skip _PRIM N objects
-			$file = check_media_depth($row[1]);
-			$thumb = thumbnail_file($row[1], true, false, $pid);
+			$file = check_media_depth($row['m_file']);
+			$thumb = thumbnail_file($row['m_file'], true, false, $pid);
 			if ($level == 1) {
 				if ($prim == 'Y') {
 					if (empty($objectA)) {
@@ -1257,7 +1255,7 @@ function find_highlighted_object($pid, $ged_id, $indirec) {
 						$objectA['thumb'] = $thumb;
 						$objectA['_THUM'] = $thum;	// This overrides GEDCOM's "Use main image as thumbnail" option
 						$objectA['level'] = $level;
-						$objectA['mid'] = $row[0];
+						$objectA['mid'] = $row['m_midia'];
 					}
 				} else {
 					if (empty($objectB)) {
@@ -1265,7 +1263,7 @@ function find_highlighted_object($pid, $ged_id, $indirec) {
 						$objectB['thumb'] = $thumb;
 						$objectB['_THUM'] = $thum;	// This overrides GEDCOM's "Use main image as thumbnail" option
 						$objectB['level'] = $level;
-						$objectB['mid'] = $row[0];
+						$objectB['mid'] = $row['m_media'];
 					}
 				}
 			} else {
@@ -1275,7 +1273,7 @@ function find_highlighted_object($pid, $ged_id, $indirec) {
 						$objectC['thumb'] = $thumb;
 						$objectC['_THUM'] = $thum;	// This overrides GEDCOM's "Use main image as thumbnail" option
 						$objectC['level'] = $level;
-						$objectC['mid'] = $row[0];
+						$objectC['mid'] = $row['m_media'];
 					}
 				} else {
 					if (empty($objectD)) {
@@ -1283,7 +1281,7 @@ function find_highlighted_object($pid, $ged_id, $indirec) {
 						$objectD['thumb'] = $thumb;
 						$objectD['_THUM'] = $thum;	// This overrides GEDCOM's "Use main image as thumbnail" option
 						$objectD['level'] = $level;
-						$objectD['mid'] = $row[0];
+						$objectD['mid'] = $row['m_media'];
 					}
 				}
 			}
@@ -2362,20 +2360,19 @@ function get_relationship($pid1, $pid2, $followspouse=true, $maxlength=0, $ignor
 // This is a new/experimental version of get_relationship().  It is not used by any live
 // code.  It is here to allow certain users to test it.
 function get_relationship1($pid1, $pid2, $followspouse=true, $maxlength=0) {
-	global $pgv_changes, $TBLPREFIX;
+	global $pgv_changes, $TBLPREFIX, $gBitDb;
 	static $RELA=null;
 	static $PATHS=null;
 
 	// Read all the relationships into a memory cache
 	if (is_null($RELA)) {
 		$RELA=array();
-		$rows=
-			PGV_DB::prepare("SELECT f_id, f_husb, f_wife, TRIM(TRAILING ? FROM f_chil) AS f_chil FROM {$TBLPREFIX}families WHERE f_file=?")
-			->execute(array(';', PGV_GED_ID))
-			->fetchAll();
+		$rows = $gBitDb->query(
+			"SELECT f_id, f_husb, f_wife, TRIM(TRAILING ? FROM f_chil) AS f_chil FROM {$TBLPREFIX}families WHERE f_file=?"
+			, array(';', PGV_GED_ID));
 		$families=array();
-		foreach ($rows as $row) {
-			$families[$row->f_id]=array($row->f_husb, $row->f_wife, $row->f_chil);
+		while ( $row = $rows->fetchRow() ) {
+			$families[$row['f_id']] = array( $row['f_husb'], $row['f_wife'], $row['f_chil'] );
 		}
 		foreach ($families as $f_id=>$family) {
 			// Include pending changes
@@ -2472,20 +2469,19 @@ function get_relationship1($pid1, $pid2, $followspouse=true, $maxlength=0) {
 }
 
 function get_relationship2($pid1, $pid2, $followspouse=true, $maxlength=0, $ignore_cache=false, $path_to_find=0) {
-	global $pgv_changes, $TBLPREFIX;
+	global $pgv_changes, $TBLPREFIX, $gBitDb;
 	static $RELA=null;
 	static $PATHS=null;
 
 	// Read all the relationships into a memory cache
 	if (is_null($RELA)) {
 		$RELA=array();
-		$rows=
-			PGV_DB::prepare("SELECT f_id, f_husb, f_wife, TRIM(TRAILING ? FROM f_chil) AS f_chil FROM {$TBLPREFIX}families WHERE f_file=?")
-			->execute(array(';', PGV_GED_ID))
-			->fetchAll();
+		$rows = $gBitDb->query(
+			"SELECT f_id, f_husb, f_wife, TRIM(TRAILING ? FROM f_chil) AS f_chil FROM {$TBLPREFIX}families WHERE f_file=?"
+			, array(';', PGV_GED_ID));
 		$families=array();
-		foreach ($rows as $row) {
-			$families[$row->f_id]=array($row->f_husb, $row->f_wife, $row->f_chil);
+		while ( $row = $rows->fetchRow() ) {
+			$families[$row['f_id']]=array($row['f_husb'], $row['f_wife'], $row['f_chil']);
 		}
 		foreach ($families as $f_id=>$family) {
 			// Include pending changes
@@ -3089,6 +3085,7 @@ function CheckPageViews() {
 function get_new_xref($type='INDI', $ged_id=PGV_GED_ID, $use_cache=false) {
 	global $fcontents, $SOURCE_ID_PREFIX, $REPO_ID_PREFIX, $pgv_changes, $TBLPREFIX;
 	global $MEDIA_ID_PREFIX, $FAM_ID_PREFIX, $GEDCOM_ID_PREFIX, $MAX_IDS;
+	global $gBitDb;
 
 	$num = null;
 	//-- check if an id is stored in MAX_IDS used mainly during the import
@@ -3099,10 +3096,9 @@ function get_new_xref($type='INDI', $ged_id=PGV_GED_ID, $use_cache=false) {
 		$MAX_IDS[$type] = $num+1;
 	} else {
 		//-- check for the id in the nextid table
-		$num=
-			PGV_DB::prepare("SELECT ni_id FROM {$TBLPREFIX}nextid WHERE ni_type=? AND ni_gedfile=?")
-			->execute(array($type, $ged_id))
-			->fetchOne();
+		$num = $gBitDb->getOne(
+			"SELECT ni_id FROM {$TBLPREFIX}nextid WHERE ni_type=? AND ni_gedfile=?"
+			, array($type, $ged_id));
 
 		//-- the id was not found in the table so try and find it in the file
 		if (is_null($num) && !empty($fcontents)) {
@@ -3122,8 +3118,7 @@ function get_new_xref($type='INDI', $ged_id=PGV_GED_ID, $use_cache=false) {
 		//-- type wasn't found in database or in file so make a new one
 		if (is_null($num)) {
 			$num = 1;
-			PGV_DB::prepare("INSERT INTO {$TBLPREFIX}nextid VALUES(?, ?, ?)")
-				->execute(array($num+1, $type, $ged_id));
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}nextid VALUES(?, ?, ?)", array($num+1, $type, $ged_id));
 		}
 	}
 
@@ -3167,8 +3162,9 @@ function get_new_xref($type='INDI', $ged_id=PGV_GED_ID, $use_cache=false) {
 		return $key;
 	}
 	//-- update the next id number in the DB table
-	PGV_DB::prepare("UPDATE {$TBLPREFIX}nextid SET ni_id=? WHERE ni_type=? AND ni_gedfile=?")
-		->execute(array($num+1, $type, $ged_id));
+	$gBitDb->query(
+		"UPDATE {$TBLPREFIX}nextid SET ni_id=? WHERE ni_type=? AND ni_gedfile=?"
+		, array($num+1, $type, $ged_id));
 	return $key;
 }
 
@@ -3353,6 +3349,7 @@ function loadLanguage($desiredLanguage="english", $forceLoad=false) {
 	global $unknownNN, $unknownPN;
 	global $JEWISH_ASHKENAZ_PRONUNCIATION, $CALENDAR_FORMAT;
 	global $DBTYPE, $DB_UTF8_COLLATION, $COLLATION, $DBCOLLATE;
+	global $gBitDb;
 
 	// Need to change the collation sequence each time we change language
 	if ($DB_UTF8_COLLATION) {
@@ -3398,14 +3395,14 @@ function loadLanguage($desiredLanguage="english", $forceLoad=false) {
 		// load admin lang keys
 		$file = $adminfile[$LANGUAGE];
 		if (file_exists($file)) {
-			if (!$CONFIGURED || !PGV_DB::isConnected() || !PGV_ADMIN_USER_EXISTS || PGV_USER_GEDCOM_ADMIN) {
-				require $file;
+			if (!$CONFIGURED || !empty( $gBitDb->mDb ) || !adminUserExists() || PGV_USER_GEDCOM_ADMIN) {
+				include($file);
 			}
 		}
 		// load the edit lang keys
 		$file = $editorfile[$LANGUAGE];
 		if (file_exists($file)) {
-			if (!PGV_DB::isConnected() || !PGV_ADMIN_USER_EXISTS || PGV_USER_GEDCOM_ADMIN || PGV_USER_CAN_EDIT) {
+			if (!empty( $gBitDb->mDb ) || !PGV_ADMIN_USER_EXISTS || PGV_USER_GEDCOM_ADMIN || PGV_USER_CAN_EDIT) {
 				require $file;
 			}
 		}
@@ -3437,14 +3434,14 @@ function loadLanguage($desiredLanguage="english", $forceLoad=false) {
 		// load admin lang keys
 		$file = $adminfile[$LANGUAGE];
 		if (file_exists($file)) {
-			if (!$CONFIGURED || !PGV_DB::isConnected() || !PGV_ADMIN_USER_EXISTS || PGV_USER_GEDCOM_ADMIN) {
+			if (!$CONFIGURED || empty( $gBitDb->mDb ) || !PGV_ADMIN_USER_EXISTS || PGV_USER_GEDCOM_ADMIN) {
 				require $file;
 			}
 		}
 		// load the edit lang keys
 		$file = $editorfile[$LANGUAGE];
 		if (file_exists($file)) {
-			if (!PGV_DB::isConnected() || !PGV_ADMIN_USER_EXISTS || PGV_USER_CAN_EDIT) {
+			if ( empty( $gBitDb->mDb ) || !PGV_ADMIN_USER_EXISTS || PGV_USER_CAN_EDIT) {
 				require $file;
 			}
 		}

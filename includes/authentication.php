@@ -258,7 +258,7 @@ function getUserFullName($user_id) {
 		"	WHERE user_id=? AND setting_name IN (?,?)".
 		" ORDER BY setting_name ".($NAME_REVERSE ? 'DESC' : 'ASC');
 
-	return implode(' ', PGV_DB::prepare($sql)->execute(array($user_id, 'firstname', 'lastname'))->fetchOneColumn());
+	return 'Lester Caine'; // implode(' ', PGV_DB::prepare($sql)->execute(array($user_id, 'firstname', 'lastname'))->fetchOneColumn());
 }
 
 // Get the root person for this gedcom
@@ -422,7 +422,7 @@ function AddToChangeLog($LogString, $ged="") {
 //----------------------------------- addMessage
 //-- stores a new message in the database
 function addMessage($message) {
-	global $TBLPREFIX, $CONTACT_METHOD, $pgv_lang,$CHARACTER_SET, $LANGUAGE, $PGV_STORE_MESSAGES, $SERVER_URL, $PGV_SIMPLE_MAIL, $WEBMASTER_EMAIL;
+	global $TBLPREFIX, $gBitDb, $CONTACT_METHOD, $pgv_lang,$CHARACTER_SET, $LANGUAGE, $PGV_STORE_MESSAGES, $SERVER_URL, $PGV_SIMPLE_MAIL, $WEBMASTER_EMAIL;
 	global $TEXT_DIRECTION, $TEXT_DIRECTION_array, $DATE_FORMAT, $DATE_FORMAT_array, $TIME_FORMAT, $TIME_FORMAT_array, $WEEK_START, $WEEK_START_array;
 	global $PHPGEDVIEW_EMAIL;
 
@@ -518,8 +518,8 @@ function addMessage($message) {
 	if (empty($message["created"]))
 		$message["created"] = gmdate ("D, d M Y H:i:s T");
 	if ($PGV_STORE_MESSAGES && ($message["method"]!="messaging3" && $message["method"]!="mailto" && $message["method"]!="none")) {
-		PGV_DB::prepare("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)")
-			->execute(array(get_next_id("messages", "m_id"), $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"]));
+		$gBitDb->query("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)"
+			, array(get_next_id("messages", "m_id"), $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"]));
 	}
 	if ($message["method"]!="messaging") {
 		$subject1 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").$message["subject"];
@@ -556,30 +556,29 @@ function addMessage($message) {
 //----------------------------------- deleteMessage
 //-- deletes a message in the database
 function deleteMessage($message_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	return (bool)PGV_DB::prepare("DELETE FROM {$TBLPREFIX}messages WHERE m_id=?")->execute(array($message_id));
+	return (bool)$gBitDb->query("DELETE FROM {$TBLPREFIX}messages WHERE m_id=?")->execute(array($message_id));
 }
 
 //----------------------------------- getUserMessages
 //-- Return an array of a users messages
 function getUserMessages($username) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}messages WHERE m_to=? ORDER BY m_id DESC")
-		->execute(array($username))
-		->fetchAll();
+		$gBitDb->query("SELECT * FROM {$TBLPREFIX}messages WHERE m_to=? ORDER BY m_id DESC"
+			, array($username));
 
 	$messages=array();
-	foreach ($rows as $row) {
+	while ( $row = $rows->fetchRow() ) {
 		$messages[]=array(
-			"id"=>$row->m_id,
-			"to"=>$row->m_to,
-			"from"=>$row->m_from,
-			"subject"=>$row->m_subject,
-			"body"=>$row->m_body,
-			"created"=>$row->m_created
+			"id"=>$row[m_id],
+			"to"=>$row[m_to],
+			"from"=>$row[m_from],
+			"subject"=>$row[m_subject],
+			"body"=>$row[m_body],
+			"created"=>$row[m_created]
 		);
 	}
 	return $messages;
@@ -605,18 +604,19 @@ function addFavorite($favorite) {
 		$sql.=" fv_url=?";
 		$vars=array($favorite["url"]);
 	}
-	$sql.=" AND fv_file=? AND fv_username=?";
+	$sql.="AND fv_file=? AND fv_username=?";
 	$vars[]=$favorite["file"];
 	$vars[]=$favorite["username"];
 
-	if (PGV_DB::prepare($sql)->execute($vars)->fetchOne()) {
+	if ( $gBitDb->getOne( $sql, $vars ) ) {
 		return false;
 	}
 
 	//-- add the favorite to the database
 	return (bool)
-		PGV_DB::prepare("INSERT INTO {$TBLPREFIX}favorites (fv_id, fv_username, fv_gid, fv_type, fv_file, fv_url, fv_title, fv_note) VALUES (?, ? ,? ,? ,? ,? ,? ,?)")
-			->execute(array(get_next_id("favorites", "fv_id"), $favorite["username"], $favorite["gid"], $favorite["type"], $favorite["file"], $favorite["url"], $favorite["title"], $favorite["note"]));
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}favorites (fv_id, fv_username, fv_gid, fv_type, fv_file, fv_url, fv_title, fv_note) VALUES (?, ? ,? ,? ,? ,? ,? ,?)"
+			, array( get_next_id("favorites", "fv_id"), $favorite["username"], $favorite["gid"], $favorite["type"], $favorite["file"], $favorite["url"], $favorite["title"], $favorite["note"] ) );
 }
 
 /**
@@ -625,11 +625,10 @@ function addFavorite($favorite) {
  * @param int $fv_id	the id of the favorite to delete
  */
 function deleteFavorite($fv_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	return (bool)
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}favorites WHERE fv_id=?")
-		->execute(array($fv_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites WHERE fv_id=?", array($fv_id));
 }
 
 /**
@@ -638,12 +637,12 @@ function deleteFavorite($fv_id) {
  * @param string $username		the username to get the favorites for
  */
 function getUserFavorites($username) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}favorites WHERE fv_username=?")
-		->execute(array($username))
-		->fetchAll();
+		$gBitDb->getAll(
+			"SELECT * FROM {$TBLPREFIX}favorites WHERE fv_username=?"
+			, array($username));
 
 	$favorites = array();
 	foreach ($rows as $row) {
@@ -673,16 +672,16 @@ function getUserFavorites($username) {
  * @return array	an array of the blocks.  The two main indexes in the array are "main" and "right"
  */
 function getBlocks($username) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	$blocks = array();
 	$blocks["main"] = array();
 	$blocks["right"] = array();
 
 	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}blocks WHERE b_username=? ORDER BY b_location, b_order")
-		->execute(array($username))
-		->fetchAll();
+		$gBitDb->getAll(
+			"SELECT * FROM {$TBLPREFIX}blocks WHERE b_username=? ORDER BY b_location, b_order"
+			, array($username));
 
 	if ($rows) {
 		foreach ($rows as $row) {
@@ -696,10 +695,9 @@ function getBlocks($username) {
 	} else {
 		if (get_user_id($username)) {
 			//-- if no blocks found, check for a default block setting
-			//$rows=
-				PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}blocks WHERE b_username=? ORDER BY b_location, b_order")
-				->execute(array('defaultuser'))
-				->fetchAll();
+			$rows =
+				$gBitDb->getAll("SELECT * FROM {$TBLPREFIX}blocks WHERE b_username=? ORDER BY b_location, b_order"
+				, array('defaultuser'));
 
 			foreach ($rows as $row) {
 				if (!isset($row->b_config))
@@ -724,30 +722,30 @@ function getBlocks($username) {
  * @param boolean $setdefault	if true tells the program to also set these blocks as the blocks for the defaultuser
  */
 function setBlocks($username, $ublocks, $setdefault=false) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=? AND b_name!=?")
-		->execute(array($username, 'faq'));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=? AND b_name!=?"
+		, array($username, 'faq'));
 
 	if ($setdefault) {
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=?")
-			->execute(array('defaultuser'));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=?"
+			, array('defaultuser'));
 	}
 
-	$statement=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)");
+	$statement = $gBitDb->prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)");
 
 	foreach($ublocks["main"] as $order=>$block) {
-		$statement->execute(array(get_next_id("blocks", "b_id"), $username, 'main', $order, $block[0], serialize($block[1])));
+		$gBitDb->execute($statement, array(get_next_id("blocks", "b_id"), $username, 'main', $order, $block[0], serialize($block[1])));
 
 		if ($setdefault) {
-			$statement->execute(array(get_next_id("blocks", "b_id"), 'defaultuser', 'main', $order, $block[0], serialize($block[1])));
+			$gBitDb->execute($statement, array(get_next_id("blocks", "b_id"), 'defaultuser', 'main', $order, $block[0], serialize($block[1])));
 		}
 	}
 	foreach($ublocks["right"] as $order=>$block) {
-		$statement->execute(array(get_next_id("blocks", "b_id"), $username, 'right', $order, $block[0], serialize($block[1])));
+		$gBitDb->execute($statement, array(get_next_id("blocks", "b_id"), $username, 'right', $order, $block[0], serialize($block[1])));
 
 		if ($setdefault) {
-			$statement->execute(array(get_next_id("blocks", "b_id"), 'defaultuser', 'right', $order, $block[0], serialize($block[1])));
+			$gBitDb->execute($statement, array(get_next_id("blocks", "b_id"), 'defaultuser', 'right', $order, $block[0], serialize($block[1])));
 		}
 	}
 }
@@ -763,7 +761,7 @@ function setBlocks($username, $ublocks, $setdefault=false) {
  * @param array $news a news item array
  */
 function addNews($news) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	if (!isset($news["date"]))
 		$news["date"] = client_time();
@@ -771,23 +769,26 @@ function addNews($news) {
 		// In case news items are added from usermigrate, it will also contain an ID.
 		// So we check first if the ID exists in the database. If not, insert instead of update.
 		$exists=
-			PGV_DB::prepare("SELECT 1 FROM {$TBLPREFIX}news where n_id=?")
-			->execute(array($news["id"]))
-			->fetchOne();
+			$gBitDb->getOne(
+				"SELECT 1 FROM {$TBLPREFIX}news where n_id=?"
+				, array($news["id"]) );
 
 		if (!$exists) {
 			return (bool)
-				PGV_DB::prepare("INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)")
-				->execute(array($news["id"], $news["username"], $news["date"], $news["title"], $news["text"]));
+				$gBitDb->query(
+					"INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)"
+					, array($news["id"], $news["username"], $news["date"], $news["title"], $news["text"]));
 		} else {
 			return (bool)
-				PGV_DB::prepare("UPDATE {$TBLPREFIX}news SET n_date=?, n_title=? , n_text=? WHERE n_id=?")
-				->execute(array($news["date"], $news["title"], $news["text"], $news["id"]));
+				$gBitDb->query(
+					"UPDATE {$TBLPREFIX}news SET n_date=?, n_title=? , n_text=? WHERE n_id=?"
+					, array($news["date"], $news["title"], $news["text"], $news["id"]));
 		}
 	} else {
 		return (bool)
-			PGV_DB::prepare("INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)")
-			->execute(array(get_next_id("news", "n_id"), $news["username"], $news["date"], $news["title"], $news["text"]));
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)"
+				, array(get_next_id("news", "n_id"), $news["username"], $news["date"], $news["title"], $news["text"]));
 	}
 }
 
@@ -798,9 +799,9 @@ function addNews($news) {
  * @param int $news_id the id number of the news item to delete
  */
 function deleteNews($news_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	return (bool)PGV_DB::prepare("DELETE FROM {$TBLPREFIX}news WHERE n_id=?")->execute(array($news_id));
+	return (bool)$gBitDb->query("DELETE FROM {$TBLPREFIX}news WHERE n_id=?", array($news_id));
 }
 
 /**
@@ -809,22 +810,21 @@ function deleteNews($news_id) {
  * @param String $username the username or gedcom file name to get news items for
  */
 function getUserNews($username) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}news WHERE n_username=? ORDER BY n_date DESC")
-		->execute(array($username))
-		->fetchAll();
+	$rows = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}news WHERE n_username=? ORDER BY n_date DESC"
+		, array($username));
 
 	$news=array();
-	foreach ($rows as $row) {
-		$news[$row->n_id]=array(
-			"id"=>$row->n_id,
-			"username"=>$row->n_username,
-			"date"=>$row->n_date,
-			"title"=>$row->n_title,
-			"text"=>$row->n_text,
-			"anchor"=>"article".$row->n_id
+	while ( $row = $rows->fetchRow() ) {
+		$news[$row['n_id']]=array(
+			"id"=>$row['n_id'],
+			"username"=>$row['n_username'],
+			"date"=>$row['n_date'],
+			"title"=>$row['n_title'],
+			"text"=>$row['n_text'],
+			"anchor"=>"article".$row['n_id']
 		);
 	}
 	return $news;
@@ -836,21 +836,20 @@ function getUserNews($username) {
  * @param int $news_id the id of the news entry to get
  */
 function getNewsItem($news_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	$row=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}news WHERE n_id=?")
-		->execute(array($news_id))
-		->fetchOneRow();
+	$row = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}news WHERE n_id=?"
+		, array($news_id), 1);
 
-	if ($row) {
+	if ( $row->fetchRow() ) {
 		return array(
-			"id"=>$row->n_id,
-			"username"=>$row->n_username,
-			"date"=>$row->n_date,
-			"title"=>$row->n_title,
-			"text"=>$row->n_text,
-			"anchor"=>"article".$row->n_id
+			"id"=>$row['n_id'],
+			"username"=>$row['n_username'],
+			"date"=>$row['n_date'],
+			"title"=>$row['n_title'],
+			"text"=>$row['n_text'],
+			"anchor"=>"article".$row['n_id']
 		);
 	} else {
 		return null;

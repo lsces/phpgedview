@@ -45,6 +45,7 @@ require_once PGV_ROOT.'includes/functions/functions_print_facts.php';
 	global $is_media, $cntm1, $cntm2, $cntm3, $cntm4, $t, $mgedrec;
 	global $edit, $tabno ;
 	global $ids, $pid, $related, $level, $gedrec, $media_data, $order, $order1, $order2, $j ;
+	global $gBitDb;
 
 	print "\n";
 
@@ -130,7 +131,7 @@ require_once PGV_ROOT.'includes/functions/functions_print_facts.php';
 	$vars[]=PGV_GED_ID;
 	//-- for family and source page only show level 1 obje references
 	if ($level>0) {
-		$sqlmm .= "AND mm_gedrec ".PGV_DB::$LIKE." ?";
+		$sqlmm .= "AND mm_gedrec LIKE ?";
 		$vars[]="{$level} OBJE%";
 	}
 
@@ -141,11 +142,11 @@ require_once PGV_ROOT.'includes/functions/functions_print_facts.php';
 		$sqlmm .= " ORDER BY mm_gid DESC ";
 	}
 
-	$rows=PGV_DB::prepare($sqlmm)->execute($vars)->fetchAll(PDO::FETCH_ASSOC);
+	$rows = $gBitDb->query( $sqlmm, $vars );
 
 	$foundObjs = array();
 
-			foreach ($rows as $rowm) {
+			while ( $rowm = $rows->fetchRow() ) {
 
 				if (isset($foundObjs[$rowm['m_media']])) {
 					if (isset($current_objes[$rowm['m_media']])) $current_objes[$rowm['m_media']]--;

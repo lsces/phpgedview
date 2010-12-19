@@ -175,7 +175,7 @@ function check_media_structure() {
 function get_medialist($currentdir = false, $directory = "", $linkonly = false, $random = false, $includeExternal = true) {
 	global $MEDIA_DIRECTORY_LEVELS, $BADMEDIA, $thumbdir, $TBLPREFIX, $MEDIATYPE;
 	global $level, $dirs, $ALLOW_CHANGE_GEDCOM, $MEDIA_DIRECTORY;
-	global $MEDIA_EXTERNAL, $pgv_changes, $USE_MEDIA_FIREWALL;
+	global $MEDIA_EXTERNAL, $pgv_changes, $USE_MEDIA_FIREWALL, $gBitDb;
 
 	// Create the medialist array of media in the DB and on disk
 	// NOTE: Get the media in the DB
@@ -185,30 +185,30 @@ function get_medialist($currentdir = false, $directory = "", $linkonly = false, 
 	$myDir = str_replace($MEDIA_DIRECTORY, "", $directory);
 	if ($random) {
 		$rows=
-			PGV_DB::prepareLimit("SELECT m_id, m_file, m_media, m_gedrec, m_titl, m_gedfile FROM {$TBLPREFIX}media WHERE m_gedfile=? ORDER BY ".PGV_DB::$RANDOM, 5)
-			->execute(array(PGV_GED_ID))
-			->fetchAll();
+			$gBitDb->getAll(
+				"SELECT m_id, m_file, m_media, m_gedrec, m_titl, m_gedfile FROM {$TBLPREFIX}media WHERE m_gedfile=? ORDER BY ".$gBitDb->random()
+				, array(PGV_GED_ID));
 	} else {
 		$rows=
-			PGV_DB::prepare("SELECT m_id, m_file, m_media, m_gedrec, m_titl, m_gedfile FROM {$TBLPREFIX}media WHERE m_gedfile=? AND (m_file ".PGV_DB::$LIKE." ? OR m_file ".PGV_DB::$LIKE." ?) ORDER BY m_id desc")
-			->execute(array(PGV_GED_ID, "%{$myDir}%", "%://%"))
-			->fetchAll();
+			$gBitDb->getAll(
+				"SELECT m_id, m_file, m_media, m_gedrec, m_titl, m_gedfile FROM {$TBLPREFIX}media WHERE m_gedfile=? AND (m_file LIKE ? OR m_file LIKE ?) ORDER BY m_id desc"
+				, array(PGV_GED_ID, "%{$myDir}%", "%://%"));
 	}
 	$mediaObjects = array ();
 
 	// Build the raw medialist array,
 	// but weed out any folders we're not interested in
 	foreach ($rows as $row) {
-		$fileName = check_media_depth($row->m_file, "NOTRUNC", "QUIET");
+		$fileName = check_media_depth($row['m_file'], "NOTRUNC", "QUIET");
 		$isExternal = isFileExternal($fileName);
 		if ( $isExternal && (!$MEDIA_EXTERNAL || !$includeExternal) ) {
 			continue;
 		}
 		if ($isExternal || !$currentdir || $directory == dirname($fileName) . "/") {
 			$media = array ();
-			$media["ID"] = $row->m_id;
-			$media["XREF"] = $row->m_media;
-			$media["GEDFILE"] = $row->m_gedfile;
+			$media["ID"] = $row['m_id'];
+			$media["XREF"] = $row['m_media'];
+			$media["GEDFILE"] = $row['m_gedfile'];
 			$media["FILE"] = $fileName;
 			if ($isExternal) {
 				$media["THUMB"] = $fileName;
@@ -219,15 +219,15 @@ function get_medialist($currentdir = false, $directory = "", $linkonly = false, 
 				$media["THUMBEXISTS"] = media_exists($media["THUMB"]);
 				$media["EXISTS"] = media_exists($fileName);
 			}
-			$media["TITL"] = $row->m_titl;
-			$media["GEDCOM"] = $row->m_gedrec;
+			$media["TITL"] = $row['m_titl'];
+			$media["GEDCOM"] = $row['m_gedrec'];
 			$media["LEVEL"] = '0';
 			$media["LINKED"] = false;
 			$media["LINKS"] = array ();
 			$media["CHANGE"] = "";
 			// Extract Format and Type from GEDCOM record
-			$media["FORM"] = strtolower(get_gedcom_value("FORM", 2, $row->m_gedrec));
-			$media["TYPE"] = strtolower(get_gedcom_value("FORM:TYPE", 2, $row->m_gedrec));
+			$media["FORM"] = strtolower(get_gedcom_value("FORM", 2, $row['m_gedrec']));
+			$media["TYPE"] = strtolower(get_gedcom_value("FORM:TYPE", 2, $row['m_gedrec']));
 
 			// Build a sortable key for the medialist
 			$firstChar = substr($media["XREF"], 0, 1);
@@ -1635,11 +1635,11 @@ function PrintMediaLinks($links, $size = "small") {
 }
 
 function get_media_id_from_file($filename){
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 	return
-		PGV_DB::prepare("SELECT m_media FROM {$TBLPREFIX}media WHERE m_file ".PGV_DB::$LIKE." ?")
-		->execute(array("%{$filename}"))
-		->fetchOne();
+		$gBitDb->getOne(
+			"SELECT m_media FROM {$TBLPREFIX}media WHERE m_file LIKE ?"
+			, array("%{$filename}"));
 }
 //returns an array of rows from the database containing the Person ID's for the people associated with this picture
 function get_media_relations($mid){
@@ -1680,12 +1680,11 @@ function get_media_relations($mid){
 // clips a media item based on data from the gedcom
 function picture_clip($person_id, $image_id, $filename, $thumbDir)
 {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 	// This gets the gedrec
-	$gedrec=
-		PGV_DB::prepare("SELECT m_gedrec FROM {$TBLPREFIX}media WHERE m_media=? AND m_gedfile=?")
-		->execute(array($image_id, PGV_GED_ID))
-		->fetchOne();
+	$gedrec= $gBitDb->getOne(
+		"SELECT m_gedrec FROM {$TBLPREFIX}media WHERE m_media=? AND m_gedfile=?"
+		, array($image_id, PGV_GED_ID));
 
 	//Get the location of the file, and then make a location for the clipped image
 

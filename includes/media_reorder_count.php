@@ -71,7 +71,8 @@ if ($ct>0) {
 	// Order by -------------------------------------------------------
 	$sqlmm .= " ORDER BY mm_gid DESC ";
 	// Perform DB Query -----------------------
-	$rows=PGV_DB::prepare($sqlmm)->execute($vars)->fetchAll();
+	global $gBitDb;
+	$rows = $gBitDb->getAll( $sqlmm ,$vars );
 	// Get related media item count
 	$ct_db = count($rows);
 	//else if indi not related

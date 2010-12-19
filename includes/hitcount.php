@@ -66,6 +66,7 @@ default:
 	$page_parameter='';
 	break;
 }
+/*
 if ($page_parameter) {
 	$hitCount=PGV_DB::prepare(
 		"SELECT page_count FROM {$TBLPREFIX}hit_counter".
@@ -88,9 +89,9 @@ if ($page_parameter) {
 			)->execute(array($hitCount, PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter));
 		}
 	}
-} else {
+} else { */
 	$hitCount=1;
-}
+// }
 
 //replace the numbers with their images
 if (array_key_exists('0', $PGV_IMAGES)) {

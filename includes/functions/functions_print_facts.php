@@ -625,7 +625,7 @@ function print_fact_sources($factrec, $level, $return=false) {
 
 //-- Print the links to multi-media objects
 function print_media_links($factrec, $level, $pid='') {
-	global $MULTI_MEDIA, $TEXT_DIRECTION, $TBLPREFIX;
+	global $MULTI_MEDIA, $TEXT_DIRECTION, $TBLPREFIX, $gBitDb;
 	global $pgv_lang, $factarray, $SEARCH_SPIDER, $view;
 	global $THUMBNAIL_WIDTH, $USE_MEDIA_VIEWER;
 	global $LB_URL_WIDTH, $LB_URL_HEIGHT;
@@ -641,9 +641,8 @@ function print_media_links($factrec, $level, $pid='') {
 		$media_id = str_replace("@", "", trim($omatch[$objectNum][1]));
 		if (displayDetailsById($media_id, "OBJE")) {
 			$row=
-				PGV_DB::prepare("SELECT m_titl, m_file, m_gedrec FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?")
-				->execute(array($media_id, PGV_GED_ID))
-				->fetchOneRow(PDO::FETCH_ASSOC);
+				$gBitDb->query("SELECT m_titl, m_file, m_gedrec FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?"
+				, array($media_id, PGV_GED_ID));
 
 			// A new record, pending acceptance?
 			if (!$row && PGV_USER_CAN_EDIT) {
@@ -1268,7 +1267,7 @@ function print_main_notes($factrec, $level, $pid, $linenum, $noedit=false) {
  * @param boolean $related	Whether or not to grab media from related records
  */
 function print_main_media($pid, $level=1, $related=false, $noedit=false) {
-	global $TBLPREFIX, $GEDCOM, $MEDIATYPE, $pgv_changes;
+	global $TBLPREFIX, $GEDCOM, $MEDIATYPE, $pgv_changes, $gBitDb;
 	$ged_id=get_id_from_gedcom($GEDCOM);
 
 	if (!showFact("OBJE", $pid)) return false;
@@ -1331,7 +1330,7 @@ function print_main_media($pid, $level=1, $related=false, $noedit=false) {
 	$vars[]=PGV_GED_ID;
 	//-- for family and source page only show level 1 obje references
 	if ($level>0) {
-		$sqlmm .= "AND mm_gedrec ".PGV_DB::$LIKE." ?";
+		$sqlmm .= "AND mm_gedrec LIKE ?";
 		$vars[]="{$level} OBJE%";
 	}
 
@@ -1343,7 +1342,7 @@ function print_main_media($pid, $level=1, $related=false, $noedit=false) {
 	}
 	// ---------------------------------------------------------------
 
-	$rows=PGV_DB::prepare($sqlmm)->execute($vars)->fetchAll(PDO::FETCH_ASSOC);
+	$rows = $gBitDb->query($sqlmm, $vars);
 
 	$foundObjs = array();
 	foreach ($rows as $rowm) {

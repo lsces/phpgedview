@@ -21,7 +21,7 @@
  *
  * @package PhpGedView
  * @subpackage Charts
- * @version $Id$
+ * @version $Id: descendancy_ctrl.php 6982 2010-09-12 19:22:44Z okbigkid $
  */
 
 if (!defined('PGV_PHPGEDVIEW')) {
@@ -178,7 +178,7 @@ class DescendancyControllerRoot extends BaseController {
 
 		if (is_null($person)) return;
 		$families = $person->getSpouseFamilies();
-		if ($depth<1) return;
+		if ($depth<2) return;
 		foreach($families as $famid => $family) {
 			print_sosa_family($family->getXref(), "", -1, $label, $person->getXref(), $gpid, $personcount);
 			$personcount++;
@@ -334,7 +334,7 @@ function print_family_descendancy(&$person, &$family, $depth) {
 		}
 		print "</td></tr></table>";
 		print "</li>\r\n";
-		if ($depth>0) foreach ($children as $child) {
+		if ($depth>1) foreach ($children as $child) {
 			$personcount++;
 			$this->print_child_descendancy($child, $depth-1);
 		}

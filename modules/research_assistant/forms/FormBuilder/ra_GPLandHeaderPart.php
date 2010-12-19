@@ -27,11 +27,11 @@ if (!defined('PGV_PHPGEDVIEW')) {
 	header('HTTP/1.0 403 Forbidden');
 	exit;
 }
-
+/*
 require_once PGV_ROOT.'modules/research_assistant/forms/ra_form.php';
 require_once PGV_ROOT.'includes/functions/functions_edit.php';
 
-class %FORMNAME% extends ra_form {
+class FORMNAME extends ra_form {
 
     function header($action, $tableAlign, $heading, $showchoose = false) {
     global $pgv_lang;
@@ -44,3 +44,4 @@ class %FORMNAME% extends ra_form {
 	    '<input type="hidden" name="formname" value="%FORMNAME%" />' .
 	    '<input type="hidden" name="taskid" value="'.$_REQUEST['taskid'].'" />';
 
+*/

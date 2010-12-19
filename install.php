@@ -46,9 +46,10 @@ if (file_exists('./config.php')) {
 }
 
 require_once PGV_ROOT.'includes/functions/functions_import.php';
+global $gBitDb;
 
 //-- if we are configured, then make sure that only admins access this page
-if (PGV_DB::isConnected() && PGV_ADMIN_USER_EXISTS && !PGV_USER_IS_ADMIN) {
+if ( !empty($gBitDb->mDb) && PGV_ADMIN_USER_EXISTS && !PGV_USER_IS_ADMIN) {
 	header("Location: login.php?url=install.php");
 	exit;
 }
@@ -116,7 +117,7 @@ header("Content-Type: text/html; charset=$CHARACTER_SET");
 <?php
 
 //-- don't allow configuration if the DB is down but the site is configured
-if ($CONFIGURED && !PGV_DB::isConnected()) {
+if ($CONFIGURED && empty($gBitDb->mDb)) {
 	?>
 	<tr>
 		<td class="center">
@@ -146,7 +147,7 @@ $total_steps = 8;
 $step = 1;
 if (isset($_REQUEST['step'])) $step = $_REQUEST['step'];
 else {
-	if (PGV_DB::isConnected()) $step = 3;
+	if (!empty($gBitDb->mDb)) $step = 3;
 	if (PGV_ADMIN_USER_EXISTS) $step = 8;
 }
 if (isset($_REQUEST['prev'])) $step--;
@@ -170,6 +171,7 @@ switch($step) {
 		if (isset($_SESSION['install_config']['DBHOST'])) {
 			//-- create db connection
 			$TBLPREFIX = $_SESSION['install_config']['TBLPREFIX'];
+/*
 			try {
 				PGV_DB::disconnect(); // from the connect defined in config.php
 				PGV_DB::createInstance(
@@ -188,7 +190,8 @@ switch($step) {
 					'help'=>$ex->getMessage()
 				);
 			}
-		}
+*/
+}
 
 		if (!empty($_SESSION['install_config']['INDEX_DIRECTORY'])
 			&& !is_writable($_SESSION['install_config']['INDEX_DIRECTORY'])) {
@@ -436,14 +439,14 @@ $errormsg = "";
 					$success = printDBForm();
 					break;
 				case 3:
-					try {
-						PGV_DB::updateSchema('includes/db_schema/', 'PGV_SCHEMA_VERSION', PGV_SCHEMA_VERSION);
+//					try {
+//						PGV_DB::updateSchema('includes/db_schema/', 'PGV_SCHEMA_VERSION', PGV_SCHEMA_VERSION);
 						echo '<span class="pass">', $pgv_lang['db_tables_created'], '</span><br /><br /><br />';
 						$success=true;
-					} catch (PDOException $ex) {
-						echo '<span class="error">', $ex->getMessage(), '</span><br /><br /><br />';
-						$success=false;
-					}
+//					} catch (PDOException $ex) {
+//						echo '<span class="error">', $ex->getMessage(), '</span><br /><br /><br />';
+//						$success=false;
+//					}
 					break;
 				case 4:
 					$success = printConfigForm();
@@ -518,7 +521,7 @@ function checkEnvironment() {
 	}
 
 	// Check we have one or more PDO drivers available
-	if (!extension_loaded('pdo') || !PGV_DB::getAvailableDrivers()) {
+	if (!extension_loaded('interbase')) {
 		print "<tr><td valign=\"top\">";
 		print $pgv_lang["checking_db_support"]."<br />";
 		print "<span class=\"error\">".$pgv_lang["no_db_extensions"]."</span><br />";
@@ -655,7 +658,8 @@ function printDBForm() {
 		<td class="optionbox">
 			<select name="NEW_DBTYPE" dir="ltr" tabindex="<?php $i++; print $i?>" onfocus="getHelp('DBTYPE_help');" onchange="changeDBtype(this);">
 			<?php
-				foreach (PGV_DB::getAvailableDrivers() as $driver) {
+$driver='firebird';
+//				foreach (PGV_DB::getAvailableDrivers() as $driver) {
 					echo '<option value="', $driver, '"';
 					if ($DBTYPE==$driver) {
 						echo 'selected="selected"';
@@ -667,7 +671,7 @@ function printDBForm() {
 						echo $driver;
 					}
 					echo '</option>';
-				}
+//				}
 			?>
 			</select>
 		</td>

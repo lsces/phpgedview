@@ -131,17 +131,15 @@ function gedcom_header($gedfile) {
 			$COPR=$match[0];
 		}
 		// Link to SUBM/SUBN records, if they exist
-		$subn=
-			PGV_DB::prepare("SELECT o_id FROM ${TBLPREFIX}other WHERE o_type=? AND o_file=?")
-			->execute(array('SUBN', $ged_id))
-			->fetchOne();
+		$subn = $gBitDb->getOne(
+			"SELECT o_id FROM ${TBLPREFIX}other WHERE o_type=? AND o_file=?"
+			,array('SUBN', $ged_id));
 		if ($subn) {
 			$SUBN="\n1 SUBN @{$subn}@";
 		}
-		$subm=
-			PGV_DB::prepare("SELECT o_id FROM ${TBLPREFIX}other WHERE o_type=? AND o_file=?")
-			->execute(array('SUBM', $ged_id))
-			->fetchOne();
+		$subm = $gBitDb->getOne(
+			"SELECT o_id FROM ${TBLPREFIX}other WHERE o_type=? AND o_file=?"
+			, array('SUBM', $ged_id));
 		if ($subm) {
 			$SUBM="\n1 SUBM @{$subm}@";
 		}
@@ -253,7 +251,7 @@ function convert_media_path($rec, $path, $slashes) {
  */
 function export_gedcom($gedcom, $gedout, $exportOptions) {
 	global $GEDCOM, $pgv_lang, $CHARACTER_SET;
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	// Temporarily switch to the specified GEDCOM
 	$oldGEDCOM = $GEDCOM;
@@ -280,12 +278,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 	// Buffer the output.  Lots of small fwrite() calls can be very slow when writing large gedcoms.
 	$buffer=reformat_record_export($head);
 
-	$recs=
-		PGV_DB::prepare("SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id NOT LIKE ? ORDER BY i_id")
-		->execute(array($ged_id, '%:%'))
-		->fetchOneColumn();
-	foreach ($recs as $rec) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+	$recs = $gBitDb->query(
+		"SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id NOT LIKE ? ORDER BY i_id"
+		, array( $ged_id, '%:%'));
+	while ( $rec = $recs->fetchRow() ) {
+		$rec=remove_custom_tags( $rec['i_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
 		$buffer.=reformat_record_export($rec);
@@ -295,12 +292,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 		}
 	}
 
-	$recs=
-		PGV_DB::prepare("SELECT f_gedcom FROM {$TBLPREFIX}families WHERE f_file=? AND f_id NOT LIKE ? ORDER BY f_id")
-		->execute(array($ged_id, '%:%'))
-		->fetchOneColumn();
-	foreach ($recs as $rec) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+	$recs = $gBitDb->query(
+		"SELECT f_gedcom FROM {$TBLPREFIX}families WHERE f_file=? AND f_id NOT LIKE ? ORDER BY f_id"
+		, array( $ged_id, '%:%'));
+	while ( $rec = $recs->fetchRow() ) {
+		$rec=remove_custom_tags( $rec['f_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
 		$buffer.=reformat_record_export($rec);
@@ -310,12 +306,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 		}
 	}
 
-	$recs=
-		PGV_DB::prepare("SELECT s_gedcom FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id NOT LIKE ? ORDER BY s_id")
-		->execute(array($ged_id, '%:%'))
-		->fetchOneColumn();
-	foreach ($recs as $rec) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+	$recs = $gBitDb->query(
+		"SELECT s_gedcom FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id NOT LIKE ? ORDER BY s_id"
+		, array( $ged_id, '%:%'));
+	while ( $rec = $recs->fetchRow() ) {
+		$rec=remove_custom_tags( $rec['s_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
 		$buffer.=reformat_record_export($rec);
@@ -325,12 +320,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 		}
 	}
 
-	$recs=
-		PGV_DB::prepare("SELECT o_gedcom FROM {$TBLPREFIX}other WHERE o_file=? AND o_id NOT LIKE ? AND o_type!=? AND o_type!=? ORDER BY o_id")
-		->execute(array($ged_id, '%:%', 'HEAD', 'TRLR'))
-		->fetchOneColumn();
-	foreach ($recs as $rec) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+	$recs = $gBitDb->query(
+		"SELECT o_gedcom FROM {$TBLPREFIX}other WHERE o_file=? AND o_id NOT LIKE ? AND o_type!=? AND o_type!=? ORDER BY o_id"
+		, array( $ged_id, '%:%', 'HEAD', 'TRLR') );
+	while ( $rec = $recs->fetchRow() ) {
+		$rec=remove_custom_tags( $rec['o_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
 		$buffer.=reformat_record_export($rec);
@@ -340,12 +334,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 		}
 	}
 
-	$recs=
-		PGV_DB::prepare("SELECT m_gedrec FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media NOT LIKE ? ORDER BY m_media")
-		->execute(array($ged_id, '%:%'))
-		->fetchOneColumn();
-	foreach ($recs as $rec) {
-		$rec = convert_media_path($rec, $exportOptions['path'], $exportOptions['slashes']);
+	$recs = $gBitDb->query(
+		"SELECT m_gedrec FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media NOT LIKE ? ORDER BY m_media"
+		, array( $ged_id, '%:%') );
+	while ( $rec = $recs->fetchRow() ) {
+		$rec = convert_media_path( $rec['m_gedrec'], $exportOptions['path'], $exportOptions['slashes']);
 		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
@@ -382,7 +375,7 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
  */
 function export_gramps($gedcom, $gedout, $exportOptions) {
 	global $GEDCOM, $pgv_lang;
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	// Temporarily switch to the specified GEDCOM
 	$oldGEDCOM = $GEDCOM;
@@ -402,42 +395,41 @@ function export_gramps($gedcom, $gedout, $exportOptions) {
 	$geDownloadGedcom=new GEDownloadGedcom();
 	$geDownloadGedcom->begin_xml();
 
-	$recs=
-		PGV_DB::prepare("SELECT i_id, i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id NOT LIKE ? ORDER BY i_id")
-		->execute(array($ged_id, '%:%'))
-		->fetchAssoc();
-	foreach ($recs as $id=>$rec) {
-		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
+	$recs = $gBitDb->query(
+		"SELECT i_id, i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id NOT LIKE ? ORDER BY i_id"
+		, array($ged_id, '%:%'));
+	while ( $rec = $recs->fetchRow() ) {
+		$id = $rec['i_id'];		
+		$rec = remove_custom_tags( $rec['i_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_person($rec, $id);
 	}
 
 	$recs=
-		PGV_DB::prepare("SELECT f_id, f_gedcom FROM {$TBLPREFIX}families WHERE f_file=? AND f_id NOT LIKE ? ORDER BY f_id")
-		->execute(array($ged_id, '%:%'))
-		->fetchAssoc();
+		$gBitDb->query("SELECT f_id, f_gedcom FROM {$TBLPREFIX}families WHERE f_file=? AND f_id NOT LIKE ? ORDER BY f_id"
+		, array($ged_id, '%:%'));
 	foreach ($recs as $id=>$rec) {
 		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_family($rec, $id);
 	}
 
-	$recs=
-		PGV_DB::prepare("SELECT s_id, s_gedcom FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id NOT LIKE ? ORDER BY s_id")
-		->execute(array($ged_id, '%:%'))
-		->fetchAssoc();
-	foreach ($recs as $id=>$rec) {
-		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
+	$recs = $gBitDb->query(
+		"SELECT s_id, s_gedcom FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id NOT LIKE ? ORDER BY s_id"
+		, array($ged_id, '%:%'));
+	while ( $rec = $recs->fetchRow() ) {
+		$id = $rec['s_id'];		
+		$rec = remove_custom_tags( $rec['s_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_source($rec, $id);
 	}
 
-	$recs=
-		PGV_DB::prepare("SELECT m_media, m_gedrec FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media NOT LIKE ? ORDER BY m_media")
-		->execute(array($ged_id, '%:%'))
-		->fetchAssoc();
-	foreach ($recs as $id=>$rec) {
-		$rec = convert_media_path($rec, $exportOptions['path'], $exportOptions['slashes']);
+	$recs = $gBitDb->query(
+		"SELECT m_media, m_gedrec FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media NOT LIKE ? ORDER BY m_media"
+		, array($ged_id, '%:%'));
+	while ( $rec = $recs->fetchRow() ) {
+		$id = $rec['m_media'];		
+		$rec = convert_media_path( $rec['m_gedrec'], $exportOptions['path'], $exportOptions['slashes']);
 		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_media($rec, $id);
@@ -454,7 +446,7 @@ function export_gramps($gedcom, $gedout, $exportOptions) {
 }
 
 function um_export($proceed) {
-	global $INDEX_DIRECTORY, $TBLPREFIX, $pgv_lang;
+	global $INDEX_DIRECTORY, $TBLPREFIX, $pgv_lang, $gBitDb;
 
 	// Get user array and create authenticate.php
 	if (($proceed=="export") || ($proceed=="exportovr")) {
@@ -508,10 +500,9 @@ function um_export($proceed) {
 	}
 	$messages=array();
 	$mesid=1;
-	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}messages ORDER BY m_id DESC")
-		->fetchAll(PDO::FETCH_ASSOC);
-	foreach ($rows as $row){
+	$recs = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}messages ORDER BY m_id DESC");
+	while ( $rec = $recs->fetchRow() ) {
 		$message=array();
 		$message["id"]=$mesid;
 		$mesid=$mesid + 1;
@@ -550,11 +541,10 @@ function um_export($proceed) {
 		print $pgv_lang["um_creating"]." \"favorites.dat\"<br /><br />";
 	}
 	$favorites=array();
-	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}favorites")
-		->fetchAll(PDO::FETCH_ASSOC);
+	$recs = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}favorites");
 	$favid=1;
-	foreach ($rows as $row){
+	while ( $row = $recs->fetchRow() ) {
 		$favorite=array();
 		$favorite["id"]=$favid;
 		$favid=$favid + 1;
@@ -595,10 +585,9 @@ function um_export($proceed) {
 		print $pgv_lang["um_creating"]." \"news.dat\"<br /><br />";
 	}
 	$allnews=array();
-	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}news ORDER BY n_date DESC")
-		->fetchAll(PDO::FETCH_ASSOC);
-	foreach ($rows as $row){
+	$recs = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}news ORDER BY n_date DESC");
+	while ( $row = $recs->fetchRow() ) {
 		$news=array();
 		$news["id"]=$row["n_id"];
 		$news["username"]=$row["n_username"];
@@ -637,10 +626,9 @@ function um_export($proceed) {
 	$allblocks=array();
 	$blocks["main"]=array();
 	$blocks["right"]=array();
-	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}blocks ORDER BY b_location, b_order")
-		->fetchAll(PDO::FETCH_ASSOC);
-	foreach ($rows as $row){
+	$recs = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}blocks ORDER BY b_location, b_order");
+	while ( $row = $recs->fetchRow() ) {
 		$blocks=array();
 		$blocks["username"]=$row["b_username"];
 		$blocks["location"]=$row["b_location"];

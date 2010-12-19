@@ -280,7 +280,7 @@ class UserMigrateControllerRoot extends BaseController {
 	 *
 	 */
 	function import() {
-		global $INDEX_DIRECTORY, $TBLPREFIX, $pgv_lang;
+		global $INDEX_DIRECTORY, $TBLPREFIX, $pgv_lang, $gBitDb;
 
 		if ((file_exists($INDEX_DIRECTORY."authenticate.php")) == false) {
 			$this->impSuccess = false;
@@ -288,7 +288,7 @@ class UserMigrateControllerRoot extends BaseController {
 		} else {
 			require $INDEX_DIRECTORY.'authenticate.php';
 			$countold = count($users);
-			PGV_DB::exec("DELETE FROM {$TBLPREFIX}users");
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}users");
 			foreach($users as $username=>$user) {
 				if ($user["editaccount"] == "1") $user["editaccount"] = "Y";
 				else $user["editaccount"] = "N";
@@ -337,7 +337,7 @@ class UserMigrateControllerRoot extends BaseController {
 					set_user_setting($user_id, 'verified_by_admin',    $user["verified_by_admin"] ? 'yes' : 'no');
 					foreach (array('gedcomid', 'rootid', 'canedit') as $var) {
 						if ($user[$var]) {
-							foreach (unserialize($user[$var]) as $gedcom=>$id) {
+							foreach (unserialize(stripslashes($user[$var])) as $gedcom=>$id) {
 								set_user_gedcom_setting($user_id, $gedcom, $var, $id);
 							}
 						}
@@ -357,15 +357,15 @@ class UserMigrateControllerRoot extends BaseController {
 			$this->msgSuccess = false;
 		}
 		else {
-			PGV_DB::exec("DELETE FROM {$TBLPREFIX}messages");
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}messages");
 			$messages = array();
 			$fp = fopen($INDEX_DIRECTORY."messages.dat", "rb");
 			$mstring = fread($fp, filesize($INDEX_DIRECTORY."messages.dat"));
 			fclose($fp);
 			$messages = unserialize($mstring);
 			foreach($messages as $newid => $message) {
-				PGV_DB::prepare("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)")
-					->execute(array($newid, $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"]));
+				$gBitDb->query("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)"
+					, array($newid, $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"]));
 			}
 			$this->msgSuccess = true;
 		}
@@ -375,7 +375,7 @@ class UserMigrateControllerRoot extends BaseController {
 			print $pgv_lang["um_nofav"]."<br /><br />";
 		}
 		else {
-			PGV_DB::exec("DELETE FROM {$TBLPREFIX}favorites");
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites");
 			$favorites = array();
 			$fp = fopen($INDEX_DIRECTORY."favorites.dat", "rb");
 			$mstring = fread($fp, filesize($INDEX_DIRECTORY."favorites.dat"));
@@ -384,7 +384,7 @@ class UserMigrateControllerRoot extends BaseController {
 
 			foreach($favorites as $newid => $favorite) {
 				$res = addFavorite($favorite);
-				if (!$res) {
+				if (!$res || DB::isError($res)) {
 					$this->errorMsg = "<span class=\"error\">Unable to update <i>Favorites</i> table.</span><br />\n";
 					return;
 				}
@@ -396,7 +396,7 @@ class UserMigrateControllerRoot extends BaseController {
 			$this->newsSuccess = false;
 		}
 		else {
-			PGV_DB::exec("DELETE FROM {$TBLPREFIX}news");
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}news");
 			$allnews = array();
 			$fp = fopen($INDEX_DIRECTORY."news.dat", "rb");
 			$mstring = fread($fp, filesize($INDEX_DIRECTORY."news.dat"));
@@ -416,7 +416,7 @@ class UserMigrateControllerRoot extends BaseController {
 			$this->blockSuccess = false;
 		}
 		else {
-			PGV_DB::exec("DELETE FROM {$TBLPREFIX}blocks");
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks");
 			$allblocks = array();
 			$fp = fopen($INDEX_DIRECTORY."blocks.dat", "rb");
 			$mstring = fread($fp, filesize($INDEX_DIRECTORY."blocks.dat"));
@@ -424,8 +424,8 @@ class UserMigrateControllerRoot extends BaseController {
 			$allblocks = unserialize($mstring);
 			foreach($allblocks as $bid => $blocks) {
 				$username = $blocks["username"];
-				PGV_DB::prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ? ,? , ?, ?, ?)")
-					->execute(array($bid, $blocks["username"], $blocks["location"], $blocks["order"], $blocks["name"], serialize($blocks["config"])));
+				$gBitDb->query("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ? ,? , ?, ?, ?)"
+					, array($bid, $blocks["username"], $blocks["location"], $blocks["order"], $blocks["name"], serialize($blocks["config"])));
 			}
 			$this->blockSuccess = true;
 		}

@@ -9,6 +9,8 @@
 =====================================================================
 
 Version 4.3.0
+ - Fixed: Incorrect URL when using Geonames search in Autocomplete of place names (canajun2eh)
+ - Deleted: Keyboard Shortcuts feature (canajun2eh)
  - Changed: New rules for finding highlighted object on charts, Indi, and Family pages (canajun2eh)
  - Fixed: [ 2947598 ] Site Map missing the $SERVER_URLvar? (fisharebest)
  - Changed: Behaviour of autocomplete for INDI fields, input of an id grabs only the exact id and extends by a further digit, makes it much faster for large gedcoms (volschin)

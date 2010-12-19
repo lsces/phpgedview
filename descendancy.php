@@ -119,7 +119,6 @@ echo '</td></tr></table>';
 if (is_null($controller->descPerson)) {
 	echo '<span class="error">', $pgv_lang["record_not_found"], '</span>';
 }
-$controller->generations -= 1; // [ 1757792 ] Charts : wrong generations count
 
 switch ($controller->chart_style) {
 case 0: //-- list
@@ -156,7 +155,7 @@ case 3: //-- Family list
 print_footer();
 
 function indi_desc($person, $n, $array) {
-	if ($n<0) {
+	if ($n<1) {
 		return $array;
 	}
 	$array[$person->getXref()]=$person;
@@ -171,7 +170,7 @@ function indi_desc($person, $n, $array) {
 }
 
 function fam_desc($person, $n, $array) {
-	if ($n<0) {
+	if ($n<1) {
 		return $array;
 	}
 	foreach ($person->getSpouseFamilies() as $family) {

@@ -3,7 +3,7 @@
  * Startup and session logic for handling Bots and Spiders
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2008 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2008 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  *
  * @package PhpGedView
  * @subpackage admin
- * @version $Id$
+ * @version $Id: session_spider.php 6994 2010-11-25 15:59:07Z canajun2eh $
  */
 
 if (!defined('PGV_PHPGEDVIEW')) {
@@ -71,7 +71,7 @@ function gen_spider_session_name($bot_name, $bot_language) {
 	return($outname);
 }
 
-
+/*
 // Block sites by IP address.
 // Convert user-friendly such as '123.45.*.*' into SQL '%' wildcards.
 // Note: you may need to blcok IPv6 addresses as well as IPv4 ones.
@@ -93,6 +93,7 @@ try {
 } catch (PDOException $ex) {
 	// Initial installation?  Site Down?  Fail silently.
 }
+*/
 
 // Search Engines are treated special, and receive only core data, without the
 // pretty bells and whistles.  Recursion is also going to be kept to a minimum.
@@ -198,10 +199,12 @@ $known_spiders = array(
 	'Googlebot',
 	'Yahoo Slurp',
 	'msnbot',
+	'bingbot',
 	'Ask Jeeves',
 	'Mediapartners-Google',
 	'Feedfetcher-Google',
-	'Twiceler'
+	'Twiceler',
+	'archive.org_bot'
 );
 
 // We overlay the following name with carefully selected characters.
@@ -326,6 +329,7 @@ if ($SEARCH_SPIDER && in_array(PGV_SCRIPT_NAME, $bots_not_allowed)) {
 	exit;
 }
 
+/*
 // Manual Search Engine IP Address tagging
 //   Allow an admin to mark IP addresses as known search engines even if
 //   they are not automatically detected above.   Setting his own IP address
@@ -353,6 +357,7 @@ try {
 } catch (PDOException $ex) {
 	// Initial installation?  Site Down?  Fail silently.
 }
+*/
 
 if((empty($SEARCH_SPIDER)) && (!empty($_SESSION['last_spider_name']))) // user following a search engine listing in,
 session_regenerate_id();

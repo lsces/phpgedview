@@ -21,7 +21,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-* @version $Id$
+* @version $Id: functions_privacy.php 6984 2010-09-18 22:29:58Z okbigkid $
 * @package PhpGedView
 * @subpackage Privacy
 */
@@ -345,7 +345,7 @@ function displayDetailsById($pid, $type = "INDI", $sitemap = false) {
 	global $PRIV_PUBLIC, $PRIV_USER, $PRIV_NONE, $PRIV_HIDE, $USE_RELATIONSHIP_PRIVACY, $CHECK_MARRIAGE_RELATIONS, $MAX_RELATION_PATH_LENGTH;
 	global $global_facts, $person_privacy, $user_privacy, $HIDE_LIVE_PEOPLE, $GEDCOM, $SHOW_DEAD_PEOPLE, $MAX_ALIVE_AGE, $PRIVACY_BY_YEAR;
 	global $PRIVACY_CHECKS, $PRIVACY_BY_RESN, $SHOW_SOURCES, $SHOW_LIVING_NAMES, $INDEX_DIRECTORY;
-	global $GEDCOM;
+	global $GEDCOM, $gBitDb;
 	$ged_id=get_id_from_gedcom($GEDCOM);
 
 	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
@@ -639,6 +639,17 @@ function displayDetailsById($pid, $type = "INDI", $sitemap = false) {
 		}
 		$privacy_cache[$pkey] = $disp;
 		return $disp;
+	}
+	if ($type=="NOTE") {
+		global $TBLPREFIX;
+		// Hide notes if they are attached to private records
+		$linked_gids=$gBitDb->query(
+			"SELECT l_from FROM `{$TBLPREFIX}link` WHERE l_to=? AND l_file=?",array($pid, $ged_id));
+		while ( $linked_gid = $linked_gids->getRow() ) {
+			if (!displayDetailsById($linked_gid)) {
+				return $privacy_cache[$pkey] = false;
+			}
+		}
 	}
 	$privacy_cache[$pkey] = true;
 	return true;

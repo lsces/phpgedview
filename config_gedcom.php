@@ -132,11 +132,11 @@ $GEDCOM_DEFAULT_TAB = "0";				//-- this setting controls which tab on the indivi
 
 $SHOW_CONTEXT_HELP = true;				// show ? links on the page for contextual popup help
 $PHPGEDVIEW_EMAIL = "";			// -- "From:" address for automatically generated e-mails
-$CONTACT_EMAIL = "you@yourdomain.com";		// -- this is who the user should contact for more information
+$CONTACT_EMAIL = "lester@lsces.co.uk";		// -- this is who the user should contact for more information
 $CONTACT_METHOD = "messaging2";						// -- the method to allow users to contact you. options are: mailto, messaging, messaging2
-$WEBMASTER_EMAIL = "webmaster@yourdomain.com";		// -- this is who the user should contact in case of errors
+$WEBMASTER_EMAIL = "lester@lsces.co.uk";		// -- this is who the user should contact in case of errors
 $SUPPORT_METHOD = "messaging2";						// -- the method to allow users to contact you. options are: mailto, messaging, messaging2
-$HOME_SITE_URL = "http://www.phpgedview.net";		// -- url for your home page
+$HOME_SITE_URL = "http://lsces.co.uk";		// -- url for your home page
 $HOME_SITE_TEXT = "About PhpGedView";		// -- name of your site
 $SHOW_FACT_ICONS = true;					//-- Show Fact icons on Indi page
 $FAVICON = "images/favicon.ico";		// -- change to point to your favicon, either relative or absolute
@@ -214,7 +214,8 @@ $RSS_FORMAT = "ATOM";		//-- default feed format.
 // -- amount of time to execute before quitting in seconds
 // -- set this to 0 to remove all time limits
 $TIME_LIMIT = "60";
-
 @set_time_limit($TIME_LIMIT);
 
+//Manual configurtion while developing
+$GEDCOM = 'CAINE';
 ?>

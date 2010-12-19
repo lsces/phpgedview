@@ -570,26 +570,7 @@ function reformat_record_import($rec) {
 * @param boolean $update whether or not this is an updated record that has been accepted
 */
 function import_record($gedrec, $ged_id, $update) {
-	global $TBLPREFIX, $pgv_lang, $USE_RIN, $MAX_IDS, $fpnewged, $GENERATE_UIDS;
-
-	static $sql_insert_indi=null;
-	static $sql_insert_fam=null;
-	static $sql_insert_sour=null;
-	static $sql_insert_other=null;
-	if (!$sql_insert_indi) {
-		$sql_insert_indi=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}individuals (i_id, i_file, i_rin, i_isdead, i_sex, i_gedcom) VALUES (?,?,?,?,?,?)"
-		);
-		$sql_insert_fam=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}families (f_id, f_file, f_husb, f_wife, f_chil, f_gedcom, f_numchil) VALUES (?,?,?,?,?,?,?)"
-		);
-		$sql_insert_sour=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}sources (s_id, s_file, s_name, s_gedcom, s_dbid) VALUES (?,?,?,?,?)"
-		);
-		$sql_insert_other=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}other (o_id, o_file, o_type, o_gedcom) VALUES (?,?,?,?)"
-		);
-	}
+	global $TBLPREFIX, $pgv_lang, $USE_RIN, $MAX_IDS, $fpnewged, $GENERATE_UIDS, $gBitDb;
 
 	// Escaped @ signs (only if importing from file)
 	if (!$update) {
@@ -681,7 +662,10 @@ function import_record($gedrec, $ged_id, $update) {
 		} else {
 			$rin=$xref;
 		}
-		$sql_insert_indi->execute(array($xref, $ged_id, $rin, is_dead($gedrec, '', true), $record->getSex(), $gedrec));
+		$param = array($xref, $ged_id, $rin, is_dead($gedrec, '', true), $record->getSex(), $gedrec);
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}individuals (i_id, i_file, i_rin, i_isdead, i_sex, i_gedcom) VALUES (?,?,?,?,?,?)"
+			, $param );
 		break;
 	case 'FAM':
 		if (preg_match('/\n1 HUSB @('.PGV_REGEX_XREF.')@/', $gedrec, $match)) {
@@ -702,7 +686,10 @@ function import_record($gedrec, $ged_id, $update) {
 		if (preg_match('/\n1 NCHI (\d+)/', $gedrec, $match)) {
 			$nchi=max($nchi, $match[1]);
 		}
-		$sql_insert_fam->execute(array($xref, $ged_id, $husb, $wife, $chil, $gedrec, $nchi));
+		$param = array($xref, $ged_id, $husb, $wife, $chil, $gedrec, $nchi);
+		$gBitDb->query( 
+			"INSERT INTO {$TBLPREFIX}families (f_id, f_file, f_husb, f_wife, f_chil, f_gedcom, f_numchil) VALUES (?,?,?,?,?,?,?)"
+			, $param );
 		break;
 	case 'SOUR':
 		if (preg_match('/\n1 TITL (.+)/', $gedrec, $match)) {
@@ -717,7 +704,9 @@ function import_record($gedrec, $ged_id, $update) {
 		} else {
 			$_dbid=null;
 		}
-		$sql_insert_sour->execute(array($xref, $ged_id, $name, $gedrec, $_dbid));
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}sources (s_id, s_file, s_name, s_gedcom, s_dbid) VALUES (?,?,?,?,?)"
+			, array($xref, $ged_id, $name, $gedrec, $_dbid) );
 		break;
 	case 'OBJE':
 		// OBJE records are imported by update_media function
@@ -729,7 +718,9 @@ function import_record($gedrec, $ged_id, $update) {
 		// no break
 	default:
 		if (substr($type, 0, 1)!='_') {
-			$sql_insert_other->execute(array($xref, $ged_id, $type, $gedrec));
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}other (o_id, o_file, o_type, o_gedcom) VALUES (?,?,?,?)"
+			, array($xref, $ged_id, $type, $gedrec));
 		}
 		break;
 	}
@@ -748,22 +739,8 @@ function import_record($gedrec, $ged_id, $update) {
 * @param string $gedrec
 */
 function update_places($gid, $ged_id, $gedrec) {
-	global $placecache, $TBLPREFIX;
+	global $placecache, $TBLPREFIX, $gBitDb;
 
-	static $sql_insert_placelinks=null;
-	static $sql_insert_places=null;
-	static $sql_select_places=null;
-	if (!$sql_insert_placelinks) {
-		$sql_insert_placelinks=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}placelinks (pl_p_id, pl_gid, pl_file) VALUES (?,?,?)"
-		);
-		$sql_insert_places=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}places (p_id, p_place, p_level, p_parent_id, p_file, p_std_soundex, p_dm_soundex) VALUES (?,?,?,?,?,?,?)"
-		);
-		$sql_select_places=PGV_DB::prepare(
-			"SELECT p_id FROM {$TBLPREFIX}places WHERE p_level=? AND p_file=? AND p_parent_id=? AND p_place ".PGV_DB::$LIKE." ?"
-		);
-	}
 
 	if (!isset($placecache)) {
 		$placecache = array();
@@ -797,7 +774,9 @@ function update_places($gid, $ged_id, $gedrec) {
 				$parent_id = $placecache[$key];
 				if (!isset($personplace[$key])) {
 					$personplace[$key]=1;
-					$sql_insert_placelinks->execute(array($parent_id, $gid, $ged_id));
+					$gBitDb->query( 
+						"INSERT INTO {$TBLPREFIX}placelinks (pl_p_id, pl_gid, pl_file) VALUES (?,?,?)"
+						, array($parent_id, $gid, $ged_id));
 				}
 				$level++;
 				continue;
@@ -806,7 +785,9 @@ function update_places($gid, $ged_id, $gedrec) {
 			//-- only search the database while we are finding places in it
 			if ($search) {
 				//-- check if this place and level has already been added
-				$tmp=$sql_select_places->execute(array($level, $ged_id, $parent_id, $place))->fetchOne();
+				$tmp = $gBitDb->getOne( 
+					"SELECT p_id FROM {$TBLPREFIX}places WHERE p_level=? AND p_file=? AND p_parent_id=? AND p_place LIKE ?"
+					, array($level, $ged_id, $parent_id, $place));
 				if ($tmp) {
 					$p_id = $tmp;
 				} else {
@@ -819,10 +800,14 @@ function update_places($gid, $ged_id, $gedrec) {
 				$std_soundex = soundex_std($place);
 				$dm_soundex = soundex_dm($place);
 				$p_id = get_next_id("places", "p_id");
-				$sql_insert_places->execute(array($p_id, $place, $level, $parent_id, $ged_id, $std_soundex, $dm_soundex));
+				$gBitDb->query( 
+					"INSERT INTO {$TBLPREFIX}places (p_id, p_place, p_level, p_parent_id, p_file, p_std_soundex, p_dm_soundex) VALUES (?,?,?,?,?,?,?)"
+					, array($p_id, $place, $level, $parent_id, $ged_id, $std_soundex, $dm_soundex));
 			}
 
-			$sql_insert_placelinks->execute(array($p_id, $gid, $ged_id));
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}placelinks (pl_p_id, pl_gid, pl_file) VALUES (?,?,?)"
+				, array($p_id, $gid, $ged_id));
 			//-- increment the level and assign the parent id for the next place level
 			$parent_id = $p_id;
 			$placecache[$key] = $p_id;
@@ -834,14 +819,7 @@ function update_places($gid, $ged_id, $gedrec) {
 
 // extract all the dates from the given record and insert them into the database
 function update_dates($xref, $ged_id, $gedrec) {
-	global $TBLPREFIX, $factarray;
-
-	static $sql_insert_date=null;
-	if (!$sql_insert_date) {
-		$sql_insert_date=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}dates (d_day,d_month,d_mon,d_year,d_julianday1,d_julianday2,d_fact,d_gid,d_file,d_type) VALUES (?,?,?,?,?,?,?,?,?,?)"
-		);
-	}
+	global $TBLPREFIX, $factarray, $gBitDb;
 
 	if (strpos($gedrec, '2 DATE ') && preg_match_all("/\n1 (\w+).*(?:\n[2-9].*)*(?:\n2 DATE (.+))(?:\n[2-9].*)*/", $gedrec, $matches, PREG_SET_ORDER)) {
 		foreach ($matches as $match) {
@@ -850,11 +828,13 @@ function update_dates($xref, $ged_id, $gedrec) {
 				$fact=$tmatch[1];
 			}
 			$date=new GedcomDate($match[2]);
-			// TODO: we cast JDs to (int) for the benefit of Postgres.  It may (or may not) give
-			// better overall performance if we change the code that generates them to force integer values.
-			$sql_insert_date->execute(array($date->date1->d, $date->date1->Format('O'), $date->date1->m, $date->date1->y, (int)$date->date1->minJD, (int)$date->date1->maxJD, $fact, $xref, $ged_id, $date->date1->CALENDAR_ESCAPE()));
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}dates (d_day,d_month,d_mon,d_year,d_julianday1,d_julianday2,d_fact,d_gid,d_file,d_type) VALUES (?,?,?,?,?,?,?,?,?,?)"
+				, array($date->date1->d, $date->date1->Format('O'), $date->date1->m, $date->date1->y, $date->date1->minJD, $date->date1->maxJD, $fact, $xref, $ged_id, $date->date1->CALENDAR_ESCAPE()));
 			if ($date->date2) {
-				$sql_insert_date->execute(array($date->date2->d, $date->date2->Format('O'), $date->date2->m, $date->date2->y, (int)$date->date2->minJD, (int)$date->date2->maxJD, $fact, $xref, $ged_id, $date->date2->CALENDAR_ESCAPE()));
+				$gBitDb->query(
+					"INSERT INTO {$TBLPREFIX}dates (d_day,d_month,d_mon,d_year,d_julianday1,d_julianday2,d_fact,d_gid,d_file,d_type) VALUES (?,?,?,?,?,?,?,?,?,?)"
+					, arrayarray($date->date2->d, $date->date2->Format('O'), $date->date2->m, $date->date2->y, $date->date2->minJD, $date->date2->maxJD, $fact, $xref, $ged_id, $date->date2->CALENDAR_ESCAPE()));
 			}
 		}
 	}
@@ -863,21 +843,15 @@ function update_dates($xref, $ged_id, $gedrec) {
 
 // extract all the remote links from the given record and insert them into the database
 function update_rlinks($xref, $ged_id, $gedrec) {
-	global $TBLPREFIX;
-
-	static $sql_insert_rlink=null;
-	if (!$sql_insert_rlink) {
-		$sql_insert_rlink=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}remotelinks (r_gid,r_linkid,r_file) VALUES (?,?,?)");
-	}
+	global $TBLPREFIX, $gBitDb;
 
 	if (preg_match_all("/\n1 RFN (".PGV_REGEX_XREF.')/', $gedrec, $matches, PREG_SET_ORDER)) {
 		foreach ($matches as $match) {
 			// Ignore any errors, which may be caused by "duplicates" that differ on case/collation, e.g. "S1" and "s1"
-			try {
-				$sql_insert_rlink->execute(array($xref, $match[1], $ged_id));
-			} catch (PDOException $e) {
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}remotelinks (r_gid,r_linkid,r_file) VALUES (?,?,?)"
+				, array($xref, $match[1], $ged_id));
 				// We could display a warning here....
-			}
 		}
 	}
 }
@@ -885,11 +859,6 @@ function update_rlinks($xref, $ged_id, $gedrec) {
 // extract all the links from the given record and insert them into the database
 function update_links($xref, $ged_id, $gedrec) {
 	global $TBLPREFIX;
-
-	static $sql_insert_link=null;
-	if (!$sql_insert_link) {
-		$sql_insert_link=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}link (l_from,l_to,l_type,l_file) VALUES (?,?,?,?)");
-	}
 
 	if (preg_match_all('/^\d+ ('.PGV_REGEX_TAG.') @('.PGV_REGEX_XREF.')@/m', $gedrec, $matches, PREG_SET_ORDER)) {
 		$data=array();
@@ -910,14 +879,8 @@ function update_links($xref, $ged_id, $gedrec) {
 
 // extract all the names from the given record and insert them into the database
 function update_names($xref, $ged_id, $record) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	static $sql_insert_name_indi=null;
-	static $sql_insert_name_other=null;
-	if (!$sql_insert_name_indi) {
-		$sql_insert_name_indi=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}name (n_file,n_id,n_num,n_type,n_sort,n_full,n_list,n_surname,n_surn,n_givn,n_soundex_givn_std,n_soundex_surn_std,n_soundex_givn_dm,n_soundex_surn_dm) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-		$sql_insert_name_other=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}name (n_file,n_id,n_num,n_type,n_sort,n_full,n_list) VALUES (?,?,?,?,?,?,?)");
-	}
 
 	if ($record->getType()!='FAM' && $record->getXref()) {
 		foreach ($record->getAllNames() as $n=>$name) {
@@ -936,9 +899,13 @@ function update_names($xref, $ged_id, $record) {
 					$soundex_surn_std="'".soundex_std($name['surname'])."'";
 					$soundex_surn_dm="'".soundex_dm($name['surname'])."'";
 				}
-				$sql_insert_name_indi->execute(array($ged_id, $xref, $n, $name['type'], $name['sort'], $name['fullNN'], $name['listNN'], $name['surname'], $name['surn'], $name['givn'], $soundex_givn_std, $soundex_surn_std, $soundex_givn_dm, $soundex_surn_dm));
+				$gBitDb->query(
+					"INSERT INTO {$TBLPREFIX}name (n_file,n_id,n_num,n_type,n_sort,n_full,n_list,n_surname,n_surn,n_givn,n_soundex_givn_std,n_soundex_surn_std,n_soundex_givn_dm,n_soundex_surn_dm) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+					, array($ged_id, $xref, $n, $name['type'], $name['sort'], $name['fullNN'], $name['listNN'], $name['surname'], $name['surn'], $name['givn'], $soundex_givn_std, $soundex_surn_std, $soundex_givn_dm, $soundex_surn_dm));
 			} else {
-				$sql_insert_name_other->execute(array($ged_id, $xref, $n, $name['type'], $name['sort'], $name['full'], $name['list']));
+				$gBitDb->query(
+					"INSERT INTO {$TBLPREFIX}name (n_file,n_id,n_num,n_type,n_sort,n_full,n_list) VALUES (?,?,?,?,?,?,?)"
+					, array($ged_id, $xref, $n, $name['type'], $name['sort'], $name['full'], $name['list']));
 			}
 		}
 	}
@@ -953,18 +920,7 @@ function update_names($xref, $ged_id, $record) {
 * @param int $count The count of OBJE records in the parent record
 */
 function insert_media($objrec, $objlevel, $update, $gid, $ged_id, $count) {
-	global $TBLPREFIX, $media_count, $found_ids, $fpnewged;
-
-	static $sql_insert_media=null;
-	static $sql_insert_media_mapping=null;
-	if (!$sql_insert_media) {
-		$sql_insert_media=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}media (m_id, m_media, m_ext, m_titl, m_file, m_gedfile, m_gedrec) VALUES (?, ?, ?, ?, ?, ?, ?)"
-		);
-		$sql_insert_media_mapping=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}media_mapping (mm_id, mm_media, mm_gid, mm_order, mm_gedfile, mm_gedrec) VALUES (?, ?, ?, ?, ?, ?)"
-		);
-	}
+	global $TBLPREFIX, $media_count, $found_ids, $fpnewged, $gBitDb;
 
 	//-- check for linked OBJE records
 	//-- linked records don't need to insert to media table
@@ -994,7 +950,9 @@ function insert_media($objrec, $objlevel, $update, $gid, $ged_id, $count) {
 		$new_media = Media::in_obje_list($media);
 		if (!$new_media) {
 			//-- add it to the media database table
-			$sql_insert_media->execute(array(get_next_id('media', 'm_id'), $m_media, $media->ext, $media->title, $media->file, $ged_id, $objrec));
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}media (m_id, m_media, m_ext, m_titl, m_file, m_gedfile, m_gedrec) VALUES (?, ?, ?, ?, ?, ?, ?)"
+				, array(get_next_id('media', 'm_id'), $m_media, $media->ext, $media->title, $media->file, $ged_id, $objrec));
 			$media_count++;
 			//-- if this is not an update then write it to the new gedcom file
 			if (!$update && !empty ($fpnewged)) {
@@ -1008,7 +966,9 @@ function insert_media($objrec, $objlevel, $update, $gid, $ged_id, $count) {
 	}
 	if (isset($m_media)) {
 		//-- add the entry to the media_mapping table
-		$sql_insert_media_mapping->execute(array(get_next_id('media_mapping', 'mm_id'), $m_media, $gid, $count, $ged_id, $objref));
+		$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}media_mapping (mm_id, mm_media, mm_gid, mm_order, mm_gedfile, mm_gedrec) VALUES (?, ?, ?, ?, ?, ?)"
+				, array(get_next_id('media_mapping', 'mm_id'), $m_media, $gid, $count, $ged_id, $objref));
 		return $objref;
 	} else {
 		print "Media reference error ".$objrec;
@@ -1022,13 +982,6 @@ function insert_media($objrec, $objlevel, $update, $gid, $ged_id, $count) {
 */
 function update_media($gid, $ged_id, $gedrec, $update = false) {
 	global $TBLPREFIX, $media_count, $found_ids, $zero_level_media, $fpnewged, $MAX_IDS, $keepmedia;
-
-	static $sql_insert_media=null;
-	if (!$sql_insert_media) {
-		$sql_insert_media=PGV_DB::prepare(
-			"INSERT INTO {$TBLPREFIX}media (m_id, m_media, m_ext, m_titl, m_file, m_gedfile, m_gedrec) VALUES (?, ?, ?, ?, ?, ?, ?)"
-		);
-	}
 
 	if (!isset ($media_count)) {
 		$media_count = 0;
@@ -1044,9 +997,9 @@ function update_media($gid, $ged_id, $gedrec, $update = false) {
 			$MAX_IDS["OBJE"] = 1;
 		} else {
 			$MAX_IDS["OBJE"]=
-				PGV_DB::prepare("SELECT ni_id FROM {$TBLPREFIX}nextid WHERE ni_type=? AND ni_gedfile=?")
-				->execute(array('OBJE', $ged_id))
-				->fetchOne();
+				$gBitDb->getOne(
+					"SELECT ni_id FROM {$TBLPREFIX}nextid WHERE ni_type=? AND ni_gedfile=?"
+					, array('OBJE', $ged_id));
 		}
 	}
 
@@ -1080,7 +1033,9 @@ function update_media($gid, $ged_id, $gedrec, $update = false) {
 		//--check if we already have a similar object
 		$new_media = Media::in_obje_list($media);
 		if (!$new_media) {
-			$sql_insert_media->execute(array($m_id, $new_m_media, $media->ext, $media->title, $media->file, $ged_id, $gedrec));
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}media (m_id, m_media, m_ext, m_titl, m_file, m_gedfile, m_gedrec) VALUES (?, ?, ?, ?, ?, ?, ?)"
+				, array($m_id, $new_m_media, $media->ext, $media->title, $media->file, $ged_id, $gedrec));
 			$media_count++;
 		} else {
 			$new_m_media = $new_media;
@@ -1095,9 +1050,9 @@ function update_media($gid, $ged_id, $gedrec, $update = false) {
 
 	if ($keepmedia) {
 		$old_linked_media=
-			PGV_DB::prepare("SELECT mm_media, mm_gedrec FROM {$TBLPREFIX}media_mapping WHERE mm_gid=? AND mm_gedfile=?")
-			->execute(array($gid, $ged_id))
-			->fetchAll(PDO::FETCH_NUM);
+			$gBitDb->getAll(
+				"SELECT mm_media, mm_gedrec FROM {$TBLPREFIX}media_mapping WHERE mm_gid=? AND mm_gedfile=?"
+				, array($gid, $GEDCOMS[$FILE]['id']));
 	}
 
 	//-- check to see if there are any media records
@@ -1187,26 +1142,26 @@ function update_media($gid, $ged_id, $gedrec, $update = false) {
 * @param boolean $keepmedia Whether or not to keep media and media links in the tables
 */
 function empty_database($ged_id, $keepmedia) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}individuals WHERE i_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}families    WHERE f_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}sources     WHERE s_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}other       WHERE o_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}places      WHERE p_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}placelinks  WHERE pl_file=?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}remotelinks WHERE r_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}name        WHERE n_file =?")->execute(array($ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}dates       WHERE d_file =?")->execute(array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}individuals WHERE i_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}families    WHERE f_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}sources     WHERE s_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}other       WHERE o_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}places      WHERE p_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}placelinks  WHERE pl_file=?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}remotelinks WHERE r_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}name        WHERE n_file =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}dates       WHERE d_file =?", array($ged_id));;
 
 	if ($keepmedia) {
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}link   WHERE l_file    =? AND l_type<> ?")->execute(array($ged_id, 'OBJE'));
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}nextid WHERE ni_gedfile=? AND ni_type<>?")->execute(array($ged_id, 'OBJE'));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}link   WHERE l_file    =? AND l_type<> ?", array($ged_id, 'OBJE'));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}nextid WHERE ni_gedfile=? AND ni_type<>?", array($ged_id, 'OBJE'));
 	} else {
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}link          WHERE l_file    =?")->execute(array($ged_id));
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}nextid        WHERE ni_gedfile=?")->execute(array($ged_id));
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}media         WHERE m_gedfile =?")->execute(array($ged_id));
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}media_mapping WHERE mm_gedfile=?")->execute(array($ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}link          WHERE l_file    =?", array($ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}nextid        WHERE ni_gedfile=?", array($ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}media         WHERE m_gedfile =?", array($ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}media_mapping WHERE mm_gedfile=?", array($ged_id));
 	}
 
 	//-- clear all of the cache files for this gedcom
@@ -1218,13 +1173,14 @@ function empty_database($ged_id, $keepmedia) {
 // record type.  Write these to the database in one go.
 //
 function import_max_ids($ged_id, $MAX_IDS) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}nextid WHERE ni_gedfile=?")->execute(array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}nextid WHERE ni_gedfile=?", array($ged_id));
 
-	$statement=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}nextid (ni_id, ni_type, ni_gedfile) VALUES (?, ?, ?)");
 	foreach ($MAX_IDS as $type => $id) {
-		$statement->execute(array($id+1, $type, $ged_id));
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}nextid (ni_id, ni_type, ni_gedfile) VALUES (?, ?, ?)"
+			, array($id+1, $type, $ged_id));
 	}
 }
 
@@ -1440,7 +1396,7 @@ function find_newline_string($haystack, $needle, $offset=0) {
 * @param string $gedrec
 */
 function update_record($gedrec, $ged_id, $delete) {
-	global $TBLPREFIX, $GEDCOM;
+	global $TBLPREFIX, $GEDCOM, $gBitDb;
 
 	if (preg_match('/^0 @('.PGV_REGEX_XREF.')@ ('.PGV_REGEX_TAG.')/', $gedrec, $match)) {
 		list(,$gid, $type)=$match;
@@ -1451,44 +1407,44 @@ function update_record($gedrec, $ged_id, $delete) {
 
 	// TODO deleting unlinked places can be done more efficiently in a single query
 	$placeids=
-		PGV_DB::prepare("SELECT pl_p_id FROM {$TBLPREFIX}placelinks WHERE pl_gid=? AND pl_file=?")
-		->execute(array($gid, $ged_id))
-		->fetchOneColumn();
+		$gBitDb->getAll(
+			"SELECT pl_p_id FROM {$TBLPREFIX}placelinks WHERE pl_gid=? AND pl_file=?"
+			, array($gid, $ged_id));
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}placelinks WHERE pl_gid=? AND pl_file=?")->execute(array($gid, $ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}dates      WHERE d_gid =? AND d_file =?")->execute(array($gid, $ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}placelinks WHERE pl_gid=? AND pl_file=?", array($gid, $ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}dates      WHERE d_gid =? AND d_file =?", array($gid, $ged_id));
 
 	//-- delete any unlinked places
 	foreach ($placeids as $p_id) {
 		$num=
-			PGV_DB::prepare("SELECT count(pl_p_id) FROM {$TBLPREFIX}placelinks WHERE pl_p_id=? AND pl_file=?")
-			->execute(array($p_id, $ged_id))
-			->fetchOne();
+			$gBitDb->getOne(
+				"SELECT count(pl_p_id) FROM {$TBLPREFIX}placelinks WHERE pl_p_id=? AND pl_file=?"
+				, array($p_id['pl_p_id'], $ged_id));
 		if ($num==0) {
-			PGV_DB::prepare("DELETE FROM {$TBLPREFIX}places WHERE p_id=? AND p_file=?")->execute(array($p_id, $ged_id));
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}places WHERE p_id=? AND p_file=?", array($p_id['pl_p_id'], $ged_id));
 		}
 	}
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}media_mapping WHERE mm_gid=? AND mm_gedfile=?")->execute(array($gid, $ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}remotelinks WHERE r_gid=? AND r_file=?")->execute(array($gid, $ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}name WHERE n_id=? AND n_file=?")->execute(array($gid, $ged_id));
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}link WHERE l_from=? AND l_file=?")->execute(array($gid, $ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}media_mapping WHERE mm_gid=? AND mm_gedfile=?", array($gid, $ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}remotelinks WHERE r_gid=? AND r_file=?", array($gid, $ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}name WHERE n_id=? AND n_file=?", array($gid, $ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}link WHERE l_from=? AND l_file=?", array($gid, $ged_id));
 
 	switch ($type) {
 	case 'INDI':
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}individuals WHERE i_id=? AND i_file=?")->execute(array($gid, $ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}individuals WHERE i_id=? AND i_file=?", array($gid, $ged_id));
 		break;
 	case 'FAM':
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}families WHERE f_id=? AND f_file=?")->execute(array($gid, $ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}families WHERE f_id=? AND f_file=?", array($gid, $ged_id));
 		break;
 	case 'SOUR':
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}sources WHERE s_id=? AND s_file=?")->execute(array($gid, $ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}sources WHERE s_id=? AND s_file=?", array($gid, $ged_id));
 		break;
 	case 'OBJE':
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}media WHERE m_media=? AND m_gedfile=?")->execute(array($gid, $ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}media WHERE m_media=? AND m_gedfile=?", array($gid, $ged_id));
 		break;
 	default:
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}other WHERE o_id=? AND o_file=?")->execute(array($gid, $ged_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}other WHERE o_id=? AND o_file=?", array($gid, $ged_id));
 		break;
 	}
 

@@ -297,7 +297,7 @@ if (!$CONFIGURED) {
 ignore_user_abort(false);
 
 // try and set the memory limit
-if (empty($PGV_MEMORY_LIMIT)) $PGV_MEMORY_LIMIT = '32M';
+if (empty($PGV_MEMORY_LIMIT)) $PGV_MEMORY_LIMIT = '64M';
 @ini_set('memory_limit', $PGV_MEMORY_LIMIT);
 
 // Application configuration data - things that aren't (yet) user-editable
@@ -312,26 +312,19 @@ set_error_handler('pgv_error_handler');
 
 // Connect to the database
 require PGV_ROOT.'includes/functions/functions_db.php';
-require PGV_ROOT.'includes/classes/class_pgv_db.php';
-try {
-	// remove escape codes before using PW
-	$DBPASS=str_replace(array("\\\\", "\\\"", "\\\$"), array("\\", "\"", "\$"), $DBPASS);
-	PGV_DB::createInstance($DBTYPE, $DBHOST, $DBPORT, $DBNAME, $DBUSER, $DBPASS, $DB_UTF8_COLLATION);
-	unset($DBUSER, $DBPASS);
-	try {
-		PGV_DB::updateSchema(PGV_ROOT.'includes/db_schema/', 'PGV_SCHEMA_VERSION', PGV_SCHEMA_VERSION);
-	} catch (PDOException $ex) {
-		// The schema update scripts should never fail.  If they do, there is no clean recovery.
-		die($ex);
-	}
-} catch (PDOException $ex) {
-	// Can't connect to the DB?  We'll get redirected to install.php later.....
-}
+// require PGV_ROOT.'includes/classes/class_pgv_db.php';
 
 // The authentication interface includes logging - which may be to the database
 require PGV_ROOT.'includes/authentication.php';
- 
-// Determine browser type
+
+// Connect to the database
+require_once PGV_ROOT.'includes/adodb/BitTimer.php';
+require_once PGV_ROOT.'includes/adodb/BitDbAdodb.php';
+global $gBitDb;
+$gBitDb = new BitDbAdodb();
+// $gBitDb = setCaching();
+
+//-- import the gedcoms array
 $BROWSERTYPE = 'other';
 if (!empty($_SERVER['HTTP_USER_AGENT'])) {
 	if (stristr($_SERVER['HTTP_USER_AGENT'], 'Opera')) {
@@ -389,7 +382,7 @@ if (isset($_REQUEST['ged'])) {
 require PGV_ROOT.'config_gedcom.php'; // Load default gedcom settings
 
 // Missing/invalid gedcom - pick any one!
-try {
+// try {
 	// Does the requested GEDCOM exist?
 	$ged_id=get_id_from_gedcom($GEDCOM);
 	if (!$ged_id) {
@@ -409,12 +402,14 @@ try {
 	define('PGV_GED_ID', $ged_id);
 	load_privacy_file(PGV_GED_ID);
 	require get_config_file(PGV_GED_ID); // Load current gedcom settings
+/*
 } catch (PDOException $ex) {
 	// No DB available?
 	require 'privacy.php';
 	define('PGV_GEDCOM', '');
 	define('PGV_GED_ID', 0);
 }
+*/
 
 // Set our gedcom selection as a default for the next page
 $_SESSION['GEDCOM']=PGV_GEDCOM;
@@ -552,7 +547,7 @@ require PGV_ROOT.'includes/functions/functions_privacy.php';
 
 // The curren't user's profile - from functions in authentication.php
 define('PGV_USER_ID',           getUserId     ());
-if (PGV_DB::isConnected()) {
+if ( !empty($gBitDb->mDb) ) {
 	define('PGV_USER_NAME',         getUserName   ());
 	define('PGV_USER_IS_ADMIN',     userIsAdmin   (PGV_USER_ID));
 	define('PGV_USER_AUTO_ACCEPT',  userAutoAccept(PGV_USER_ID));
@@ -590,7 +585,7 @@ if (isset($SHOW_CONTEXT_HELP) && $show_context_help==='yes') $_SESSION['show_con
 if (isset($SHOW_CONTEXT_HELP) && $show_context_help==='no') $_SESSION['show_context_help'] = false;
 if (!isset($USE_THUMBS_MAIN)) $USE_THUMBS_MAIN = false;
 if (PGV_SCRIPT_NAME!='install.php' && PGV_SCRIPT_NAME!='editconfig_help.php') {
-	if (!PGV_DB::isConnected() || !PGV_ADMIN_USER_EXISTS) {
+	if ( empty($gBitDb->mDb) || !PGV_ADMIN_USER_EXISTS) {
 		header('Location: install.php');
 		exit;
 	}

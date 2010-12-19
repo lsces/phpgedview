@@ -187,7 +187,7 @@ class AdvancedSearchController extends SearchController {
 	}
 
 	function advancedSearch($justSql=false, $table="individuals", $prefix="i") {
-		global $TBLPREFIX, $gedcom_record_cache;
+		global $TBLPREFIX, $gBitDb, $gedcom_record_cache;
 
 		DMsoundex("", "opencache");
 		$this->myindilist = array ();
@@ -225,9 +225,9 @@ class AdvancedSearchController extends SearchController {
 					$sdx=explode(':', soundex_std($value));
 					foreach ($sdx as $k=>$v) {
 						if ($parts[1]=='GIVN') {
-							$sdx[$k]='n_soundex_givn_std '.PGV_DB::$LIKE." '%{$v}%'";
+							$sdx[$k]="n_soundex_givn_std LIKE '%{$v}%'";
 						} else {
-							$sdx[$k]='n_soundex_surn_std '.PGV_DB::$LIKE." '%{$v}%'";
+							$sdx[$k]="n_soundex_surn_std LIKE '%{$v}%'";
 						}
 					}
 					$sqlwhere.=' AND ('.implode(' OR ', $sdx).')';
@@ -238,9 +238,9 @@ class AdvancedSearchController extends SearchController {
 					$sdx=explode(':', soundex_dm($value));
 					foreach ($sdx as $k=>$v) {
 						if ($parts[1]=='GIVN') {
-							$sdx[$k]='n_soundex_givn_dm '.PGV_DB::$LIKE." '%{$v}%'";
+							$sdx[$k]="n_soundex_givn_dm LIKE '%{$v}%'";
 						} else {
-							$sdx[$k]='n_soundex_surn_dm '.PGV_DB::$LIKE." '%{$v}%'";
+							$sdx[$k]="n_soundex_surn_dm LIKE '%{$v}%'";
 						}
 					}
 					$sqlwhere.=' AND ('.implode(' OR ', $sdx).')';
@@ -250,13 +250,13 @@ class AdvancedSearchController extends SearchController {
 					switch ($parts[1]) {
 					case 'GIVN':
 						// Allow for exact match on multiple given names.
-						$sqlwhere.=' AND (n_givn '.PGV_DB::$LIKE." ".PGV_DB::quote($value)." OR n_givn ".PGV_DB::$LIKE." ".PGV_DB::quote("{$value} %")." OR n_givn ".PGV_DB::$LIKE." ".PGV_DB::quote("% {$value}")." OR n_givn ".PGV_DB::$LIKE." ".PGV_DB::quote("% {$value} %").")";
+						$sqlwhere.=" AND (n_givn LIKE '$value' OR n_givn LIKE '$value%' OR n_givn LIKE '%{$value}' OR n_givn LIKE '$value)";
 						break;
 					case 'SURN':
-						$sqlwhere.=' AND n_surname '.PGV_DB::$LIKE." ".PGV_DB::quote($value);
+						$sqlwhere.=" AND n_surname LIKE '$value'";
 						break;
 					default:
-						$sqlwhere.=' AND n_full '.PGV_DB::$LIKE." ".PGV_DB::quote($value);
+						$sqlwhere.=" AND n_full LIKE '$value'";
 						break;
 					}
 					break;
@@ -265,13 +265,13 @@ class AdvancedSearchController extends SearchController {
 					switch ($parts[1]) {
 					case 'GIVN':
 						// Allow for match on start of multiple given names
-						$sqlwhere.=' AND (n_givn '.PGV_DB::$LIKE." ".PGV_DB::quote("{$value}%")." OR n_givn ".PGV_DB::$LIKE." ".PGV_DB::quote("% {$value}%").")";
+						$sqlwhere.=" AND (n_givn LIKE '$value}%' OR n_givn LIKE '% {$value}%.')";
 						break;
 					case 'SURN':
-						$sqlwhere.=' AND n_surname '.PGV_DB::$LIKE." ".PGV_DB::quote("{$value}%");
+						$sqlwhere.=" AND n_surname LIKE '$value%'";
 						break;
 					default:
-						$sqlwhere.=' AND n_full '.PGV_DB::$LIKE." ".PGV_DB::quote("{$value}%");
+						$sqlwhere.=" AND n_full LIKE '$value%'";
 						break;
 					}
 					break;
@@ -280,13 +280,13 @@ class AdvancedSearchController extends SearchController {
 					// Partial match.
 					switch ($parts[1]) {
 					case 'GIVN':
-						$sqlwhere.=' AND n_givn '.PGV_DB::$LIKE." ".PGV_DB::quote("%{$value}%");
+						$sqlwhere.=" AND n_givn LIKE '%{$value}%'";
 						break;
 					case 'SURN':
-						$sqlwhere.=' AND n_surname '.PGV_DB::$LIKE." ".PGV_DB::quote("%{$value}%");
+						$sqlwhere.=" AND n_surname LIKE '%{$value}%'";
 						break;
 					default:
-						$sqlwhere.=' AND n_full '.PGV_DB::$LIKE." ".PGV_DB::quote("%{$value}%");
+						$sqlwhere.=" AND n_full LIKE '%{$value}%'";
 						break;
 					}
 					break;
@@ -337,7 +337,7 @@ class AdvancedSearchController extends SearchController {
 							if ($fnc>0)
 								$sqlwhere .= " OR ";
 							$fnc++;
-							$sqlwhere .= $field." ".PGV_DB::$LIKE." ".PGV_DB::quote("%{$name1}%");
+							$sqlwhere .= $field." LIKE '%{$name1}%'";
 						}
 					}
 					$sqlwhere .= ") ";
@@ -386,7 +386,7 @@ class AdvancedSearchController extends SearchController {
 					}
 					else $this->fields[$j] = preg_replace("/^".$parts[0].":/","", $this->fields[$j]);
 				}
-				$sqlwhere .= " AND (FAMC.f_chil ".PGV_DB::$LIKE." CONCAT('%',i_id,';%'))";
+				$sqlwhere .= " AND (FAMC.f_chil LIKE '%' || i_id || ';%')";
 				$subsql = $this->advancedSearch(true,"families","f");
 				$sqlwhere .= " AND ROW(FAMC.f_id, FAMC.f_file) IN (".$subsql.")";
 				$this->fields = $oldfields;
@@ -427,7 +427,7 @@ class AdvancedSearchController extends SearchController {
 			}
 			//-- handle everything else
 			else {
-				$sqlwhere .= " AND i_gedcom ".PGV_DB::$LIKE." ";
+				$sqlwhere .= " AND i_gedcom LIKE ";
 
 				$ct = count($parts);
 				$liketmp='';
@@ -439,14 +439,14 @@ class AdvancedSearchController extends SearchController {
 					 	$liketmp .= "%{$value}%";
 //					 }
 				}
-				$sqlwhere .= PGV_DB::quote($liketmp);
+				$sqlwhere .= "'$liketmp'";
 			}
 		}
 		$sql = $sqlfields.$sqltables.$sqlwhere;
 //		print $sql;
 		if ($justSql) return $sql;
-		$rows=PGV_DB::prepare($sql)->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($rows as $row){
+		$rows = $gBitDb->query( $sql );
+		while ( $row = $rowsfetshRow() ){
 			$row['xref']=$row['i_id'];
 			$row['ged_id']=$row['i_file'];
 			$row['type'] = 'INDI';
