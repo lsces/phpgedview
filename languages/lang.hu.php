@@ -3,7 +3,7 @@
  * Hungarian texts
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1391,36 +1391,11 @@ $pgv_lang["stplperc"]                   			= "százalék";
 $pgv_lang["hs_searchin"]					= "Keresd ebben";
 $pgv_lang["hs_keyword"] 					= "Keresd";
 $pgv_lang["block_summary_table"]				= "&nbsp;";
-$pgv_lang["accesskey_family_gedcom"]				= "G";
 $pgv_lang["hs_searchuser"]					= "Használói segítség";
 $pgv_lang["hs_searchmodules"]					= "Segítség a modulokhoz";
 $pgv_lang["hs_results"] 					= "Talált eredmény:";
 $pgv_lang["hs_close"] 						= "Ablak bezárás";
 $pgv_lang["hs_search"] 						= "Keres";
-$pgv_lang["accesskey_family_timeline"]				= "T";
-$pgv_lang["accesskey_family_children_timeline"]			= "D";
-$pgv_lang["accesskey_family_parents_timeline"]			= "P";
-$pgv_lang["accesskey_individual_gedcom"]			= "G";
-$pgv_lang["accesskey_individual_relation_to_me"]		= "M";
-$pgv_lang["accesskey_individual_timeline"]			= "T";
-$pgv_lang["accesskey_individual_descendancy"]			= "D";
-$pgv_lang["accesskey_individual_pedigree"]			= "P";
-$pgv_lang["accesskey_individual_research_log"]			= "L";
-$pgv_lang["accesskey_individual_media"]				= "A";
-$pgv_lang["accesskey_individual_sources"]			= "O";
-$pgv_lang["accesskey_individual_notes"]				= "N";
-$pgv_lang["accesskey_individual_relatives"]			= "R";
-$pgv_lang["accesskey_individual_details"]			= "I";
-$pgv_lang["accesskey_contact"]					= "4";
-$pgv_lang["accesskey_help_current_page"]			= "3";
-$pgv_lang["accesskey_help_content"]				= "2";
-$pgv_lang["accesskey_home_page"]				= "1";
-$pgv_lang["accesskey_viewing_advice_desc"]			= "Nézeti tanács";
-$pgv_lang["accesskey_viewing_advice"]				= "0";
-$pgv_lang["accesskey_skip_to_content_desc"]			= "Ugrás a Tartalomjegyzékhez";
-$pgv_lang["accesskey_search"]					= "S";
-$pgv_lang["accesskey_skip_to_content"]				= "C";
-$pgv_lang["accesskeys"]						= "Gyorsbillentyű";
 $pgv_lang["hs_searchconfig"]					= "Adminisztrátori Segítség";
 $pgv_lang["hs_searchhow"]					= "Keresési típus";
 $pgv_lang["hs_searchall"]					= "Minden szó";

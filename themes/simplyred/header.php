@@ -3,7 +3,7 @@
  * Header for SimplyRed theme
  *
  * PhpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ else {?>
         <form action="search.php" method="get">
           <input type="hidden" name="action" value="general" />
           <input type="hidden" name="topsearch" value="yes" />
-          <input type="text" name="query" accesskey="<?php echo $pgv_lang["accesskey_search"]?>" size="15" value="<?php echo $pgv_lang['search']?>"
+          <input type="text" name="query" size="15" value="<?php echo $pgv_lang['search']?>"
               onfocus="if (this.value == '<?php echo $pgv_lang['search']?>') this.value=''; focusHandler();"
               onblur="if (this.value == '') this.value='<?php echo $pgv_lang['search']?>';" />
           <input type="submit" name="search" value=">" />

@@ -63,6 +63,7 @@ if ($noterec!=$pnoterec) {
 	print_footer();
 	exit;
 }
+
 echo PGV_JS_START;
 echo 'function show_gedcom_record() {';
 echo ' var recwin=window.open("gedrecord.php?pid=', $controller->nid, '", "_blank", "top=0, left=0, width=600, height=400, scrollbars=1, scrollable=1, resizable=1");';

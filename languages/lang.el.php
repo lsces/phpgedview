@@ -3,7 +3,7 @@
  * Greek Language file for PhpGedView.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1674,10 +1674,6 @@ $pgv_lang["asia_chart"]			= "Ασία";
 $pgv_lang["middle_east_chart"]	= "Μέση Ανατολή";
 $pgv_lang["africa_chart"]		= "Αφρική";
 $pgv_lang["world_chart"]		= "Κόσμος";
-$pgv_lang["accesskey_home_page"]	= "1";
-$pgv_lang["accesskey_help_content"]	= "2";
-$pgv_lang["accesskey_help_current_page"]	= "3";
-$pgv_lang["accesskey_contact"]	= "4";
 $pgv_lang["preview"] =  "Προεπισκόπηση";
 $pgv_lang["hs_search"] 			= "Αναζήτηση";
 $pgv_lang["TYPE__magazine"] = "Περιοδικό";
@@ -1742,27 +1738,6 @@ $pgv_lang["repo_contains"]			= "Ο χώρος φύλαξης περιέχει:";
 $pgv_lang["shared_note_contains"]	= "Η κοινόχρηστη σημείωση περιέχει:";
 $pgv_lang["source_contains"]		= "Η πηγή περιέχει:";
 $pgv_lang["display_all"]			= "Εμφάνιση όλων";
-$pgv_lang["accesskeys"]				= "Συντομεύσεις πληκτρολογίου";
-$pgv_lang["accesskey_skip_to_content"]	= "C";
-$pgv_lang["accesskey_search"]	= "S";
-$pgv_lang["accesskey_skip_to_content_desc"]	= "Υπερπήδηση στο περιεχόμενο";
-$pgv_lang["accesskey_viewing_advice"]	= "0";
-$pgv_lang["accesskey_viewing_advice_desc"]	= "Συμβουλή θέασης";
-$pgv_lang["accesskey_individual_relatives"]	= "R";
-$pgv_lang["accesskey_individual_notes"]	= "N";
-$pgv_lang["accesskey_individual_sources"]	= "O";
-$pgv_lang["accesskey_individual_details"]	= "I";
-$pgv_lang["accesskey_individual_media"]	= "A";
-$pgv_lang["accesskey_individual_research_log"]	= "L";
-$pgv_lang["accesskey_individual_pedigree"]	= "P";
-$pgv_lang["accesskey_individual_descendancy"]	= "D";
-$pgv_lang["accesskey_individual_timeline"]	= "T";
-$pgv_lang["accesskey_individual_relation_to_me"]	= "M";
-$pgv_lang["accesskey_individual_gedcom"]	= "G";
-$pgv_lang["accesskey_family_parents_timeline"]	= "P";
-$pgv_lang["accesskey_family_children_timeline"]	= "D";
-$pgv_lang["accesskey_family_timeline"]	= "T";
-$pgv_lang["accesskey_family_gedcom"]	= "G";
 $pgv_lang["add_faq_header"] = "Κεφαλίδα συχνής ερώτησης";
 $pgv_lang["add_faq_body"] = "Σώμα συχνής ερώτησης";
 $pgv_lang["add_faq_order"] = "Θέση συχνής ερώτησης";
