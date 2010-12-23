@@ -858,7 +858,7 @@ function update_rlinks($xref, $ged_id, $gedrec) {
 
 // extract all the links from the given record and insert them into the database
 function update_links($xref, $ged_id, $gedrec) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	if (preg_match_all('/^\d+ ('.PGV_REGEX_TAG.') @('.PGV_REGEX_XREF.')@/m', $gedrec, $matches, PREG_SET_ORDER)) {
 		$data=array();
@@ -867,11 +867,9 @@ function update_links($xref, $ged_id, $gedrec) {
 			if (!in_array($match[1].$match[2], $data)) {
 				$data[]=$match[1].$match[2];
 				// Ignore any errors, which may be caused by "duplicates" that differ on case/collation, e.g. "S1" and "s1"
-				try {
-					$sql_insert_link->execute(array($xref, $match[2], $match[1], $ged_id));
-				} catch (PDOException $e) {
-					// We could display a warning here....
-				}
+				$gBitDb->query(
+					"INSERT INTO {$TBLPREFIX}link (l_from,l_to,l_type,l_file) VALUES (?,?,?,?)"
+					, array($xref, $match[2], $match[1], $ged_id) );
 			}
 		}
 	}
@@ -981,7 +979,7 @@ function insert_media($objrec, $objlevel, $update, $gid, $ged_id, $count) {
 * @return string an updated record
 */
 function update_media($gid, $ged_id, $gedrec, $update = false) {
-	global $TBLPREFIX, $media_count, $found_ids, $zero_level_media, $fpnewged, $MAX_IDS, $keepmedia;
+	global $TBLPREFIX, $media_count, $found_ids, $zero_level_media, $fpnewged, $MAX_IDS, $keepmedia, $gBitDb;
 
 	if (!isset ($media_count)) {
 		$media_count = 0;

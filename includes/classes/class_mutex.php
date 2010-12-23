@@ -38,9 +38,9 @@ class Mutex {
 	var $waitCount;	//-- the number of cycles it we waited while trying to acquire the mutex
 
 	function checkDBCONN() {
-		global $CONFIGURED;
+		global $CONFIGURED, $gBitDb;
 
-		if (!PGV_DB::isConnected()) {
+		if (!empty($gBitDb->mDb)) {
 			if ($CONFIGURED) {
 				//-- fix bad configuration prevents edit config page from loading
 				//die("Cannot use mutex without database");
@@ -58,23 +58,15 @@ class Mutex {
 	 * @return Mutex
 	 */
 	function __construct($name, $acquire=false) {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		if (!Mutex::checkDBCONN()) return false;
 		$this->name = $name;
 		//-- check if this mutex already exists
-		try {
-			$one=
-				PGV_DB::prepare("SELECT 1 FROM {$TBLPREFIX}mutex WHERE mx_name=?")
-				->execute(array($name))
-				->fetchOne();
-		} catch (PDOException $ex) {
-			return false;
-		}
+		$one = $gBitDb->getOne("SELECT 1 FROM {$TBLPREFIX}mutex WHERE mx_name=?", array($name) );
 		//-- mutex doesn't exist so create it
-		if ($one!=1) {
-			PGV_DB::prepare("INSERT INTO {$TBLPREFIX}mutex (mx_id, mx_name, mx_thread) VALUES (?, ?, ?)")
-				->execute(array(get_next_id("mutex", "mx_id"), $this->name, 0));
+		if ( $one != 1 ) {
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}mutex (mx_id, mx_name, mx_thread) VALUES (?, ?, ?)", array(get_next_id("mutex", "mx_id"), $this->name, 0));
 		}
 		$this->waitCount = 0;
 		if ($acquire) $this->Wait();
@@ -87,7 +79,7 @@ class Mutex {
 	 * @return boolean		true if successful, false if failed
 	 */
 	function Wait($time=-1) {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		if (!Mutex::checkDBCONN()) return false;
 		//-- check if mutex is available
@@ -96,10 +88,8 @@ class Mutex {
 			//-- do not allow a thread to hold the mutex for more than 5 minutes (300 secs), should not be a problem with PHP
 			//--- this will allow another thread to access the mutex if another thread that held it crashed
 			//-- allow the same session to get the mutex more than once
-			$one=
-				PGV_DB::prepare("SELECT 1 FROM {$TBLPREFIX}mutex WHERE mx_name=? AND (mx_thread=? OR mx_thread=? OR mx_time < ?)")
-				->execute(array($this->name, '0', session_id(), time()-300))
-				->fetchOne();
+			$one = $gBitDb->getOne("SELECT 1 FROM {$TBLPREFIX}mutex WHERE mx_name=? AND (mx_thread=? OR mx_thread=? OR mx_time < ?)",
+					array($this->name, '0', session_id(), time()-300) );
 			if ($one==1) {
 				$available = true;
 			}
@@ -112,8 +102,8 @@ class Mutex {
 			}
 		}
 
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}mutex SET mx_time=?, mx_thread=? WHERE mx_name=?")
-			->execute(array(time(), session_id(), $this->name));
+		$gBitDb->query("UPDATE {$TBLPREFIX}mutex SET mx_time=?, mx_thread=? WHERE mx_name=?",
+				array(time(), session_id(), $this->name));
 		return true;
 	}
 
@@ -122,12 +112,12 @@ class Mutex {
 	 *
 	 */
 	function Release() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		if (!Mutex::checkDBCONN()) return false;
 
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}mutex SET mx_time=?, mx_thread=? WHERE mx_name=? AND mx_thread=?")
-			->execute(array(0, '0', $this->name, session_id()));
+		$gBitDb->query("UPDATE {$TBLPREFIX}mutex SET mx_time=?, mx_thread=? WHERE mx_name=? AND mx_thread=?",
+				array(0, '0', $this->name, session_id()));
 		$this->waitCount = 0;
 	}
 

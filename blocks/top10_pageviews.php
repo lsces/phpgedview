@@ -78,14 +78,13 @@ function top10_pageviews($block=true, $config="", $side, $index) {
 		}
 	} else {
 		// load the lines from the file
-		$top10=PGV_DB::prepareLimit(
+		$toprec = $gBitDb->query(
 			"SELECT page_parameter, page_count".
 			" FROM {$TBLPREFIX}hit_counter".
 			" WHERE gedcom_id=? AND page_name IN ('individual.php','family.php','source.php','repo.php','note.php','mediaviewer.php')".
-			" ORDER BY page_count DESC",
-			$config['num']
-		)->execute(array(PGV_GED_ID))->FetchAssoc();
+			" ORDER BY page_count DESC", array(PGV_GED_ID), $config['num']);
 
+		$top10 = $gBitDb->getRow($toprec);
 
 		if ($top10) {
 			if ($block) {

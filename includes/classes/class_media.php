@@ -258,12 +258,10 @@ class Media extends GedcomRecord {
 	 * @return mixed  returns the ID for the for the matching media or null if not found
 	 */
 	static function in_obje_list($obje) {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		return
-			PGV_DB::prepare("SELECT m_media FROM {$TBLPREFIX}media WHERE m_file=? AND m_titl ".PGV_DB::$LIKE." ? AND m_gedfile=?")
-			->execute(array($obje->file, $obje->title, PGV_GED_ID))
-			->fetchOne();
+			$gBitDb->getOne("SELECT `m_media` FROM {$TBLPREFIX}media WHERE `m_file`=? AND `m_titl` LIKE ? AND `m_gedfile` = ?", array($obje->file, $obje->title, PGV_GED_ID));
 	}
 
 	/**

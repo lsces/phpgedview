@@ -59,6 +59,7 @@ class stats {
 	function _setGedcom($gedcom) {
 		$this->_gedcom = $gedcom;
 		$this->_ged_id = PrintReady(get_id_from_gedcom($gedcom));
+		if ( empty($this->_ged_id) ) $this->_ged_id = 1;
 		$this->_gedcom_url = encode_url($gedcom);
 	}
 
@@ -3902,12 +3903,16 @@ class stats {
 	}
 
 	static function _runSQL($sql, $count=0) {
+		global $gBitDb;
 		static $cache = array();
 		$id = md5($sql)."_{$count}";
 		if (isset($cache[$id])) {
 			return $cache[$id];
 		}
-		$rows=PGV_DB::prepareLimit($sql, $count)->fetchAll(PDO::FETCH_ASSOC);
+		$res = $gBitDb->query($sql, FALSE, $count);
+		while ( $row =$res->fetchRow() ) {
+			$rows[] = $row;
+		}
 		$cache[$id]=$rows;
 		return $rows;
 	}

@@ -277,15 +277,14 @@ function get_indilist_salpha($marnm, $fams, $ged_id) {
 	foreach ($digraphs as $to=>$from) { // Single-character digraphs
 		$include.=" UNION SELECT UPPER('{$to}' {$DBCOLLATE}) AS alpha FROM {$tables} WHERE {$join} AND n_sort LIKE '{$from}%' {$DBCOLLATE} GROUP BY 1";
 	}
-	$alphas=
-		$gBitDb->getAll("SELECT {$column} AS alpha FROM {$tables} WHERE {$join} {$exclude} GROUP BY 1 {$include} ORDER BY 1");
+	$alphas = $gBitDb->getAll("SELECT {$column} AS alpha FROM {$tables} WHERE {$join} {$exclude} GROUP BY 1 {$include} ORDER BY 1");
 
 	$list=array();
 	foreach ($alphas as $alpha) {
 		if ($DB_UTF8_COLLATION) {
-			$letter=$alpha;
+			$letter=$alpha['alpha'];
 		} else {
-			$letter=UTF8_strtoupper(UTF8_substr($alpha,0,1));
+			$letter=UTF8_strtoupper(UTF8_substr($alpha['alpha'],0,1));
 		}
 		$list[$letter]=$letter;
 	}
@@ -2492,7 +2491,7 @@ function get_gedcom_setting($ged_id, $setting_name) {
 }
 
 function set_gedcom_setting($ged_id, $setting_name, $setting_value) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	if (empty($setting_value)) {
 		$gBitDb->query("DELETE FROM {$TBLPREFIX}gedcom_setting WHERE gedcom_id=? AND setting_name=?"
