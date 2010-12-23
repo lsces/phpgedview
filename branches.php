@@ -205,7 +205,7 @@ function load_ancestors_array($xref, $sosa=1) {
 }
 
 function indis_array($surn, $soundex_std, $soundex_dm) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 	$sql=
 		"SELECT DISTINCT n_id".
 		" FROM {$TBLPREFIX}name".
@@ -222,14 +222,10 @@ function indis_array($surn, $soundex_std, $soundex_dm) {
 		$args[]=soundex_dm($surn);
 	}
 	$sql .= ") ORDER BY n_sort";
-	$rows=
-		PGV_DB::prepare($sql)
-		->execute($args)
-		->fetchAll();
-//	var_dump($sql); var_dump($rows);
+	$rows = $gBitDb->getAll($sql, $args);
 	$data=array();
 	foreach ($rows as $row) {
-		$data[$row->n_id]=Person::getInstance($row->n_id);
+		$data[$row['n_id']]=Person::getInstance($row['n_id']);
 	}
 	return $data;
 }

@@ -634,8 +634,7 @@ function get_famlist_fams($surn='', $salpha='', $galpha='', $marnm, $ged_id=null
 	// If we're searching for "Unknown surname", we also need to include families
 	// with missing spouses
 	if ($surn=='@N.N.' || $salpha=='@') {
-		$rows=
-			$gBitDb->getAssoc(
+		$rows = $gBitDb->getAll(
 				"SELECT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil FROM {$TBLPREFIX}families f WHERE f_file={$ged_id} AND (f_husb='' OR f_wife='')"
 				, array($ged_id));
 
@@ -2776,22 +2775,22 @@ function get_autocomplete_INDI($FILTER, $ged_id=PGV_GED_ID) {
 		" WHERE (i_id=? OR i_id LIKE ?)".
 		" AND i_id=n_id AND i_file=n_file AND i_file=?".
 		" ORDER BY i_id";
-	$rows=
-		$gBitDb->getAssoc($sql, array("{$FILTER}", "{$FILTER}_", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("{$FILTER}", "{$FILTER}_", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
 	// if the number of rows is not zero, the input is an id and you don't need to search the names for
-	if (count($rows) ==0) {
+	if (!$res) {
 		$sql=
 			"SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex".
 			" FROM {$TBLPREFIX}individuals, {$TBLPREFIX}name".
 			" WHERE n_sort LIKE ?".
 			" AND i_id=n_id AND i_file=n_file AND i_file=?".
 			" ORDER BY n_sort";
-		return
-			$gBitDb->getAssoc($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+		$res = $gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
 	}
-	else {
-		return $rows;
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
 	}
+	return $rows;
 }
 
 function get_autocomplete_FAM($FILTER, $ids, $ged_id=PGV_GED_ID) {
@@ -2812,8 +2811,12 @@ function get_autocomplete_FAM($FILTER, $ids, $ged_id=PGV_GED_ID) {
 			 "FROM {$TBLPREFIX}families ".
 			 "WHERE {$where} AND f_file=?";
 	$vars[]=$ged_id;
-	return
-		$gBitDb->getAssoc($sql, $vars, PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, $vars, PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_NOTE($FILTER, $ged_id=PGV_GED_ID) {
@@ -2822,8 +2825,12 @@ function get_autocomplete_NOTE($FILTER, $ged_id=PGV_GED_ID) {
 	$sql="SELECT o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
 			 "FROM {$TBLPREFIX}other ".
 			 "WHERE o_gedcom LIKE ? AND o_type='NOTE' AND o_file=?";
-	return
-		$gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_SOUR($FILTER, $ged_id=PGV_GED_ID) {
@@ -2832,8 +2839,12 @@ function get_autocomplete_SOUR($FILTER, $ged_id=PGV_GED_ID) {
 	$sql="SELECT 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec ".
 			 "FROM {$TBLPREFIX}sources ".
 			 "WHERE (s_name LIKE ? OR s_id LIKE ?) AND s_file=? ORDER BY s_name";
-	return
-		$gBitDb->query($sql, array("%{$FILTER}%", "{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%{$FILTER}%", "{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_SOUR_TITL($FILTER, $ged_id=PGV_GED_ID) {
@@ -2842,8 +2853,12 @@ function get_autocomplete_SOUR_TITL($FILTER, $ged_id=PGV_GED_ID) {
 	$sql="SELECT 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec ".
 			 "FROM {$TBLPREFIX}sources ".
 			 "WHERE s_name LIKE ? AND s_file=? ORDER BY s_name";
-	return
-		$gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_INDI_BURI_CEME($FILTER, $ged_id=PGV_GED_ID) {
@@ -2853,8 +2868,12 @@ function get_autocomplete_INDI_BURI_CEME($FILTER, $ged_id=PGV_GED_ID) {
 		"SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex ".
 		"FROM {$TBLPREFIX}individuals ".
 		"WHERE i_gedcom LIKE ? AND i_file=?";
-	return
-		$gBitDb->query($sql, array("%1 BURI%2 CEME %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%1 BURI%2 CEME %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_INDI_SOUR_PAGE($FILTER, $OPTION, $ged_id=PGV_GED_ID) {
@@ -2863,8 +2882,12 @@ function get_autocomplete_INDI_SOUR_PAGE($FILTER, $OPTION, $ged_id=PGV_GED_ID) {
 	$sql="SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex ".
 			 "FROM {$TBLPREFIX}individuals ".
 			 "WHERE i_gedcom LIKE ? AND i_file=?";
-	return
-		$gBitDb->query($sql, array("% SOUR @{$OPTION}@% PAGE %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("% SOUR @{$OPTION}@% PAGE %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_FAM_SOUR_PAGE($FILTER, $OPTION, $ged_id=PGV_GED_ID) {
@@ -2874,8 +2897,12 @@ function get_autocomplete_FAM_SOUR_PAGE($FILTER, $OPTION, $ged_id=PGV_GED_ID) {
 		"SELECT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil ".
 		"FROM {$TBLPREFIX}families ".
 		"WHERE f_gedcom LIKE ? AND f_file=?";
-	return
-		$gBitDb->query($sql, array("% SOUR @{$OPTION}@% PAGE %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("% SOUR @{$OPTION}@% PAGE %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_REPO($FILTER, $ged_id=PGV_GED_ID) {
@@ -2885,8 +2912,12 @@ function get_autocomplete_REPO($FILTER, $ged_id=PGV_GED_ID) {
 		"SELECT o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
 		"FROM {$TBLPREFIX}other ".
 		"WHERE (o_gedcom LIKE ? OR o_id LIKE ?) AND o_file=? AND o_type='REPO'";
-	return
-		$gBitDb->query($sql, array("%1 NAME %{$FILTER}%", "{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%1 NAME %{$FILTER}%", "{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_REPO_NAME($FILTER, $ged_id=PGV_GED_ID) {
@@ -2896,8 +2927,12 @@ function get_autocomplete_REPO_NAME($FILTER, $ged_id=PGV_GED_ID) {
 		"SELECT o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
 		"FROM {$TBLPREFIX}other ".
 		"WHERE o_gedcom LIKE ? AND o_file=? AND o_type='REPO'";
-	return
-		$gBitDb->query($sql, array("%1 NAME %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%1 NAME %{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_OBJE($FILTER, $ged_id=PGV_GED_ID) {
@@ -2906,8 +2941,7 @@ function get_autocomplete_OBJE($FILTER, $ged_id=PGV_GED_ID) {
 	$sql="SELECT m_media ".
 			 "FROM {$TBLPREFIX}media ".
 			 "WHERE (m_titl LIKE ? OR m_media LIKE ?) AND m_gedfile=?";
-	return
-		$gBitDb->query($sql, array("%{$FILTER}%", "{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%{$FILTER}%", "{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
 }
 
 function get_autocomplete_SURN($FILTER, $ged_id=PGV_GED_ID) {
@@ -2916,8 +2950,13 @@ function get_autocomplete_SURN($FILTER, $ged_id=PGV_GED_ID) {
 	$sql="SELECT DISTINCT n_surname ".
 			 "FROM {$TBLPREFIX}name ".
 			 "WHERE n_surname LIKE ? AND n_file=? ORDER BY n_surname";
-	return 
-		$gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+print($sql);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_GIVN($FILTER, $ged_id=PGV_GED_ID) {
@@ -2926,8 +2965,12 @@ function get_autocomplete_GIVN($FILTER, $ged_id=PGV_GED_ID) {
 	$sql="SELECT DISTINCT n_givn ".
 			 "FROM {$TBLPREFIX}name ".
 			 "WHERE n_givn LIKE ? AND n_file=? ORDER BY n_givn";
-	return 
-		$gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$res = $gBitDb->query($sql, array("%{$FILTER}%", $ged_id), PGV_AUTOCOMPLETE_LIMIT);
+	$rows = array();
+	while ( $row = $res->fetchRow()) {
+		$rows[] = $row;
+	}
+	return $rows;
 }
 
 function get_autocomplete_PLAC($FILTER, $ged_id=PGV_GED_ID) {

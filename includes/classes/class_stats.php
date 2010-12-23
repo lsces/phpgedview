@@ -421,9 +421,8 @@ class stats {
 	}
 
 	function totalIndisWithSources() {
-		global $TBLPREFIX, $DBTYPE;
-		$rows=self::_runSQL("SELECT COUNT(DISTINCT i_id) AS tot FROM {$TBLPREFIX}link, {$TBLPREFIX}individuals WHERE i_id=l_from AND i_file=l_file AND l_file=".$this->_ged_id." AND l_type='SOUR'");
-		return $rows[0]['tot'];
+		global $TBLPREFIX, $DBTYPE, $gBitDb;
+		return $gBitDb->getOne("SELECT COUNT(DISTINCT i_id) AS tot FROM {$TBLPREFIX}link, {$TBLPREFIX}individuals WHERE i_id=l_from AND i_file=l_file AND l_file=".$this->_ged_id." AND l_type='SOUR'");
 	}
 
 	function chartIndisWithSources($params=null) {
@@ -460,9 +459,8 @@ class stats {
 	}
 
 	function totalFamsWithSources() {
-		global $TBLPREFIX, $DBTYPE;
-		$rows=self::_runSQL("SELECT COUNT(DISTINCT f_id) AS tot FROM {$TBLPREFIX}link, {$TBLPREFIX}families WHERE f_id=l_from AND f_file=l_file AND l_file=".$this->_ged_id." AND l_type='SOUR'");
-		return $rows[0]['tot'];
+		global $TBLPREFIX, $DBTYPE, $gBitDb;
+		return $gBitDb->getOne("SELECT COUNT(DISTINCT f_id) AS tot FROM {$TBLPREFIX}link, {$TBLPREFIX}families WHERE f_id=l_from AND f_file=l_file AND l_file=".$this->_ged_id." AND l_type='SOUR'");
 	}
 
 	function chartFamsWithSources($params=null) {
@@ -1002,7 +1000,7 @@ class stats {
 			}
 			$placelist = array();
 			foreach ($rows as $row) {
-				$factrec = trim(get_sub_record(1, "1 {$fact}", $row->ged, 1));
+				$factrec = trim(get_sub_record(1, "1 {$fact}", $row['ged'], 1));
 				if (!empty($factrec) && preg_match("/2 PLAC (.+)/", $factrec, $match)) {
 					if ($country) {
 						$place = getPlaceCountry(trim($match[1]));
@@ -1946,7 +1944,7 @@ class stats {
 		$rows=self::_runSQL(''
 			.' SELECT'
 				.' d_gid AS id,'
-				.' d_year AS year,'
+				.' d_year,'
 				.' d_fact AS fact,'
 				.' d_type AS type'
 			.' FROM'
@@ -1972,7 +1970,7 @@ class stats {
 				}
 				break;
 			case 'year':
-				$date=new GedcomDate($row['type'].' '.$row['year']);
+				$date=new GedcomDate($row['type'].' '.$row['d_year']);
 				$result=$date->Display(true);
 				break;
 			case 'type':
@@ -3187,17 +3185,8 @@ class stats {
 	function topAgeBetweenSiblingsList($params=null) {return $this->_ageBetweenSiblingsQuery($type='list', $params=null);}
 
 	function noChildrenFamilies() {
-		global $TBLPREFIX;
-		$rows=self::_runSQL(''
-			.' SELECT'
-				.' COUNT(*) AS tot'
-			.' FROM'
-				." {$TBLPREFIX}families AS fam"
-			.' WHERE'
-				.' f_numchil = 0 AND'
-				." fam.f_file = {$this->_ged_id}");
-		$row=$rows[0];
-		return $row['tot'];
+		global $TBLPREFIX, $gBitDb;
+		return $gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}families AS fam WHERE f_numchil = 0 AND fam.f_file = {$this->_ged_id}");
 	}
 
 
@@ -3251,7 +3240,7 @@ class stats {
 		$tot = 0;
 		$rows=self::_runSQL(''
 			.' SELECT'
-				.' COUNT(*) AS count,'
+				.' COUNT(*),'
 				.' ROUND((married.d_year+49.1)/100) AS century'
 			.' FROM'
 				." {$TBLPREFIX}families AS fam"
@@ -3442,7 +3431,7 @@ class stats {
 		}
 		$tot = 0;
 		$per = 0;
-		foreach ($surnames as $indexval=>$surname) {$tot += $surname['match'];}
+		foreach ($surnames as $indexval=>$surname) { $tot += $surname['match'];}
 		$chart_title = "";
 		$chd = '';
 		$chl = array();
@@ -3484,7 +3473,7 @@ class stats {
 	* Original block created by kiwi_pgv
 	*/
 	static function _commonGivenQuery($sex='B', $type='list', $show_tot=false, $params=null) {
-		global $TEXT_DIRECTION, $GEDCOM, $TBLPREFIX, $pgv_lang;
+		global $TEXT_DIRECTION, $GEDCOM, $TBLPREFIX, $pgv_lang, $gBitDb;
 		static $sort_types = array('count'=>'asort', 'rcount'=>'arsort', 'alpha'=>'ksort', 'ralpha'=>'krsort');
 		static $sort_flags = array('count'=>SORT_NUMERIC, 'rcount'=>SORT_NUMERIC, 'alpha'=>SORT_STRING, 'ralpha'=>SORT_STRING);
 
@@ -3508,18 +3497,17 @@ class stats {
 		}
 		$ged_id=get_id_from_gedcom($GEDCOM);
 
-		$rows=PGV_DB::prepare("SELECT n_givn, COUNT(*) AS num FROM {$TBLPREFIX}name JOIN {$TBLPREFIX}individuals ON (n_id=i_id AND n_file=i_file) WHERE n_file={$ged_id} AND n_type<>'_MARNM' AND n_givn NOT IN ('@P.N.', '') AND LENGTH(n_givn)>1 AND {$sex_sql} GROUP BY n_id, n_givn")
-			->fetchAll();
+		$rows = $gBitDb->getAll("SELECT n_givn, COUNT(*) AS num FROM {$TBLPREFIX}name JOIN {$TBLPREFIX}individuals ON (n_id=i_id AND n_file=i_file) WHERE n_file={$ged_id} AND n_type<>'_MARNM' AND n_givn NOT IN ('@P.N.', '') AND CHAR_LENGTH(n_givn)>1 AND {$sex_sql} GROUP BY n_id, n_givn");
 		$nameList=array();
 		foreach ($rows as $row) {
 			// Split "John Thomas" into "John" and "Thomas" and count against both totals
-			foreach (explode(' ', $row->n_givn) as $given) {
+			foreach (explode(' ', $row['n_givn']) as $given) {
 				$given=str_replace(array('*', '"'), '', $given);
 				if (strlen($given)>1) {
 					if (array_key_exists($given, $nameList)) {
-						$nameList[$given]+=$row->num;
+						$nameList[$given]+=$row['num'];
 					} else {
-						$nameList[$given]=$row->num;
+						$nameList[$given]=$row['num'];
 					}
 				}
 			}

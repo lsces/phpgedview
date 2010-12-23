@@ -80,12 +80,15 @@ class ra_functions {
 
 	var $sites = array();
 	function Init() {
+/*
+
 		try {
 			PGV_DB::updateSchema('modules/research_assistant/db_schema/', 'RA_SCHEMA_VERSION', 1);
 		} catch (PDOException $ex) {
 			// The schema update scripts should never fail.  If they do, there is no clean recovery.
 			die($ex);
 		}
+*/
 	}
 
 	/*
@@ -1129,15 +1132,12 @@ class ra_functions {
 	 * Get Tasks for Source
 	 */
 	function getSourceTasks($sId, $legend="") {
-		global $pgv_lang, $TBLPREFIX, $TEXT_DIRECTION;
+		global $pgv_lang, $TBLPREFIX, $TEXT_DIRECTION, $gBitDb;
 
 		$legend = "<img src=\"modules/research_assistant/images/view_inferences.gif\" alt=\"\" align=\"middle\" /> ".$pgv_lang["task_list"]." @ ".$legend;
 		$out = '<fieldset><legend>'.$legend.'</legend>';
 		$out .= '<div id=ra-table" class="'.$TEXT_DIRECTION.'">';
-		$rows=
-			PGV_DB::prepare("SELECT t_id, t_title, t_description, t_startdate, t_enddate FROM {$TBLPREFIX}tasks, {$TBLPREFIX}tasksource, {$TBLPREFIX}sources WHERE t_id=ts_t_id AND s_id=ts_s_id AND s_id=? AND s_file=?")
-			->execute(array($sId, PGV_GED_ID))
-			->fetchAll();
+		$rows = $gBitDb->getAll("SELECT t_id, t_title, t_description, t_startdate, t_enddate FROM {$TBLPREFIX}tasks, {$TBLPREFIX}tasksource, {$TBLPREFIX}sources WHERE t_id=ts_t_id AND s_id=ts_s_id AND s_id=? AND s_file=?", array($sId, PGV_GED_ID));
 
 		if (!$rows) {
 			$out .= "<table width=\"100%\"><tr>";
