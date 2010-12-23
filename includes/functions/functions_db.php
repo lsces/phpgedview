@@ -1791,16 +1791,19 @@ function get_place_list($parent, $level) {
 
 	// --- find all of the place in the file
 	if ($level==0) {
-		return
-			$gBitDb->getOne(
+		$rows = $gBitDb->getAll(
 				"SELECT p_place FROM {$TBLPREFIX}places WHERE p_level=? AND p_file=? ORDER BY p_place"
 				, array(0, PGV_GED_ID));
 	} else {
-		return
-			$gBitDb->getOne(
+		$rows = $gBitDb->getAll(
 				"SELECT p_place FROM {$TBLPREFIX}places WHERE p_level=? AND p_parent_id=? AND p_file=? ORDER BY p_place"
 				, array($level, get_place_parent_id($parent, $level), PGV_GED_ID));
 	}
+	$placelist = array();
+	foreach ($rows as $row) {
+		$placelist[] = $row['p_place'];
+	}
+	return $placelist;
 }
 
 /**
@@ -1815,17 +1818,20 @@ function get_place_positions($parent, $level='') {
 	// TODO: this function needs splitting into two
 
 	if ($level!=='') {
-		return
-			$gBitDb->getAll(
+		$rows = $gBitDb->getAll(
 				"SELECT DISTINCT pl_gid FROM {$TBLPREFIX}placelinks WHERE pl_p_id=? AND pl_file=?"
 				, array(get_place_parent_id($parent, $level), PGV_GED_ID));
 	} else {
 		//-- we don't know the level so get the any matching place
-		return
-			$gBitDb->getAll(
+		$rows = $gBitDb->getAll(
 				"SELECT DISTINCT pl_gid FROM {$TBLPREFIX}placelinks, {$TBLPREFIX}places WHERE p_place LIKE ? AND p_file=pl_file AND p_id=pl_p_id AND p_file=?"
 				, array($parent, PGV_GED_ID));
 	}
+	$placelist = array();
+	foreach ($rows as $row) {
+		$placelist[] = $row['pl_gid'];
+	}
+	return $placelist;
 }
 
 //-- find all of the places
