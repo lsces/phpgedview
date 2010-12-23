@@ -28,7 +28,7 @@ if (!defined('PGV_PHPGEDVIEW')) {
  header('HTTP/1.0 403 Forbidden');
  exit;
 }
-
+/*
 // Create GM tables, if not already present
 try {
 	PGV_DB::updateSchema('./modules/googlemap/db_schema/', 'GM_SCHEMA_VERSION', 2);
@@ -36,7 +36,7 @@ try {
 	// The schema update scripts should never fail.  If they do, there is no clean recovery.
 	die($ex);
 }
-
+*/
 // TODO: it will be more efficient to fetch all GM_% settings in a single DB query
 
 $GOOGLEMAP_ENABLED     = get_site_setting('GM_ENABLED',     '0'); // Enable or disable Googlemap
