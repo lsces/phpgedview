@@ -725,7 +725,7 @@ function execution_stats() {
 
 	return sprintf("<div class=\"execution_stats\">{$pgv_lang['exec_time']} %.3f {$pgv_lang['sec']} {$pgv_lang['total_queries']} %d. {$pgv_lang['total_privacy_checks']} %d. {$pgv_lang['total_memory_usage']} %.0f KB.</div>",
 		microtime(true)-$start_time,
-		PGV_DB::getQueryCount(),
+		0,
 		$PRIVACY_CHECKS,
 		version_compare(PHP_VERSION, '5.2.1', '>=') ? (memory_get_peak_usage(true)/1024) : (memory_get_usage()/1024)
 	);
