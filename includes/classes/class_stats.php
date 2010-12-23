@@ -414,12 +414,10 @@ class stats {
 	}
 
 	function totalIndividuals() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=?")
-			->execute(array($this->_ged_id))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=?", array($this->_ged_id));
 	}
 
 	function totalIndisWithSources() {
@@ -456,11 +454,9 @@ class stats {
 	}
 
 	function totalFamilies() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}families WHERE f_file=?")
-			->execute(array($this->_ged_id))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}families WHERE f_file=?", array($this->_ged_id));
 	}
 
 	function totalFamsWithSources() {
@@ -497,11 +493,9 @@ class stats {
 	}
 
 	function totalSources() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}sources WHERE s_file=?")
-			->execute(array($this->_ged_id))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}sources WHERE s_file=?", array($this->_ged_id));
 	}
 
 	function totalSourcesPercentage() {
@@ -509,11 +503,9 @@ class stats {
 	}
 
 	function totalNotes() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}other WHERE o_type=? AND o_file=?")
-			->execute(array('NOTE', $this->_ged_id))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}other WHERE o_type=? AND o_file=?", array('NOTE', $this->_ged_id));
 	}
 
 	function totalNotesPercentage() {
@@ -521,11 +513,9 @@ class stats {
 	}
 
 	function totalOtherRecords() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}other WHERE o_type<>? AND o_file=?")
-			->execute(array('NOTE', $this->_ged_id))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}other WHERE o_type<>? AND o_file=?", array('NOTE', $this->_ged_id));
 	}
 
 	function totalOtherPercentage() {
@@ -533,7 +523,7 @@ class stats {
 	}
 
 	function totalSurnames($params = null) {
-		global $DBTYPE, $TBLPREFIX;
+		global $DBTYPE, $TBLPREFIX, $gBitDb;
 		if ($params) {
 			$qs=implode(',', array_fill(0, count($params), '?'));
 			$opt="IN ({$qs})";
@@ -546,13 +536,11 @@ class stats {
 		}
 		$vars[]=$this->_ged_id;
 		return (int)
-			PGV_DB::prepare("SELECT COUNT({$distinct} n_surn) FROM {$TBLPREFIX}name WHERE n_surn {$opt} AND n_file=?")
-			->execute($vars)
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT({$distinct} n_surn) FROM {$TBLPREFIX}name WHERE n_surn {$opt} AND n_file=?", $vars);
 	}
 
 	function totalGivennames($params = null) {
-		global $DBTYPE, $TBLPREFIX;
+		global $DBTYPE, $TBLPREFIX, $gBitDb;
 		if ($params) {
 			$qs=implode(',', array_fill(0, count($params), '?'));
 			$opt="IN ({$qs})";
@@ -565,13 +553,11 @@ class stats {
 		}
 		$vars[]=$this->_ged_id;
 		return (int)
-			PGV_DB::prepare("SELECT COUNT({$distinct} n_givn) FROM {$TBLPREFIX}name WHERE n_givn {$opt} AND n_file=?")
-			->execute($vars)
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT({$distinct} n_givn) FROM {$TBLPREFIX}name WHERE n_givn {$opt} AND n_file=?", $vars);
 	}
 
 	function totalEvents($params = null) {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		$sql="SELECT COUNT(*) AS tot FROM {$TBLPREFIX}dates WHERE d_file=?";
 		$vars=array($this->_ged_id);
@@ -593,7 +579,7 @@ class stats {
 		}
 		$sql.=' AND d_fact NOT IN ('.implode(', ', array_fill(0, count($no_types), '?')).')';
 		$vars=array_merge($vars, $no_types);
-		return PGV_DB::prepare($sql)->execute($vars)->fetchOne();
+		return $gBitDb->getOne($sql, $vars);
 	}
 
 	function totalEventsBirth() {
@@ -639,11 +625,9 @@ class stats {
 	}
 
 	function totalSexMales() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_sex=?")
-			->execute(array($this->_ged_id, 'M'))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_sex=?", array($this->_ged_id, 'M'));
 	}
 
 	function totalSexMalesPercentage() {
@@ -651,11 +635,9 @@ class stats {
 	}
 
 	function totalSexFemales() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_sex=?")
-			->execute(array($this->_ged_id, 'F'))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_sex=?", array($this->_ged_id, 'F'));
 	}
 
 	function totalSexFemalesPercentage() {
@@ -663,11 +645,9 @@ class stats {
 	}
 
 	function totalSexUnknown() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_sex=?")
-			->execute(array($this->_ged_id, 'U'))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_sex=?", array($this->_ged_id, 'U'));
 	}
 
 	function totalSexUnknownPercentage() {
@@ -710,11 +690,9 @@ class stats {
 	}
 
 	function totalLiving() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_isdead=?")
-			->execute(array($this->_ged_id, 0))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_isdead=?", array($this->_ged_id, 0));
 	}
 
 	function totalLivingPercentage() {
@@ -722,11 +700,9 @@ class stats {
 	}
 
 	function totalDeceased() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_isdead=?")
-			->execute(array($this->_ged_id, 1))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_isdead=?", array($this->_ged_id, 1));
 	}
 
 	function totalDeceasedPercentage() {
@@ -734,11 +710,9 @@ class stats {
 	}
 
 	function totalMortalityUnknown() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_isdead=?")
-			->execute(array($this->_ged_id, -1))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_isdead=?", array($this->_ged_id, -1));
 	}
 
 	function totalMortalityUnknownPercentage() {
@@ -804,7 +778,7 @@ class stats {
 	}
 
 	function _totalMediaType($type='all') {
-		global $TBLPREFIX, $MULTI_MEDIA;
+		global $TBLPREFIX, $MULTI_MEDIA, $gBitDb;
 
 		if (!$MULTI_MEDIA || !in_array($type, self::$_media_types) && $type != 'all' && $type != 'unknown') {
 			return 0;
@@ -816,17 +790,17 @@ class stats {
 			if ($type=='unknown') {
 				// There has to be a better way then this :(
 				foreach (self::$_media_types as $t) {
-					$sql.=" AND (m_gedrec NOT ".PGV_DB::$LIKE." ? AND m_gedrec NOT ".PGV_DB::$LIKE." ?)";
+					$sql.=" AND (m_gedrec NOT LIKE ? AND m_gedrec NOT LIKE ?)";
 					$vars[]="%3 TYPE {$t}%";
 					$vars[]="%1 _TYPE {$t}%";
 				}
 			} else {
-				$sql.=" AND (m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ?)";
+				$sql.=" AND (m_gedrec LIKE ? OR m_gedrec LIKE ?)";
 				$vars[]="%3 TYPE {$type}%";
 				$vars[]="%1 _TYPE {$type}%";
 			}
 		}
-		return PGV_DB::prepare($sql)->execute($vars)->fetchOne();
+		return $gBitDb->getOne($sql, $vars);
 	}
 
 	function totalMedia() {return $this->_totalMediaType('all');}
@@ -1016,19 +990,15 @@ class stats {
 	}
 
 	function _statsPlaces($what='ALL', $fact=false, $parent=0, $country=false) {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 		if ($fact) {
 			if ($what=='INDI') {
 				$rows=
-					PGV_DB::prepare("SELECT i_gedcom AS ged FROM ${TBLPREFIX}individuals WHERE i_file=?")
-					->execute(array($this->_ged_id))
-					->fetchAll();
+					$gBitDb->getAll("SELECT i_gedcom AS ged FROM ${TBLPREFIX}individuals WHERE i_file=?", array($this->_ged_id));
 			}
 			else if ($what=='FAM') {
 				$rows=
-					PGV_DB::prepare("SELECT f_gedcom AS ged FROM ${TBLPREFIX}families WHERE f_file=?")
-					->execute(array($this->_ged_id))
-					->fetchAll();
+					$gBitDb->getAll("SELECT f_gedcom AS ged FROM ${TBLPREFIX}families WHERE f_file=?", array($this->_ged_id));
 			}
 			$placelist = array();
 			foreach ($rows as $row) {
@@ -1106,12 +1076,10 @@ class stats {
 	}
 
 	function totalPlaces() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
 		return
-			PGV_DB::prepare("SELECT COUNT(*) FROM {$TBLPREFIX}places WHERE p_file=?")
-			->execute(array($this->_ged_id))
-			->fetchOne();
+			$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}places WHERE p_file=?", array($this->_ged_id));
 	}
 
 	function chartDistribution($chart_shows='world', $chart_type='', $surname='') {
@@ -3119,10 +3087,9 @@ class stats {
 
 
 	function averageChildren() {
-		global $TBLPREFIX;
-		$rows=self::_runSQL("SELECT AVG(f_numchil) AS tot FROM {$TBLPREFIX}families WHERE f_file={$this->_ged_id}");
-		$row=$rows[0];
-		return sprintf('%.2f', $row['tot']);
+		global $TBLPREFIX, $gBitDb;
+		$count = $gBitDb->getOne("SELECT AVG(f_numchil) FROM {$TBLPREFIX}families WHERE f_file={$this->_ged_id}");
+		return sprintf('%.2f', $count);
 	}
 
 	function statsChildren($simple=true, $sex='BOTH', $year1=-1, $year2=-1, $params=null) {
@@ -3910,6 +3877,7 @@ class stats {
 			return $cache[$id];
 		}
 		$res = $gBitDb->query($sql, FALSE, $count);
+		$rows = array();
 		while ( $row =$res->fetchRow() ) {
 			$rows[] = $row;
 		}
