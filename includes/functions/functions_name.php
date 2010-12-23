@@ -55,9 +55,9 @@ function get_common_surnames($min) {
 		return get_common_surnames($min/2);
 	} else {
 		uksort($topsurns, 'stringsort');
-		foreach ($topsurns as $key=>$value) {
-			$topsurns[$key]=array('name'=>$key, 'match'=>$value);
-		}
+//		foreach ($topsurns as $key=>$value) {
+//			$topsurns[$key]=array('name'=>$key, 'match'=>$value);
+//		}
 		return $topsurns;
 	}
 }
