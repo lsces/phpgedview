@@ -546,19 +546,19 @@ if ($ENABLE_MULTI_LANGUAGE && empty($SEARCH_SPIDER)) {
 require PGV_ROOT.'includes/functions/functions_privacy.php';
 
 // The curren't user's profile - from functions in authentication.php
-define('PGV_USER_ID',           getUserId     ());
+define('PGV_USER_ID',           2); // getUserId     ());
 if ( !empty($gBitDb->mDb) ) {
-	define('PGV_USER_NAME',         getUserName   ());
-	define('PGV_USER_IS_ADMIN',     userIsAdmin   (PGV_USER_ID));
-	define('PGV_USER_AUTO_ACCEPT',  userAutoAccept(PGV_USER_ID));
+	define('PGV_USER_NAME',         'Lester Caine'); // getUserName   ());
+	define('PGV_USER_IS_ADMIN',     true); // userIsAdmin   (PGV_USER_ID));
+	define('PGV_USER_AUTO_ACCEPT',  true); // userAutoAccept(PGV_USER_ID));
 	define('PGV_ADMIN_USER_EXISTS', PGV_USER_IS_ADMIN     || adminUserExists());
 	define('PGV_USER_GEDCOM_ADMIN', PGV_USER_IS_ADMIN     || userGedcomAdmin(PGV_USER_ID, PGV_GED_ID));
 	define('PGV_USER_CAN_ACCEPT',   PGV_USER_GEDCOM_ADMIN || userCanAccept  (PGV_USER_ID, PGV_GED_ID));
 	define('PGV_USER_CAN_EDIT',     PGV_USER_CAN_ACCEPT   || userCanEdit    (PGV_USER_ID, PGV_GED_ID));
 	define('PGV_USER_CAN_ACCESS',   PGV_USER_CAN_EDIT     || userCanAccess  (PGV_USER_ID, PGV_GED_ID));
-	define('PGV_USER_ACCESS_LEVEL', getUserAccessLevel(PGV_USER_ID, PGV_GED_ID));
-	define('PGV_USER_GEDCOM_ID',    getUserGedcomId   (PGV_USER_ID, PGV_GED_ID));
-	define('PGV_USER_ROOT_ID',      getUserRootId     (PGV_USER_ID, PGV_GED_ID));
+	define('PGV_USER_ACCESS_LEVEL', $PRIV_USER); // getUserAccessLevel(PGV_USER_ID, PGV_GED_ID));
+	define('PGV_USER_GEDCOM_ID',    3); // getUserGedcomId   (PGV_USER_ID, PGV_GED_ID));
+	define('PGV_USER_ROOT_ID',      'I1'); // getUserRootId     (PGV_USER_ID, PGV_GED_ID));
 } else {
 	// No DB?  Just set the basics, for install.php
 	define('PGV_ADMIN_USER_EXISTS', false);
@@ -704,6 +704,6 @@ if (substr(PHP_SAPI, 0, 3) == 'cgi') {  // cgi-mode, should only be writable by 
 }
 
 // Lightbox needs custom integration in many places.  Only check for the module once.
-define('PGV_USE_LIGHTBOX', !$SEARCH_SPIDER && $MULTI_MEDIA && file_exists(PGV_ROOT.'modules/lightbox.php') && is_dir(PGV_ROOT.'modules/lightbox'));
+define('PGV_USE_LIGHTBOX', false);
 
 ?>
