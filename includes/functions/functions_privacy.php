@@ -348,7 +348,7 @@ function displayDetailsById($pid, $type = "INDI", $sitemap = false) {
 	global $GEDCOM, $gBitDb;
 	$ged_id=get_id_from_gedcom($GEDCOM);
 
-	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
+//	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
 		// Normal operation
 		$pgv_GEDCOM            = PGV_GEDCOM;
 		$pgv_GED_ID            = PGV_GED_ID;
@@ -358,7 +358,7 @@ function displayDetailsById($pid, $type = "INDI", $sitemap = false) {
 		$pgv_USER_CAN_ACCESS   = PGV_USER_CAN_ACCESS;
 		$pgv_USER_ACCESS_LEVEL = PGV_USER_ACCESS_LEVEL;
 		$pgv_USER_GEDCOM_ID    = PGV_USER_GEDCOM_ID;
-	} else {
+/*	} else {
 		// We're in the middle of a Download -- get overriding information from cache
 		$pgv_GEDCOM            = $_SESSION["pgv_GEDCOM"];
 		$pgv_GED_ID            = $_SESSION["pgv_GED_ID"];
@@ -369,7 +369,7 @@ function displayDetailsById($pid, $type = "INDI", $sitemap = false) {
 		$pgv_USER_ACCESS_LEVEL = $_SESSION["pgv_USER_ACCESS_LEVEL"];
 		$pgv_USER_GEDCOM_ID    = $_SESSION["pgv_USER_GEDCOM_ID"];
 	}
-
+*/
 	static $privacy_cache = array();
 
 	if (!$HIDE_LIVE_PEOPLE) return true;
@@ -676,16 +676,16 @@ function showLivingNameById($pid) {
 	global $GEDCOM;
 	global $SHOW_LIVING_NAMES, $person_privacy, $user_privacy;
 
-	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
+//	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
 		// Normal operation
 		$pgv_USER_NAME			= PGV_USER_NAME;
 		$pgv_USER_ACCESS_LEVEL	= PGV_USER_ACCESS_LEVEL;
-	} else {
+/*	} else {
 		// We're in the middle of a Download -- get overriding information from cache
 		$pgv_USER_NAME			= $_SESSION["pgv_USER_NAME"];
 		$pgv_USER_ACCESS_LEVEL	= $_SESSION["pgv_USER_ACCESS_LEVEL"];
 	}
-
+*/
 	if (displayDetailsById($pid)) return true;
 	if (!empty($pgv_USER_NAME)) {
 		if (isset($user_privacy[$pgv_USER_NAME]["all"])) {
@@ -726,14 +726,14 @@ function showFact($fact, $pid, $type='INDI') {
 	global $GEDCOM;
 	global $global_facts, $person_facts, $SHOW_SOURCES;
 
-	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
+//	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
 		// Normal operation
 		$pgv_USER_ACCESS_LEVEL	= PGV_USER_ACCESS_LEVEL;
-	} else {
+/*	} else {
 		// We're in the middle of a Download -- get overriding information from cache
 		$pgv_USER_ACCESS_LEVEL	= $_SESSION["pgv_USER_ACCESS_LEVEL"];
 	}
-
+*/
 	//-- first check the global facts array
 	if (isset($global_facts[$fact]["show"])) {
 		if ($pgv_USER_ACCESS_LEVEL>$global_facts[$fact]["show"])
@@ -777,14 +777,14 @@ function showFactDetails($fact, $pid) {
 	global $GEDCOM;
 	global $global_facts, $person_facts;
 
-	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
+//	if ($_SESSION["pgv_user"]==PGV_USER_ID) {
 		// Normal operation
 		$pgv_USER_ACCESS_LEVEL	= PGV_USER_ACCESS_LEVEL;
-	} else {
+/*	} else {
 		// We're in the middle of a Download -- get overriding information from cache
 		$pgv_USER_ACCESS_LEVEL	= $_SESSION["pgv_USER_ACCESS_LEVEL"];
 	}
-
+*/
 	//-- first check the global facts array
 	if (isset($global_facts[$fact]["details"])) {
 		if ($pgv_USER_ACCESS_LEVEL>$global_facts[$fact]["details"]) return false;
@@ -977,18 +977,18 @@ function FactEditRestricted($pid, $factrec) {
 * @return int Allowed or not allowed
 */
 function FactViewRestricted($pid, $factrec) {
-	if ($_SESSION['pgv_user']==PGV_USER_ID) {
+//	if ($_SESSION['pgv_user']==PGV_USER_ID) {
 		// Normal operation
 		$pgv_GED_ID				= PGV_GED_ID;
 		$pgv_USER_GEDCOM_ADMIN	= PGV_USER_GEDCOM_ADMIN;
 		$pgv_USER_GEDCOM_ID		= PGV_USER_GEDCOM_ID;
-	} else {
+/*	} else {
 		// We're in the middle of a Download -- get overriding information from cache
 		$pgv_GED_ID           =$_SESSION['pgv_GED_ID'];
 		$pgv_USER_GEDCOM_ADMIN=$_SESSION['pgv_USER_GEDCOM_ADMIN'];
 		$pgv_USER_GEDCOM_ID   =$_SESSION['pgv_USER_GEDCOM_ID'];
 	}
-
+*/
 	if ($pgv_USER_GEDCOM_ADMIN) {
 		return false;
 	}
