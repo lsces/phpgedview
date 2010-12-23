@@ -2611,7 +2611,7 @@ function get_idle_users($time) {
 	global $TBLPREFIX, $gBitDb;
 
 	// Convert string column to numeric
-	switch ($DBTYPE) {
+	switch ($gBitDb->mType) {
 	case 'sqlite':
 	case 'pgsql':
 		$expr='CAST(us2.setting_value AS INTEGER)';
