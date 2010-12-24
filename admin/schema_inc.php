@@ -4,22 +4,22 @@ $tables = array(
 PHPGEDVIEW_DB_PREFIX.'gedcom' => "
 	g_id I4 PRIMARY,
 	g_content_id I8,
-	g_name C(250),
-	g_path C(250),
-	g_config C(250),
-	g_privacy C(250),
+	g_name C(255),
+	g_path C(255),
+	g_config C(255),
+	g_privacy C(255),
 	g_commonsurnames X
 ",
 
 PHPGEDVIEW_DB_PREFIX.'site_setting' => "
 	site_setting_name C(32) PRIMARY,
-	site_setting_value C(250) NOT NULL
+	site_setting_value C(255) NOT NULL
 ",
 
 PHPGEDVIEW_DB_PREFIX.'individuals' => "
 	i_id C(20) PRIMARY,
 	i_file I2 PRIMARY,
-	i_rin C(250),
+	i_rin C(20),
 	i_isdead I1 DEFAULT 1,
 	i_GEDCOM X,
 	i_content_id I8
@@ -28,8 +28,8 @@ PHPGEDVIEW_DB_PREFIX.'individuals' => "
 PHPGEDVIEW_DB_PREFIX.'families' => "
 	f_id C(20) PRIMARY,
 	f_file I2 PRIMARY,
-	f_husb C(250),
-	f_wife C(250),
+	f_husb C(20),
+	f_wife C(20),
 	f_chil X,
 	f_GEDCOM X,
 	f_numchil I1,
@@ -39,7 +39,7 @@ PHPGEDVIEW_DB_PREFIX.'families' => "
 PHPGEDVIEW_DB_PREFIX.'sources' => "
 	s_id C(20) PRIMARY,
 	s_file I2 PRIMARY,
-	s_name C(250),
+	s_name C(255),
 	s_dbid V(1),
 	s_GEDCOM X
 ",
@@ -63,16 +63,16 @@ PHPGEDVIEW_DB_PREFIX.'name' => "
 	n_id C(20)		PRIMARY,
 	n_num I4		PRIMARY,
 	n_type C(15)	NOT NULL,
-	n_sort C(250)	NOT NULL,
-	n_full C(250)	NOT NULL,
-	n_list C(250),
-	n_surname C(250),
-	n_surn C(250),
-	n_givn C(250),
-	n_soundex_givn_std C(250),
-	n_soundex_surn_std C(250),
-	n_soundex_givn_dm C(250),
-	n_soundex_surn_dm C(250)
+	n_sort C(255)	NOT NULL,
+	n_full C(255)	NOT NULL,
+	n_list C(255),
+	n_surname C(255),
+	n_surn C(255),
+	n_givn C(255),
+	n_soundex_givn_std C(255),
+	n_soundex_surn_std C(255),
+	n_soundex_givn_dm C(512),
+	n_soundex_surn_dm C(512)
 ",
 
 PHPGEDVIEW_DB_PREFIX.'dates' => "
@@ -94,8 +94,8 @@ PHPGEDVIEW_DB_PREFIX.'favorites' => "
 	fv_gid C(10),
 	fv_type C(10),
 	fv_file C(100),
-	fv_url C(250),
-	fv_title C(250),
+	fv_url C(255),
+	fv_title C(255),
 	fv_note X
 ",
 
