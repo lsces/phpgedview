@@ -246,19 +246,19 @@ function userAutoAccept($user_id=PGV_USER_ID) {
  * during initial setup.
  */
 function adminUserExists() {
-	return admin_user_exists();
+	return true;
 }
 
 // Get the full name for a user
 function getUserFullName($user_id) {
-	global $TBLPREFIX, $NAME_REVERSE;
+	global $TBLPREFIX, $NAME_REVERSE, $gBitUser;
 
 	$sql=
 		"SELECT setting_value FROM {$TBLPREFIX}user_setting".
 		"	WHERE user_id=? AND setting_name IN (?,?)".
 		" ORDER BY setting_name ".($NAME_REVERSE ? 'DESC' : 'ASC');
 
-	return 'Lester Caine'; // implode(' ', PGV_DB::prepare($sql)->execute(array($user_id, 'firstname', 'lastname'))->fetchOneColumn());
+	return 'Lester Caine'; // $gBitUser->mUsername;
 }
 
 // Get the root person for this gedcom
