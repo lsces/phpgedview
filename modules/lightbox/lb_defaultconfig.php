@@ -39,16 +39,6 @@ if (!defined('PGV_PHPGEDVIEW')) {
 global $mediatab,$LB_AL_HEAD_LINKS,$LB_AL_THUMB_LINKS,$LB_ML_THUMB_LINKS,$LB_SS_SPEED;
 global $LB_MUSIC_FILE,$LB_TRANSITION,$LB_URL_WIDTH,$LB_URL_HEIGHT,$GEDCOM;
 
-/* Kill PDO schema ... replace with cross database stuff from ADOdb
-// Create LB tables, if not already present
-try {
-	PGV_DB::updateSchema('./modules/lightbox/db_schema/', 'LB_SCHEMA_VERSION', 1);
-} catch (PDOException $ex) {
-	// The schema update scripts should never fail.  If they do, there is no clean recovery.
-	die($ex);
-}
-*/
-
 // TODO: it will be more efficient to fetch all LB_% settings in a single DB query
 
 $mediatab=get_site_setting('LB_ENABLED', '1');  // Individual Page Media Tab

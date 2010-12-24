@@ -68,25 +68,25 @@ default:
 }
 /*
 if ($page_parameter) {
-	$hitCount=PGV_DB::prepare(
+	$hitCount = $gBitDb->getOne(
 		"SELECT page_count FROM {$TBLPREFIX}hit_counter".
 		" WHERE gedcom_id=? AND page_name=? AND page_parameter=?"
-	)->execute(array(PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter))->fetchOne();
+		, array(PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter));
 	
 	// Only record one hit per session
 	if ($page_parameter && empty($_SESSION['SESSION_PAGE_HITS'][PGV_SCRIPT_NAME.$page_parameter])) {
 		$_SESSION['SESSION_PAGE_HITS'][PGV_SCRIPT_NAME.$page_parameter]=true;
 		if (is_null($hitCount)) {
 			$hitCount=1;
-			PGV_DB::prepare(
+			$gBitDb->query(
 				"INSERT INTO {$TBLPREFIX}hit_counter (gedcom_id, page_name, page_parameter, page_count) VALUES (?, ?, ?, ?)"
-			)->execute(array(PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter, $hitCount));
+				, array(PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter, $hitCount));
 		} else {
 			$hitCount++;
-			PGV_DB::prepare(
+			$gBitDb->query(
 				"UPDATE {$TBLPREFIX}hit_counter SET page_count=?".
 				" WHERE gedcom_id=? AND page_name=? AND page_parameter=?"
-			)->execute(array($hitCount, PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter));
+				, array($hitCount, PGV_GED_ID, PGV_SCRIPT_NAME, $page_parameter));
 		}
 	}
 } else { */

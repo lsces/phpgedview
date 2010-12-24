@@ -357,37 +357,32 @@ case 'getxref':
 		print "SUCCESS\n$xref\n";
 		break;
 	case 'all':
+		$statement = array();
 		switch($type) {
 			case "INDI":
-				$statement=
-					PGV_DB::prepare("SELECT i_id FROM {$TBLPREFIX}individuals WHERE i_file=? ORDER BY i_id")
-					->execute(array($GED_ID));
+				$statement =
+					$gBitDb->getCol("SELECT i_id FROM {$TBLPREFIX}individuals WHERE i_file=? ORDER BY i_id", array($GED_ID));
 				break;
 			case "FAM":
-				$statement=
-					PGV_DB::prepare("SELECT f_id FROM {$TBLPREFIX}families WHERE f_file=? ORDER BY f_id")
-					->execute(array($GED_ID));
+				$statement =
+					$gBitDb->getCol("SELECT f_id FROM {$TBLPREFIX}families WHERE f_file=? ORDER BY f_id", array($GED_ID));
 				break;
 			case "SOUR":
-				$statement=
-					PGV_DB::prepare("SELECT s_id FROM {$TBLPREFIX}sources WHERE s_file=? ORDER BY s_id")
-					->execute(array($GED_ID));
+				$statement =
+					$gBitDb->getCol("SELECT s_id FROM {$TBLPREFIX}sources WHERE s_file=? ORDER BY s_id", array($GED_ID));
 			case "OBJE":
-				$statement=
-					PGV_DB::prepare("SELECT m_media FROM {$TBLPREFIX}media WHERE m_gedfile=? ORDER BY m_media")
-					->execute(array($GED_ID));
+				$statement =
+					$gBitDb->getCol("SELECT m_media FROM {$TBLPREFIX}media WHERE m_gedfile=? ORDER BY m_media", array($GED_ID));
 			case "OTHER":
-				$statement=
-					PGV_DB::prepare("SELECT o_id FROM {$TBLPREFIX}other WHERE o_file=? AND o_type NOT IN ('REPO', 'NOTE') ORDER BY o_id")
-					->execute(array($GED_ID));
+				$statement =
+					$gBitDb->getCol("SELECT o_id FROM {$TBLPREFIX}other WHERE o_file=? AND o_type NOT IN ('REPO', 'NOTE') ORDER BY o_id", array($GED_ID));
 				break;
 			default:
 				$statement=
-					PGV_DB::prepare("SELECT o_id FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=? ORDER BY o_id")
-					->execute(array($GED_ID, $type));
+					$gBitDb->getCol("SELECT o_id FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=? ORDER BY o_id", array($GED_ID));
 		}
 		print "SUCCESS\n";
-		foreach ($statement->fetchOneColumn() as $id) {
+		foreach ($statement as $id) {
 			print "{$id}\n";
 		}
 		addDebugLog($action." type=$type position=$position ");

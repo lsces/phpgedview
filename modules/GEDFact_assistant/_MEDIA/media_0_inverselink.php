@@ -68,7 +68,7 @@ if (!empty($linktoid)) $paramok = displayDetailsById($linktoid);
 
 if ($action == "choose" && $paramok) {
 
-global $pgv_lang;
+global $pgv_lang, $gBitDb;
 
 	?>
 	<script language="JavaScript" type="text/javascript">
@@ -131,10 +131,8 @@ global $pgv_lang;
 	echo '<td class="optionbox wrap">';
 	if (!empty($mediaid)) {
 		//-- Get the title of this existing Media item
-		$title=
-			PGV_DB::prepare("SELECT m_titl FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?")
-			->execute(array($mediaid, PGV_GED_ID))
-			->fetchOne();
+		$title =
+			$gBitDb->getOne("SELECT m_titl FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?", array($mediaid, PGV_GED_ID));
 		if ($title) {
 			echo '<b>', PrintReady($title), '</b>&nbsp;&nbsp;&nbsp;';
 			if ($TEXT_DIRECTION=="rtl") echo getRLM();
@@ -145,10 +143,8 @@ global $pgv_lang;
 		}
 		echo '<table><tr><td>';
 		//-- Get the filename of this existing Media item
-		$filename=
-			PGV_DB::prepare("SELECT m_file FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?")
-			->execute(array($mediaid, PGV_GED_ID))
-			->fetchOne();
+		$filename =
+			$gBitDb->getOne("SELECT m_file FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?", array($mediaid, PGV_GED_ID));
 		$filename = str_replace(" ", "%20", $filename);
 		$thumbnail = thumbnail_file($filename, false, false);
 		echo '<img src = ', $thumbnail, ' class="thumbheight" />';

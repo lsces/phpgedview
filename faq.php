@@ -31,7 +31,7 @@ require './config.php';
 
 loadLangFile("pgv_confighelp");
 
-global $PGV_IMAGES, $faqs;
+global $PGV_IMAGES, $faqs, $gBitDb;
 
 // -- print html header information
 print_header($pgv_lang["faq_list"]);
@@ -68,19 +68,19 @@ if ($action=="commit") {
 			}
 		}
 		$header = str_replace(array('&lt;', '&gt;'), array('<', '>'), $header);
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=?, b_username=?, b_config=? WHERE b_id=? and b_username=? and b_location=?")
-			->execute(array($order, $whichGEDCOM, serialize($header), $pidh, $oldGEDCOM, 'header'));
+		$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=?, b_username=?, b_config=? WHERE b_id=? and b_username=? and b_location=?"
+			, array($order, $whichGEDCOM, serialize($header), $pidh, $oldGEDCOM, 'header'));
 
 		$body = str_replace(array('&lt;', '&gt;'), array('<', '>'), $body);
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=?, b_username=?, b_config=? WHERE b_id=? and b_username=? and b_location=?")
+		$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=?, b_username=?, b_config=? WHERE b_id=? and b_username=? and b_location=?")
 			->execute(array($order, $whichGEDCOM, serialize($body), $pidb, $oldGEDCOM, 'body'));
 
 		AddToChangeLog("FAQ item has been edited.<br />Header ID: ".$pidh.".<br />Body ID: ".$pidb, $GEDCOM);
 		break;
 
 	case 'delete':
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks WHERE b_order=? AND b_name=? AND b_username=?")
-			->execute(array($id, 'faq', $oldGEDCOM));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks WHERE b_order=? AND b_name=? AND b_username=?"
+			, array($id, 'faq', $oldGEDCOM));
 
 		AddToChangeLog("FAQ item has been deleted.<br />Header ID: ".$pidh.".<br />Body ID: ".$pidb, $oldGEDCOM);
 		break;
@@ -96,12 +96,12 @@ if ($action=="commit") {
 		}
 		$newid = get_next_id("blocks", "b_id");
 		$header = str_replace(array('&lt;', '&gt;'), array('<', '>'), $header);
-		PGV_DB::prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)")
-			->execute(array($newid, $whichGEDCOM, 'header', $order, 'faq', serialize($header)));
+		$gBitDb->query("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)"
+			, array($newid, $whichGEDCOM, 'header', $order, 'faq', serialize($header)));
 
 		$body = str_replace(array('&lt;', '&gt;'), array('<', '>'), $body);
-		PGV_DB::prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)")
-			->execute(array($newid+1, $whichGEDCOM, 'body', $order, 'faq', serialize($body)));
+		$gBitDb->query("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)"
+			, array($newid+1, $whichGEDCOM, 'body', $order, 'faq', serialize($body)));
 
 		AddToChangeLog("FAQ item has been added.<br />Header ID: ".$newid.".<br />Body ID: ".($newid+1), $whichGEDCOM);
 		break;
@@ -109,17 +109,17 @@ if ($action=="commit") {
 	case 'moveup':
 		$faqs = get_faq_data();
 		if (isset($faqs[$id-1])) {
-			PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-				->execute(array($id, $faqs[$id-1]["header"]["pid"], 'header'));
+			$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+				, array($id, $faqs[$id-1]["header"]["pid"], 'header'));
 
-			PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-				->execute(array($id, $faqs[$id-1]["body"]["pid"], 'body'));
+			$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+				, array($id, $faqs[$id-1]["body"]["pid"], 'body'));
 		}
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-			->execute(array($id-1, $pidh, 'header'));
+		$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+			, array($id-1, $pidh, 'header'));
 
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-			->execute(array($id-1, $pidb, 'body'));
+		$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+			, array($id-1, $pidb, 'body'));
 
 		AddToChangeLog("FAQ item has been moved up.<br />Header ID: ".$pidh.".<br />Body ID: ".$pidb, $oldGEDCOM);
 		break;
@@ -127,17 +127,17 @@ if ($action=="commit") {
 	case 'movedown':
 		$faqs = get_faq_data();
 		if (isset($faqs[$id+1])) {
-			PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-				->execute(array($id, $faqs[$id+1]["header"]["pid"], 'header'));
+			$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+				, array($id, $faqs[$id+1]["header"]["pid"], 'header'));
 
-			PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-				->execute(array($id, $faqs[$id+1]["body"]["pid"], 'body'));
+			$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+				, array($id, $faqs[$id+1]["body"]["pid"], 'body'));
 		}
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-			->execute(array($id+1, $pidh, 'header'));
+		$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+			, array($id+1, $pidh, 'header'));
 
-		PGV_DB::prepare("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?")
-			->execute(array($id+1, $pidb, 'body'));
+		$gBitDb->query("UPDATE {$TBLPREFIX}blocks SET b_order=? WHERE b_id=? and b_location=?"
+			, array($id+1, $pidb, 'body'));
 
 		AddToChangeLog("FAQ item has been moved down.<br />Header ID: ".$pidh.".<br />Body ID: ".$pidb, $GEDCOM);
 		break;

@@ -599,8 +599,8 @@ if (check_media_structure()) {
 		//-- figure out how many levels are in this file
 		$mlevels = preg_split("~[/\\\]~", $filename);
 
-		$statement=PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}media WHERE m_file ".PGV_DB::$LIKE." ?")->execute(array("%{$myFile}"));
-		while ($row=$statement->fetch(PDO::FETCH_ASSOC)) {
+		$statement = $gBitDb->query("SELECT * FROM {$TBLPREFIX}media WHERE m_file LIKE ?", array("%{$myFile}"));
+		while ( $row = $statement->fetchRow() ) {
 			$rlevels = preg_split("~[/\\\]~", $row["m_file"]);
 			//-- make sure we only delete a file at the same level of directories
 			//-- see 1825257

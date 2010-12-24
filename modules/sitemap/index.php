@@ -64,6 +64,7 @@ $fam_lists			= safe_REQUEST($_REQUEST, 'fam_lists', PGV_REGEX_XREF);
 $famlist_priority	= safe_REQUEST($_REQUEST, 'famlist_priority', PGV_REGEX_XREF);
 $famlist_update		= safe_REQUEST($_REQUEST, 'famlist_update', PGV_REGEX_XREF);
 $no_private_links	= safe_REQUEST($_REQUEST, 'no_private_links', '1', '0');
+global $gBitDb;
 
 if ($action=="sendFiles") {
 	header('Content-Type: application/octet-stream');
@@ -91,8 +92,8 @@ if ($action=="sendFiles") {
 	$_SESSION["org_user"]=$_SESSION["pgv_user"];
 	$_SESSION["pgv_user"]='#SiteMap#';
 	if (isset($indi_rec)) {
-		$statement=PGV_DB::prepare("SELECT i_id, i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=?")->execute(array($index));
-		while ($row=$statement->fetch(PDO::FETCH_NUM)) {
+		$statement = $gBitDb->query("SELECT i_id, i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=?", array($index));
+		while ( $row = $statement->fetchRow() ) {
 			if ($no_private_links) {
 				if (displayDetailsById($row[0], "INDI", true)) {
 					echo "	<url>\n";
@@ -119,8 +120,8 @@ if ($action=="sendFiles") {
 	}
 
 	if (isset($fam_rec)) {
-		$statement=PGV_DB::prepare("SELECT f_id, f_gedcom FROM {$TBLPREFIX}families WHERE f_file=?")->execute(array($index));
-		while ($row=$statement->fetch(PDO::FETCH_NUM)) {
+		$statement = $gBitDb->query("SELECT f_id, f_gedcom FROM {$TBLPREFIX}families WHERE f_file=?", array($index));
+		while ( $row = $statement->fetchRow() ) {
 			if ($no_private_links) {
 				if (displayDetailsById($row[0], "FAM", true)) {
 					echo "	<url>\n";

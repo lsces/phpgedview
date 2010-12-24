@@ -620,7 +620,7 @@ class ServiceClient extends GedcomRecord {
 	* @param string $remote the remote id that matches the $local id
 	*/
 	static function setSameId($local, $remote) {
-		global $TBLPREFIX, $GEDCOM;
+		global $TBLPREFIX, $GEDCOM, $gBitDb;
 
 		if ($local == $remote) {
 			debug_print_backtrace();
@@ -629,8 +629,7 @@ class ServiceClient extends GedcomRecord {
 		//-- check if the link already exists
 		$gid=get_remote_id($remote);
 		if (empty($gid)) {
-			PGV_DB::prepare("INSERT INTO {$TBLPREFIX}remotelinks (r_gid, r_linkid, r_file) VALUES (? ,? ,?)")
-				->execute(array($local, $remote, get_id_from_gedcom($GEDCOM)));
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}remotelinks (r_gid, r_linkid, r_file) VALUES (? ,? ,?)", array($local, $remote, get_id_from_gedcom($GEDCOM)));
 		}
 	}
 

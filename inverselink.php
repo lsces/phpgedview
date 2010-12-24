@@ -35,6 +35,7 @@ $linktoid	= safe_GET_xref('linktoid');
 $mediaid	= safe_GET_xref('mediaid');
 $linkto		= safe_GET     ('linkto', array('person', 'source', 'family', 'manage', 'repository', 'note'));
 $action		= safe_GET     ('action', PGV_REGEX_ALPHA, 'choose');
+global $gBitDb;
 
 // If GedFAct_assistant/_MEDIA/ installed ======================
 if (PGV_USER_IS_ADMIN && $linkto=='manage' && file_exists(PGV_ROOT.'modules/GEDFact_assistant/_MEDIA/media_1_ctrl.php')) {
@@ -118,10 +119,8 @@ if (PGV_USER_IS_ADMIN && $linkto=='manage' && file_exists(PGV_ROOT.'modules/GEDF
 		echo '<td class="optionbox wrap">';
 		if (!empty($mediaid)) {
 			//-- Get the title of this existing Media item
-			$title=
-				PGV_DB::prepare("SELECT m_titl FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?")
-				->execute(array($mediaid, PGV_GED_ID))
-				->fetchOne();
+			$title =
+				$gBitDb->getOne("SELECT m_titl FROM {$TBLPREFIX}media where m_media=? AND m_gedfile=?", array($mediaid, PGV_GED_ID));
 			if ($title) {
 				echo '<b>', PrintReady($title), '</b>&nbsp;&nbsp;&nbsp;';
 				if ($TEXT_DIRECTION=="rtl") echo getRLM();

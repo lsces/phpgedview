@@ -87,6 +87,7 @@ if (empty($action)) $action = 'showForm';
 * Validate input string to be an IP address
 */
 function validIP($address) {
+	global $gBitDb;
 	if (!preg_match('/^\d{1,3}\.(\d{1,3}|\*)\.(\d{1,3}|\*)\.(\d{1,3}|\*)$/', $address)) return false;
 	$pieces = explode('.', $address);
 	foreach ($pieces as $number) {
@@ -98,18 +99,18 @@ function validIP($address) {
 if ($action=='addBanned' || $action=='addSearch' || $action=='deleteBanned' || $action=='deleteSearch') {
 	if (validIP($address)) {
 		// Even if we are adding a new record, we must delete the existing one first.
-		PGV_DB::prepare(
+		$gBitDb->query(
 			"DELETE FROM {$TBLPREFIX}ip_address WHERE ip_address=?"
-		)->execute(array($address));
+			, array($address));
 		if ($action=='addBanned') {
-			PGV_DB::prepare(
+			$gBitDb->query(
 				"INSERT INTO {$TBLPREFIX}ip_address (ip_address, category, comment) VALUES (?, ?, ?)"
-			)->execute(array($address, 'banned', $comment));
+				, array($address, 'banned', $comment));
 		}
 		if ($action=='addSearch') {
-			PGV_DB::prepare(
+			$gBitDb->query(
 				"INSERT INTO {$TBLPREFIX}ip_address (ip_address, category, comment) VALUES (?, ?, ?)"
-			)->execute(array($address, 'search-engine', $comment));
+				, array($address, 'search-engine', $comment));
 		}
 	} else {
 		if ($action=='addBanned') {
@@ -240,7 +241,7 @@ function showSite(siteID) {
 		$sql.=" ORDER BY comment";
 	}
 	$index=0;
-	$search_engines=PGV_DB::prepare($sql)->fetchAssoc();
+	$search_engines = $gBitDb->getAll($sql);
 	foreach ($search_engines as $ip_address=>$ip_comment) {
 		echo '<tr><td>';
 		if (isset($PGV_IMAGES["remove"]["other"])) {
@@ -292,7 +293,7 @@ function showSite(siteID) {
 	} else {
 		$sql.=" ORDER BY comment";
 	}
-	$banned=PGV_DB::prepare($sql)->fetchAssoc();
+	$banned = $gBitDb->getAll($sql);
 	foreach ($banned as $ip_address=>$ip_comment) {
 		echo '<tr><td>';
 		if (isset($PGV_IMAGES["remove"]["other"])) {

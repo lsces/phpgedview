@@ -71,30 +71,6 @@ function gen_spider_session_name($bot_name, $bot_language) {
 	return($outname);
 }
 
-/*
-// Block sites by IP address.
-// Convert user-friendly such as '123.45.*.*' into SQL '%' wildcards.
-// Note: you may need to blcok IPv6 addresses as well as IPv4 ones.
-try {
-	$banned_ip=PGV_DB::prepareLimit(
-		"SELECT ip_address, comment FROM {$TBLPREFIX}ip_address".
-		" WHERE category='banned' AND ? LIKE REPLACE(ip_address, '*', '%')",
-		1
-	)->execute(array($_SERVER['REMOTE_ADDR']))->fetchOneRow();
-	if ($banned_ip) {
-		$log_msg='session_spider.php blocked IP Address: '.$_SERVER['REMOTE_ADDR'].' by regex: '.$banned_ip->ip_address;
-		if ($banned_ip->comment) {
-			$log_msg.=' ('.$banned_ip->comment.')';
-		}
-		AddToLog($log_msg);
-		header('HTTP/1.1 403 Access Denied');
-		exit;
-	}
-} catch (PDOException $ex) {
-	// Initial installation?  Site Down?  Fail silently.
-}
-*/
-
 // Search Engines are treated special, and receive only core data, without the
 // pretty bells and whistles.  Recursion is also going to be kept to a minimum.
 // Max uncompressed page output has to be under 100k.  Spiders do not index the
@@ -328,36 +304,6 @@ if ($SEARCH_SPIDER && in_array(PGV_SCRIPT_NAME, $bots_not_allowed)) {
 	print "Sorry, this page is not available for search engine bots.";
 	exit;
 }
-
-/*
-// Manual Search Engine IP Address tagging
-//   Allow an admin to mark IP addresses as known search engines even if
-//   they are not automatically detected above.   Setting his own IP address
-//   in the ip_address table allows him to see exactly what the search engine receives.
-//   To return to normal, the admin MUST use a different IP to get to admin
-//   mode or update the table pgv_ip_address directly.
-try {
-	$search_engine=PGV_DB::prepareLimit(
-		"SELECT ip_address, comment FROM {$TBLPREFIX}ip_address".
-		" WHERE category='search-engine' AND ? LIKE REPLACE(ip_address, '*', '%')",
-		1
-	)->execute(array($_SERVER['REMOTE_ADDR']))->fetchOneRow();
-	if ($search_engine) {
-		if (empty($SEARCH_SPIDER)) {
-			if ($search_engine->comment) {
-				$SEARCH_SPIDER = 'Manual Search Engine entry of '.$_SERVER['REMOTE_ADDR'].' ('.$search_engine->comment.')';
-			} else {
-				$SEARCH_SPIDER = 'Manual Search Engine entry of '.$_SERVER['REMOTE_ADDR'];
-			}
-		}
-		$bot_name = 'MAN'.$_SERVER['REMOTE_ADDR'];
-		$bot_session = gen_spider_session_name($bot_name, '');
-		session_id($bot_session);
-	}
-} catch (PDOException $ex) {
-	// Initial installation?  Site Down?  Fail silently.
-}
-*/
 
 if((empty($SEARCH_SPIDER)) && (!empty($_SESSION['last_spider_name']))) // user following a search engine listing in,
 session_regenerate_id();

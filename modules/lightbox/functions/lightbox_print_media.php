@@ -55,7 +55,7 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 	global $res, $typ2b, $edit, $tabno, $n, $item, $items, $p, $note, $rowm, $note_text, $reorder;
 	global $action, $order, $order2, $rownum, $rownum1, $rownum2, $rownum3, $rownum4, $media_data, $sort_i;
 	
-	global $GEDCOM_ID_PREFIX;
+	global $GEDCOM_ID_PREFIX, $gBitDb;
 	$ged_id=get_id_from_gedcom($GEDCOM);
 
 	if (!showFact("OBJE", $pid)) return false;
@@ -120,7 +120,7 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 	$vars[]=PGV_GED_ID;
 	//-- for family and source page only show level 1 obje references
 	if ($level>0) {
-		$sqlmm .= "AND mm_gedrec ".PGV_DB::$LIKE." ?";
+		$sqlmm .= "AND mm_gedrec LIKE ?";
 		$vars[]="$level OBJE%";
 	}
 
@@ -128,7 +128,7 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 	switch ($kind) {
 	case 1:
 		$tt=$pgv_lang["ROW_TYPE__photo"];
-		$sqlmm.="AND (m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ?)";
+		$sqlmm.="AND (m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ?)";
 		$vars[]='%TYPE photo%';
 		$vars[]='%TYPE map%';
 		$vars[]='%TYPE painting%';
@@ -136,7 +136,7 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 		break;
 	case 2:
 		$tt=$pgv_lang["ROW_TYPE__document"];
-		$sqlmm.="AND (m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ?)";
+		$sqlmm.="AND (m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ?)";
 		$vars[]='%TYPE card%';
 		$vars[]='%TYPE certificate%';
 		$vars[]='%TYPE document%';
@@ -146,14 +146,14 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 		break;
 	case 3:
 		$tt=$pgv_lang["ROW_TYPE__census"];
-		$sqlmm.="AND (m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ?)";
+		$sqlmm.="AND (m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ?)";
 		$vars[]='%TYPE electronic%';
 		$vars[]='%TYPE fiche%';
 		$vars[]='%TYPE film%';
 		break;
 	case 4:
 		$tt=$pgv_lang["ROW_TYPE__other"];
-		$sqlmm.="AND (m_gedrec NOT ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ? OR m_gedrec ".PGV_DB::$LIKE." ?)";
+		$sqlmm.="AND (m_gedrec NOT LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ? OR m_gedrec LIKE ?)";
 		$vars[]='%TYPE %';
 		$vars[]='%TYPE coat%';
 		$vars[]='%TYPE book%';
@@ -173,7 +173,7 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 		$sqlmm .= " ORDER BY mm_gid DESC ";
 	}
 
-	$rows=PGV_DB::prepare($sqlmm)->execute($vars)->fetchAll(PDO::FETCH_ASSOC);
+	$rows = $gBitDb->getAll($sqlmm, $vars);
 	$foundObjs = array();
 	$numm = count($rows);
 
@@ -282,7 +282,7 @@ function lightbox_print_media($pid, $level=1, $related=false, $kind=1, $noedit=f
 		$indiobjs .= "mm_gid=? ";
 		$indiobjs .= "AND mm_gedfile=? AND mm_media=m_media AND mm_gedfile=m_gedfile ";
 		$vars2=array($pid, PGV_GED_ID);
-		$rows=PGV_DB::prepare($indiobjs)->execute($vars2)->fetchAll(PDO::FETCH_ASSOC);
+		$rows = $gBitDb->getAll($indiobjs, $vars2);
 		$foundObjs = array();
 		$numindiobjs = count($rows);
 

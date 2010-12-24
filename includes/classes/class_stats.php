@@ -315,14 +315,13 @@ class stats {
 	}
 
 	function gedcomUpdated() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
-		$row=
-			PGV_DB::prepareLimit("SELECT d_year, d_month, d_day FROM {$TBLPREFIX}dates WHERE d_file=? AND d_fact=? ORDER BY d_julianday1 DESC, d_type", 1)
-			->execute(array($this->_ged_id, 'CHAN'))
-			->fetchOneRow();
+		$row =
+			$gBitDb->getRow("SELECT d_year, d_month, d_day FROM {$TBLPREFIX}dates WHERE d_file=? AND d_fact=? ORDER BY d_julianday1 DESC, d_type", 
+				array($this->_ged_id, 'CHAN') );
 		if ($row) {
-			$date=new GedcomDate("{$row->d_day} {$row->d_month} {$row->d_year}");
+			$date=new GedcomDate("{$row['d_day']} {$row['d_month']} {$row['d_year']}");
 			return $date->Display(false);
 		} else {
 			return self::gedcomDate();
@@ -2800,16 +2799,14 @@ class stats {
 	function oldestFatherAge($show_years=false) {return $this->_parentsQuery('age', 'DESC', 'M', $show_years);}
 
 	function totalMarriedMales() {
-		global $TBLPREFIX;
+		global $TBLPREFIX, $gBitDb;
 
-		$rows = PGV_DB::prepare("SELECT f_gedcom AS ged, f_husb AS husb FROM ${TBLPREFIX}families WHERE f_file=?")
-				->execute(array($this->_ged_id))
-				->fetchAll();
+		$rows = $gBitDb->getAll("SELECT f_gedcom AS ged, f_husb AS husb FROM ${TBLPREFIX}families WHERE f_file=?", array($this->_ged_id));
 		$husb = array();
 		foreach ($rows as $row) {
-			$factrec = trim(get_sub_record(1, "1 MARR", $row->ged, 1));
+			$factrec = trim(get_sub_record(1, "1 MARR", $row['ged'], 1));
 			if (!empty($factrec)) {
-				$husb[] = $row->husb."<br />";
+				$husb[] = $row['husb']."<br />";
 			}
 		}
 		return count(array_unique($husb));
@@ -2818,14 +2815,12 @@ class stats {
 	function totalMarriedFemales() {
 		global $TBLPREFIX;
 
-		$rows = PGV_DB::prepare("SELECT f_gedcom AS ged, f_wife AS wife FROM ${TBLPREFIX}families WHERE f_file=?")
-				->execute(array($this->_ged_id))
-				->fetchAll();
+		$rows = $gBitDb->getAll("SELECT f_gedcom AS ged, f_wife AS wife FROM ${TBLPREFIX}families WHERE f_file=?", array($this->_ged_id));
 		$wife = array();
 		foreach ($rows as $row) {
-			$factrec = trim(get_sub_record(1, "1 MARR", $row->ged, 1));
+			$factrec = trim(get_sub_record(1, "1 MARR", $row['ged'], 1));
 			if (!empty($factrec)) {
-				$wife[] = $row->wife."<br />";
+				$wife[] = $row['wife']."<br />";
 			}
 		}
 		return count(array_unique($wife));
