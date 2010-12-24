@@ -172,25 +172,8 @@ switch($step) {
 			//-- create db connection
 			$TBLPREFIX = $_SESSION['install_config']['TBLPREFIX'];
 /*
-			try {
-				PGV_DB::disconnect(); // from the connect defined in config.php
-				PGV_DB::createInstance(
-					$_SESSION['install_config']['DBTYPE'], 
-					$_SESSION['install_config']['DBHOST'], 
-					$_SESSION['install_config']['DBPORT'], 
-					$_SESSION['install_config']['DBNAME'], 
-					$_SESSION['install_config']['DBUSER'], 
-					$_SESSION['install_config']['DBPASS'], 
-					$_SESSION['install_config']['DB_UTF8_COLLATION']
-				);
-			} catch (PDOException $ex) {
-				$step=2;	// For any DB error, re-do Step 2
-				$errors[]=array(
-					'msg'=>$pgv_lang['db_setup_bad'],
-					'help'=>$ex->getMessage()
-				);
-			}
-*/
+ * Database management handled by bitweaver 
+ */
 }
 
 		if (!empty($_SESSION['install_config']['INDEX_DIRECTORY'])
@@ -439,14 +422,8 @@ $errormsg = "";
 					$success = printDBForm();
 					break;
 				case 3:
-//					try {
-//						PGV_DB::updateSchema('includes/db_schema/', 'PGV_SCHEMA_VERSION', PGV_SCHEMA_VERSION);
 						echo '<span class="pass">', $pgv_lang['db_tables_created'], '</span><br /><br /><br />';
 						$success=true;
-//					} catch (PDOException $ex) {
-//						echo '<span class="error">', $ex->getMessage(), '</span><br /><br /><br />';
-//						$success=false;
-//					}
 					break;
 				case 4:
 					$success = printConfigForm();
@@ -658,20 +635,18 @@ function printDBForm() {
 		<td class="optionbox">
 			<select name="NEW_DBTYPE" dir="ltr" tabindex="<?php $i++; print $i?>" onfocus="getHelp('DBTYPE_help');" onchange="changeDBtype(this);">
 			<?php
-$driver='firebird';
-//				foreach (PGV_DB::getAvailableDrivers() as $driver) {
-					echo '<option value="', $driver, '"';
-					if ($DBTYPE==$driver) {
-						echo 'selected="selected"';
-					}
-					echo '>';
-					if (array_key_exists($driver, $pgv_lang)) {
-						echo $pgv_lang[$driver];
-					} else {
-						echo $driver;
-					}
-					echo '</option>';
-//				}
+				$driver='firebird';
+				echo '<option value="', $driver, '"';
+				if ($DBTYPE==$driver) {
+					echo 'selected="selected"';
+				}
+				echo '>';
+				if (array_key_exists($driver, $pgv_lang)) {
+					echo $pgv_lang[$driver];
+				} else {
+					echo $driver;
+				}
+				echo '</option>';
 			?>
 			</select>
 		</td>
