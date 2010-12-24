@@ -663,11 +663,8 @@ function print_footer() {
 	if (function_exists("load_behaviour")) {
 		load_behaviour();  // @see function_print_lists.php
 	}
-	if (PGV_DEBUG_SQL) {
-		echo PGV_DB::getQueryLog();
-	}
-	echo clustrmaps();
-	echo google_analytics();
+//	echo clustrmaps();
+//	echo google_analytics();
 	echo '</body></html>';
 }
 
@@ -677,9 +674,6 @@ function print_simple_footer() {
 
 	if ($SHOW_STATS || PGV_DEBUG) {
 		echo execution_stats();
-	}
-	if (PGV_DEBUG_SQL) {
-		echo PGV_DB::getQueryLog();
 	}
 	echo '</body></html>';
 }

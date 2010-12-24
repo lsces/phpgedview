@@ -281,9 +281,6 @@ if ($action=="ajax") {
 				if (PGV_DEBUG) {
 					echo execution_stats();
 				}
-				if (PGV_DEBUG_SQL) {
-					echo PGV_DB::getQueryLog();
-				}
 				exit;
 			}
 		}
