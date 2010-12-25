@@ -33,7 +33,7 @@ if (!defined('PGV_SCRIPT_NAME')) {
 // Identify ourself
 define('PGV_PHPGEDVIEW',      'PhpGedView');
 define('PGV_VERSION',         '4.3.0');
-define('PGV_VERSION_RELEASE', 'svn'); // 'svn', 'beta', 'rc1', '', etc.
+define('PGV_VERSION_RELEASE', 'bw'); // 'svn', 'beta', 'rc1', '', etc.
 define('PGV_VERSION_TEXT',    trim(PGV_VERSION.' '.PGV_VERSION_RELEASE));
 define('PGV_PHPGEDVIEW_URL',  'http://www.phpgedview.net');
 define('PGV_PHPGEDVIEW_WIKI', 'http://wiki.phpgedview.net');
@@ -41,7 +41,6 @@ define('PGV_TRANSLATORS_URL', 'https://sourceforge.net/projects/phpgedview/forum
 
 // Enable debugging output?
 define('PGV_DEBUG',      false);
-define('PGV_DEBUG_SQL',  false);
 define('PGV_DEBUG_PRIV', false);
 
 // Error reporting
@@ -157,7 +156,7 @@ if (version_compare(PHP_VERSION, '6.0.0', '<')) {
 	) as $var) {
 		if (isset($_REQUEST[$var])) {
 			if (!ini_get('register_globals') || strtolower(ini_get('register_globals'))=='off') {
-				require_once PGV_ROOT.'includes/authentication.php';
+				require_once PGV_ROOT.'includes/bitweaverauth.php';
 				AddToLog('MSG>Configuration override detected; script terminated.');
 				AddToLog("UA>{$_SERVER['HTTP_USER_AGENT']}<");
 				AddToLog("URI>{$_SERVER['REQUEST_URI']}<");
@@ -315,14 +314,15 @@ require PGV_ROOT.'includes/functions/functions_db.php';
 // require PGV_ROOT.'includes/classes/class_pgv_db.php';
 
 // The authentication interface includes logging - which may be to the database
-require PGV_ROOT.'includes/authentication.php';
+require PGV_ROOT.'includes/bitweaverauth.php';
 
-// Connect to the database
+/* Connect to the database
 require_once PGV_ROOT.'includes/adodb/BitTimer.php';
 require_once PGV_ROOT.'includes/adodb/BitDbAdodb.php';
 global $gBitDb;
 $gBitDb = new BitDbAdodb();
 // $gBitDb = setCaching();
+*/
 
 //-- import the gedcoms array
 $BROWSERTYPE = 'other';
@@ -340,21 +340,6 @@ if (!empty($_SERVER['HTTP_USER_AGENT'])) {
 
 //-- load up the code to check for spiders
 require PGV_ROOT.'includes/session_spider.php';
-
-// Start the php session
-session_set_cookie_params(date('D M j H:i:s T Y', time()+$PGV_SESSION_TIME), PGV_SCRIPT_PATH);
-
-if ($PGV_SESSION_TIME>0) {
-	session_cache_expire($PGV_SESSION_TIME/60);
-}
-if (!empty($PGV_SESSION_SAVE_PATH)) {
-	session_save_path($PGV_SESSION_SAVE_PATH);
-}
-if (isset($MANUAL_SESSION_START) && !empty($SID)) {
-	session_id($SID);
-}
-
-session_start();
 
 if (!$SEARCH_SPIDER && !isset($_SESSION['initiated'])) {
 	// A new session, so prevent session fixation attacks by choosing a new PHPSESSID.
@@ -398,6 +383,7 @@ require PGV_ROOT.'config_gedcom.php'; // Load default gedcom settings
 			}
 		}
 	}
+	if (!$ged_id) { $ged_id = 0; }
 	define('PGV_GEDCOM', $GEDCOM);
 	define('PGV_GED_ID', $ged_id);
 	load_privacy_file(PGV_GED_ID);
@@ -519,10 +505,6 @@ if ((empty($LANGUAGE) || $ENABLE_MULTI_LANGUAGE) && empty($_SESSION['CLANGUAGE']
 	}
 }
 
-// -- If the user's profile specifies a preference, use that
-$thisUser = getUserId();
-if ($thisUser) $LANGUAGE = get_user_setting($thisUser, 'language');
-
 // -- If the user previously selected a language from the menu, use that
 if (empty($SEARCH_SPIDER)) {
 	if (!empty($_SESSION['CLANGUAGE'])) {
@@ -545,11 +527,17 @@ if ($ENABLE_MULTI_LANGUAGE && empty($SEARCH_SPIDER)) {
 //-- load the privacy functions
 require PGV_ROOT.'includes/functions/functions_privacy.php';
 
+global $gBitUser;
+
 // The curren't user's profile - from functions in authentication.php
-define('PGV_USER_ID',           2); // getUserId     ());
+if ( $gBitUser->mUserId > 0 ) {
+	define('PGV_USER_ID', $gBitUser->mUserId);
+} else {
+	define('PGV_USER_ID', 0);
+}
 if ( !empty($gBitDb->mDb) ) {
-	define('PGV_USER_NAME',         'Lester Caine'); // getUserName   ());
-	define('PGV_USER_IS_ADMIN',     true); // userIsAdmin   (PGV_USER_ID));
+	define('PGV_USER_NAME',  $gBitUser->mInfo['real_name']);
+	define('PGV_USER_IS_ADMIN',     $gBitUser->isAdmin() );
 	define('PGV_USER_AUTO_ACCEPT',  true); // userAutoAccept(PGV_USER_ID));
 	define('PGV_ADMIN_USER_EXISTS', PGV_USER_IS_ADMIN     || adminUserExists());
 	define('PGV_USER_GEDCOM_ADMIN', PGV_USER_IS_ADMIN     || userGedcomAdmin(PGV_USER_ID, PGV_GED_ID));
@@ -557,18 +545,11 @@ if ( !empty($gBitDb->mDb) ) {
 	define('PGV_USER_CAN_EDIT',     PGV_USER_CAN_ACCEPT   || userCanEdit    (PGV_USER_ID, PGV_GED_ID));
 	define('PGV_USER_CAN_ACCESS',   PGV_USER_CAN_EDIT     || userCanAccess  (PGV_USER_ID, PGV_GED_ID));
 	define('PGV_USER_ACCESS_LEVEL', $PRIV_USER); // getUserAccessLevel(PGV_USER_ID, PGV_GED_ID));
-	define('PGV_USER_GEDCOM_ID',    3); // getUserGedcomId   (PGV_USER_ID, PGV_GED_ID));
+	define('PGV_USER_GEDCOM_ID',    1); // getUserGedcomId   (PGV_USER_ID, PGV_GED_ID));
 	define('PGV_USER_ROOT_ID',      'I1'); // getUserRootId     (PGV_USER_ID, PGV_GED_ID));
 } else {
 	// No DB?  Just set the basics, for install.php
 	define('PGV_ADMIN_USER_EXISTS', false);
-}
-
-// If we are logged in, and logout=1 has been added to the URL, log out
-if (PGV_USER_ID && safe_GET_bool('logout')) {
-	userLogout(PGV_USER_ID);
-	header("Location: ".PGV_SERVER_NAME.PGV_SCRIPT_PATH);
-	exit;
 }
 
 // Load all the language variables and language-specific functions
@@ -639,21 +620,6 @@ if (PGV_SCRIPT_NAME!='install.php' && PGV_SCRIPT_NAME!='editconfig_help.php') {
 	}
 }
 
-//-- load the user specific theme
-if (PGV_USER_ID) {
-	//-- update the login time every 5 minutes
-	if (!isset($_SESSION['activity_time']) || (time()-$_SESSION['activity_time'])>300) {
-		userUpdateLogin(PGV_USER_ID);
-		$_SESSION['activity_time'] = time();
-	}
-
-	$usertheme = get_user_setting(PGV_USER_ID, 'theme');
-	if ((!empty($_POST['user_theme']))&&(!empty($_POST['oldusername']))&&($_POST['oldusername']==PGV_USER_ID)) $usertheme = $_POST['user_theme'];
-	if ((!empty($usertheme)) && (file_exists($usertheme.'theme.php')))  {
-		$THEME_DIR = $usertheme;
-	}
-}
-
 if (isset($_SESSION['theme_dir'])) {
 	$THEME_DIR = $_SESSION['theme_dir'];
 	if (PGV_USER_ID) {
@@ -662,19 +628,12 @@ if (isset($_SESSION['theme_dir'])) {
 }
 
 if (empty($THEME_DIR) || !file_exists("{$THEME_DIR}theme.php")) {
-	$THEME_DIR = 'themes/bitweaver/';
+	$THEME_DIR = '../config/phpgedview/';
 }
 
 define('PGV_THEME_DIR', $THEME_DIR);
 
 require PGV_THEME_DIR.'theme.php';
-
-// Page hit counter - load after theme, as we need theme formatting
-if ($SHOW_COUNTER && !$SEARCH_SPIDER) {
-	require PGV_ROOT.'includes/hitcount.php';
-} else {
-	$hitCount='';
-}
 
 if ($Languages_Default) {            // If Languages not yet configured
 	$pgv_lang_use['english'] = false;  //  disable English
