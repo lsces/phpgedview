@@ -1296,7 +1296,7 @@ function search_indis_names($query, $geds, $match) {
 	$sql.=' ORDER BY ged_id';
 
 	$list=array();
-	$rows = $gBitDb->getAssoc( $sql );
+	$rows = $gBitDb->getAll( $sql );
 	$GED_ID=PGV_GED_ID;
 	foreach ($rows as $row) {
 		// Switch privacy file if necessary
@@ -1378,7 +1378,7 @@ function search_indis_soundex($soundex, $lastname, $firstname, $place, $geds) {
 	$sql.=' ORDER BY ged_id';
 
 	$list=array();
-	$rows = $gBitDb->getAssoc( $sql );
+	$rows = $gBitDb->getAll( $sql );
 	$GED_ID=PGV_GED_ID;
 	foreach ($rows as $row) {
 		// Switch privacy file if necessary
@@ -1452,7 +1452,7 @@ function search_indis_dates($day, $month, $year, $facts) {
 	}
 
 	$list=array();
-	$rows = $gBitDb->getAssoc( $sql, $vars );
+	$rows = $gBitDb->getAll( $sql, $vars );
 	foreach ($rows as $row) {
 		$list[]=Person::getInstance($row);
 	}
@@ -1476,7 +1476,7 @@ function search_indis_daterange($start, $end, $facts) {
 	}
 
 	$list=array();
-	$rows = $gBitDb->getAssoc( $sql, $vars );
+	$rows = $gBitDb->getAll( $sql, $vars );
 	foreach ($rows as $row) {
 		$list[]=Person::getInstance($row);
 	}
@@ -1934,6 +1934,7 @@ function get_top_surnames($ged_id, $min, $max) {
 				"SELECT COUNT(n_surn) AS sn_count, n_surn FROM {$TBLPREFIX}name WHERE n_file=? AND n_type!=? AND n_surn NOT IN (?, ?, ?, ?) GROUP BY n_surn ORDER BY sn_count DESC"
 			, array(PGV_GED_ID, '_MARNM', '@N.N.', '', '?', 'UNKNOWN')
 			, 1);
+	$surnames = array();
 	while ( $row = $rows->fetchRow() )
 	{ 
 		if (isset($surnames[$row['n_surn']]['match'])) {
@@ -2435,7 +2436,7 @@ function get_all_gedcoms() {
 	global $TBLPREFIX, $gBitDb;
 	
 	return
-		$gBitDb->getAll("SELECT gedcom_id, gedcom_name FROM {$TBLPREFIX}gedcom");
+		$gBitDb->getAssoc("SELECT gedcom_id, gedcom_name FROM {$TBLPREFIX}gedcom");
 }
 
 function get_gedcom_titles() {
@@ -2555,54 +2556,44 @@ function delete_user($user_id) {
 function get_all_users($order='ASC', $key1='lastname', $key2='firstname') {
 	global $TBLPREFIX, $gBitDb;
 
-	if ($key1=='username') {
-		return
-			$gBitDb->getAssoc("SELECT u_username, u_username FROM {$TBLPREFIX}users ORDER BY u_{$key1} {$order}, u_{$key2} {$order}");
-	} else {
-		return
+	return
 			$gBitDb->getAssoc(
-				"SELECT u.user_id, u_username".
-				" FROM {$TBLPREFIX}users u".
-				" LEFT JOIN {$TBLPREFIX}user_setting us1 ON (u.user_id=us1.user_id AND us1.setting_name=?)".
-				" LEFT JOIN {$TBLPREFIX}user_setting us2 ON (u.user_id=us2.user_id AND us2.setting_name=?)".
-				" ORDER BY us1.setting_value {$order}, us2.setting_value {$order}"
-			, array($key1, $key2));
-	}
+				"SELECT u.user_id, real_name".
+				" FROM users_users u ORDER BY real_name {$order}");
 }
 
 function get_user_count() {
 	global $TBLPREFIX, $gBitDb;
 
 	return
-		$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}users");
+		$gBitDb->getOne("SELECT COUNT(*) FROM users_users");
 }
 
 function get_admin_user_count() {
 	global $TBLPREFIX, $gBitDb;
 
 	return
-		$gBitDb->getAssoc(
-			"SELECT COUNT(*) FROM {$TBLPREFIX}users WHERE u_canadmin=?"
-			, array( 'Y' ));
+		$gBitDb->getOne(
+			"SELECT COUNT(*) FROM users_users u
+			  JOIN users_roles_maps urm ON urm.user_id = u.user_id AND role_id = 1");
 }
 
 function get_non_admin_user_count() {
 	global $TBLPREFIX, $gBitDb;
 
 	return
-		$gBitDb->getAssoc(
-			"SELECT COUNT(*) FROM {$TBLPREFIX}users WHERE u_canadmin<>?"
-			, array( 'Y' ));
+		$gBitDb->getOne(
+			"SELECT COUNT(*) FROM users_users" );
 }
 
 // Get a list of logged-in users
 function get_logged_in_users() {
 	global $TBLPREFIX, $gBitDb;
 
-	return
-		$gBitDb->getAssoc(
+	return 0;
+/*		$gBitDb->getAssoc(
 			"SELECT u_username, u_username FROM {$TBLPREFIX}users WHERE u_loggedin=?"
-			, array( 'Y' ));
+			, array( 'Y' )); */
 }
 
 // Get a list of logged-in users who haven't been active recently
@@ -2624,30 +2615,27 @@ function get_idle_users($time) {
 	}
 
 	return
-		$gBitDb->getAssoc(
+		0;
+/*		$gBitDb->getAssoc(
 			"SELECT u.user_id, u_username".
-			" FROM {$TBLPREFIX}users u".
+			" FROM users_users u".
 			" JOIN {$TBLPREFIX}user_setting us1 USING (user_id)".
 			" JOIN {$TBLPREFIX}user_setting us2 USING (user_id)".
 			" WHERE us1.setting_name=? AND us1.setting_value=? AND us2.setting_name=?".
 			" AND {$expr} BETWEEN 1 AND ?"
-		, array('loggedin', 'Y', 'sessiontime', $time));
+		, array('loggedin', 'Y', 'sessiontime', $time)); */
 }
 
 // Get the ID for a username
 function get_user_id($username) {
-	global $TBLPREFIX, $gBitDb;
-
-	return $gBitDb->getOne(
-			"SELECT u_username FROM {$TBLPREFIX}users WHERE u_username=?"
-			, array($username) );
+	global $gBitUser;
+	return $gBitUser->mUserId;
 }
 
 // Get the username for a user ID
 function get_user_name($user_id) {
-	global $TBLPREFIX, $gBitDb;
-	if( empty($user_id) ) $user_id = 1;
-	return $gBitDb->getOne("SELECT u_username FROM {$TBLPREFIX}users WHERE user_id=?"	, array($user_id));
+	global $gBitUser;
+	return $gBitUser->mUsername;
 }
 
 function get_newest_registered_user() {
@@ -2683,20 +2671,19 @@ function get_user_password($user_id) {
 ////////////////////////////////////////////////////////////////////////////////
 
 function get_user_setting($user_id, $setting_name) {
-	global $TBLPREFIX, $gBitDb;
-	if( empty($user_id) ) $user_id = 1;
-	return $gBitDb->getOne("SELECT u_{$setting_name} FROM {$TBLPREFIX}users WHERE u_username=?",array($user_id));
+	global $gBitUser;
+	return $gBitUser->getUserPreference($setting_name, 0, $user_id);
 }
 
 function set_user_setting($user_id, $setting_name, $setting_value) {
-	global $TBLPREFIX, $gBitDb;
+	global $gBitUser;
 
 	$gBitDb->query("UPDATE {$TBLPREFIX}users SET u_{$setting_name}=? WHERE u_username=?", array( $setting_value, $user_id));
 			// The value is unchanged
 }
 
 function admin_user_exists() {
-	return get_admin_user_count() > 0;
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
