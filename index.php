@@ -26,6 +26,10 @@
  */
 
 define('PGV_SCRIPT_NAME', 'index.php');
+/**
+ * required setup
+ */
+
 require './config.php';
 require_once PGV_ROOT.'includes/index_cache.php';
 require_once PGV_ROOT.'includes/functions/functions_print_facts.php';  //--needed for the expand url function in some of the blocks
@@ -189,7 +193,7 @@ if (PGV_USER_ID) {
 
 //-- get the blocks list
 if ($ctype=="user") {
-	$ublocks = getBlocks(PGV_USER_NAME);
+	$ublocks = getBlocks();
 	if ((count($ublocks["main"])==0) && (count($ublocks["right"])==0)) {
 		$ublocks["main"][] = array("print_todays_events", "");
 		$ublocks["main"][] = array("print_user_messages", "");
@@ -205,7 +209,7 @@ else {
 	$ublocks = getBlocks($GEDCOM);
 	if ((count($ublocks["main"])==0) && (count($ublocks["right"])==0)) {
 		$ublocks["main"][] = array("print_gedcom_stats", "");
-		$ublocks["main"][] = array("print_gedcom_news", "");
+//		$ublocks["main"][] = array("print_gedcom_news", "");
 		$ublocks["main"][] = array("print_gedcom_favorites", "");
 		$ublocks["main"][] = array("review_changes_block", "");
 
@@ -277,9 +281,6 @@ if ($action=="ajax") {
 					$content = ob_get_contents();
 					saveCachedBlock($blockval, $side.$_REQUEST['bindex'], $content);
 					ob_end_flush();
-				}
-				if (PGV_DEBUG) {
-					echo execution_stats();
 				}
 				exit;
 			}
@@ -377,12 +378,9 @@ if (count($ublocks["main"])!=0) {
 	echo '<script src="js/jquery/jquery.min.js" type="text/javascript"></script>';
 	echo '<script type="text/javascript">jQuery.noConflict();</script>';
 	foreach($ublocks["main"] as $bindex=>$block) {
-		if (PGV_DEBUG) {
-			echo execution_stats();
-		}
 		if (array_key_exists($block[0], $PGV_BLOCKS) && !loadCachedBlock($block, "main".$bindex)) {
 			$url="index.php?action=ajax&block={$block[0]}&side=main&bindex={$bindex}&ctype={$ctype}";
-			if ($SEARCH_SPIDER || PGV_DEBUG) {
+			if ($SEARCH_SPIDER) {
 				// Search spiders get the blocks directly
 				ob_start();
 				eval($block[0]."(false, \$block[1], \"main\", $bindex);");
@@ -411,12 +409,9 @@ if (count($ublocks["right"])!=0) {
 		print "<div id=\"index_full_blocks\">";
 	}
 	foreach($ublocks["right"] as $bindex=>$block) {
-		if (PGV_DEBUG) {
-			echo execution_stats();
-		}
 		if (array_key_exists($block[0], $PGV_BLOCKS) && !loadCachedBlock($block, "right".$bindex)) {
 			$url="index.php?action=ajax&block={$block[0]}&side=right&bindex={$bindex}&ctype={$ctype}";
-			if ($SEARCH_SPIDER || PGV_DEBUG) {
+			if ($SEARCH_SPIDER) {
 				// Search spiders get the blocks directly
 				ob_start();
 				eval($block[0]."(true, \$block[1], \"right\", $bindex);");
