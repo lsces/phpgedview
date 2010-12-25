@@ -1265,7 +1265,7 @@ if ($action=="update") {
 
 	if ($closewin) {
 		// autoclose window when update successful
-		if ($EDIT_AUTOCLOSE && !PGV_DEBUG) {
+		if ($EDIT_AUTOCLOSE) {
 			echo "\n<script type=\"text/javascript\">\n<!--\nif (window.opener.showchanges) window.opener.showchanges(); window.close();\n//-->\n</script>";
 		}
 		echo "<center><br /><br /><br />";

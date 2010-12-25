@@ -2789,7 +2789,7 @@ if (empty($goto) || empty($link)) {
 }
 
 // autoclose window when update successful  ==== 
-if ($success && $EDIT_AUTOCLOSE && !PGV_DEBUG ) {
+if ($success && $EDIT_AUTOCLOSE ) {
 	echo PGV_JS_START;
 	if ($action=="copy") {
 		echo "window.close();";
