@@ -217,5 +217,5 @@ $TIME_LIMIT = "60";
 @set_time_limit($TIME_LIMIT);
 
 //Manual configurtion while developing
-$GEDCOM = 'CAINE';
+$GEDCOM = 'CAINEFull20101223.GED';
 ?>

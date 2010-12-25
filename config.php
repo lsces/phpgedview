@@ -33,17 +33,11 @@ if (preg_match("/\Wconfig.php/", $_SERVER["SCRIPT_NAME"])>0) {
 	print "Got your hand caught in the cookie jar.";
 	exit;
 }
+require_once( '../kernel/setup_inc.php' );
 
-$DBTYPE = "firebird";							//-- type of database to connect when using the PEAR:DB module
-$DBHOST = "localhost";							//-- Host where MySQL database is kept
-$DBPORT = "";									//-- Database port, leave blank for default
-$DBUSER = "SYSDBA";								//-- MySQL database User Name
-$DBPASS = "no_go_pa";									//-- MySQL database User Password
-$DBNAME = "phpgedview";							//-- The MySQL database name where you want PHPGedView to build its tables
-$DB_UTF8_COLLATION = false;						//-- Use the database to sort/collation UTF8 text
 $TBLPREFIX = "pgv_";							//-- prefix to include on table names
-$INDEX_DIRECTORY='./index/'; //-- Readable and Writeable Directory to store index files (include the trailing "/")
-$AUTHENTICATION_MODULE = "authentication.php";	//-- File that contains authentication functions
+$INDEX_DIRECTORY=STORAGE_PKG_PATH.'pgvindex/'; //-- Readable and Writeable Directory to store index files (include the trailing "/")
+$AUTHENTICATION_MODULE = "bitweaverauth.php";	//-- File that contains authentication functions
 $PGV_STORE_MESSAGES=true; //-- allow messages sent to users to be stored in the PGV system
 $PGV_SIMPLE_MAIL=true; //-- allow admins to set this so that they can override the name <emailaddress> combination in the emails
 $USE_REGISTRATION_MODULE=false; //-- turn on the user self registration module
