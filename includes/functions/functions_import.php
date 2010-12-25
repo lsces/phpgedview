@@ -1050,7 +1050,7 @@ function update_media($gid, $ged_id, $gedrec, $update = false) {
 		$old_linked_media=
 			$gBitDb->getAll(
 				"SELECT mm_media, mm_gedrec FROM {$TBLPREFIX}media_mapping WHERE mm_gid=? AND mm_gedfile=?"
-				, array($gid, $GEDCOMS[$FILE]['id']));
+				, array($gid, $ged_id));
 	}
 
 	//-- check to see if there are any media records
@@ -1125,7 +1125,7 @@ function update_media($gid, $ged_id, $gedrec, $update = false) {
 	if ($keepmedia) {
 		$newrec = trim($newrec)."\n";
 		foreach ($old_linked_media as $i=>$row) {
-			$newrec .= trim($row[1])."\n";
+			$newrec .= trim($row['mm_gedrec'])."\n";
 		}
 	}
 
