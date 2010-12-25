@@ -1129,13 +1129,14 @@ function whatLanguage($string) {
  * @see http://www.php.net/manual/en/function.get-html-translation-table.php
  * @param string $string	the string to remove the entities from
  * @return string	the string with entities converted
- */
+ *
 function unhtmlentities($string)  {
 	$trans_tbl=array_flip(get_html_translation_table (HTML_ENTITIES));
 	$trans_tbl['&lrm;']=PGV_UTF8_LRM;
 	$trans_tbl['&rlm;']=PGV_UTF8_RLM;
 	return preg_replace('/&#(\d+);/e', "chr(\\1)", strtr($string, $trans_tbl));
 }
+*/
 
 /**
  * process a string according to bidirectional rules
