@@ -52,24 +52,25 @@ function print_logged_in_users($block = true, $config = "", $side, $index) {
 	global $pgv_lang, $PGV_SESSION_TIME, $TEXT_DIRECTION;
 
 	$block = true; // Always restrict this block's height
-
+/*
 	// Log out inactive users
 	foreach (get_idle_users(time()-$PGV_SESSION_TIME) as $user_id=>$user_name) {
 		if ($user_id!=PGV_USER_ID) {
 			userLogout($user_id);
 		}
 	}
-
+*/
 	// List active users
 	$NumAnonymous = 0;
 	$loggedusers = array ();
-	foreach (get_logged_in_users() as $user_id=>$user_name) {
+/*	foreach (get_logged_in_users() as $user_id=>$user_name) {
 		if (PGV_USER_IS_ADMIN || get_user_setting($user_id, 'visibleonline')=='Y') {
 			$loggedusers[$user_id]=$user_name;
 		} else {
 			$NumAnonymous++;
 		}
 	}
+*/
 
 	$id = "logged_in_users";
 	$title = print_help_link("index_loggedin_help", "qm", "", false, true);
