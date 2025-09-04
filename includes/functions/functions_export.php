@@ -3,7 +3,7 @@
 * Functions for exporting data
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2002 to 2009 PGV Development Team.  All rights reserved.
+* Copyright (C) 2002 to 2011 PGV Development Team.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,9 @@
 * @version $Id$
 */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_EXPORT_PHP', '');
-
-require_once(PHPGEDVIEW_PKG_PATH.'includes/classes/class_gedownloadgedcom.php');
 
 // Tidy up a gedcom record on export, for compatibility/portability
 function reformat_record_export($rec) {
@@ -94,7 +89,9 @@ function reformat_record_export($rec) {
 * Create a header for a (newly-created or already-imported) gedcom file.
 */
 function gedcom_header($gedfile) {
-	global $CHARACTER_SET, $GEDCOMS, $pgv_lang, $TBLPREFIX, $gBitDb;
+	global $CHARACTER_SET, $pgv_lang, $TBLPREFIX, $gBitDb;
+
+	$ged_id=get_id_from_gedcom($gedfile);
 
 	// Default values for a new header
 	$HEAD="0 HEAD";
@@ -111,8 +108,8 @@ function gedcom_header($gedfile) {
 	$SUBM="\n1 SUBM @SUBM@\n0 @SUBM@ SUBM\n1 NAME ".PGV_USER_NAME; // The SUBM record is mandatory
 
 	// Preserve some values from the original header
-	if (isset($GEDCOMS[$gedfile]['imported']) && $GEDCOMS[$gedfile]['imported']) {
-		$head=find_gedcom_record("HEAD");
+	if (get_gedcom_setting($ged_id, 'imported')) {
+		$head=find_gedcom_record("HEAD", $ged_id);
 		if (preg_match("/\n1 CHAR .+/", $head, $match)) {
 			$CHAR=$match[0];
 		}
@@ -130,14 +127,14 @@ function gedcom_header($gedfile) {
 		}
 		// Link to SUBM/SUBN records, if they exist
 		$subn = $gBitDb->getOne(
-			"SELECT o_id FROM ${TBLPREFIX}other WHERE o_type=? AND o_file=?"
-			,array('SUBN', $GEDCOMS[$gedfile]["id"]));
+			"SELECT o_id FROM {$TBLPREFIX}other WHERE o_type=? AND o_file=?"
+			, [ 'SUBN', $ged_id ]);
 		if ($subn) {
 			$SUBN="\n1 SUBN @{$subn}@";
 		}
 		$subm = $gBitDb->getOne(
-			"SELECT o_id FROM ${TBLPREFIX}other WHERE o_type=? AND o_file=?"
-			, array('SUBM', $GEDCOMS[$gedfile]["id"]));
+			"SELECT o_id FROM {$TBLPREFIX}other WHERE o_type=? AND o_file=?"
+			, [ 'SUBM', $ged_id ] );
 		if ($subm) {
 			$SUBM="\n1 SUBM @{$subm}@";
 		}
@@ -162,22 +159,25 @@ function createTempUser($userID, $rights, $gedcom) {
 	set_user_setting($tempUserID, 'max_relation_path', '0');
 	set_user_setting($tempUserID, 'visibleonline', 'N');
 	set_user_setting($tempUserID, 'contactmethod', 'none');
+
+	$gedcomID = get_id_from_gedcom($gedcom);
+
 	switch ($rights) {
 	case 'admin':
 		set_user_setting($tempUserID, 'canadmin', 'Y');
-		set_user_gedcom_setting($tempUserID, $gedcom, 'canedit', 'admin');
+		set_user_gedcom_setting($tempUserID, $gedcomID, 'canedit', 'admin');
 	case 'gedadmin':
 		set_user_setting($tempUserID, 'canadmin', 'N');
-		set_user_gedcom_setting($tempUserID, $gedcom, 'canedit', 'admin');
+		set_user_gedcom_setting($tempUserID, $gedcomID, 'canedit', 'admin');
 		break;
 	case 'user':
 		set_user_setting($tempUserID, 'canadmin', 'N');
-		set_user_gedcom_setting($tempUserID, $gedcom, 'canedit', 'access');
+		set_user_gedcom_setting($tempUserID, $gedcomID, 'canedit', 'access');
 		break;
 	case 'visitor':
 	default:
 		set_user_setting($tempUserID, 'canadmin', 'N');
-		set_user_gedcom_setting($tempUserID, $gedcom, 'canedit', 'none');
+		set_user_gedcom_setting($tempUserID, $gedcomID, 'canedit', 'none');
 		break;
 	}
 	AddToLog("created dummy user -> {$userID} <- with level {$rights} to GEDCOM {$gedcom}");
@@ -203,13 +203,13 @@ function createTempUser($userID, $rights, $gedcom) {
  */
 function remove_custom_tags($gedrec, $remove="no") {
 	if ($remove=="yes") {
-		//-- remove _PGVU
-		$gedrec = preg_replace("/\d _PGVU .*/", "", $gedrec);
+		//-- remove _PGV...
+		$gedrec = preg_replace("/\d _PGV.*/", "", $gedrec);
 		//-- remove _THUM
 		$gedrec = preg_replace("/\d _THUM .*/", "", $gedrec);
 	}
 	//-- cleanup so there are not any empty lines
-	$gedrec = preg_replace(array("/(\r\n)+/", "/\r+/", "/\n+/"), array("\r\n", "\r", "\n"), $gedrec);
+	$gedrec = preg_replace( [ "/(\r\n)+/", "/\r+/", "/\n+/" ], [ "\r\n", "\r", "\n" ], $gedrec);
 	//-- make downloaded file DOS formatted
 	$gedrec = preg_replace("/([^\r])\n/", "$1\n", $gedrec);
 	return $gedrec;
@@ -248,12 +248,13 @@ function convert_media_path($rec, $path, $slashes) {
  *			'slashes':		what folder separators apply to media file paths?  (forward, backward)
  */
 function export_gedcom($gedcom, $gedout, $exportOptions) {
-	global $GEDCOMS, $GEDCOM, $pgv_lang, $CHARACTER_SET;
+	global $GEDCOM, $pgv_lang, $CHARACTER_SET;
 	global $TBLPREFIX, $gBitDb;
 
 	// Temporarily switch to the specified GEDCOM
 	$oldGEDCOM = $GEDCOM;
 	$GEDCOM = $gedcom;
+	$ged_id=get_id_from_gedcom($gedcom);
 
 	$tempUserID = '#ExPoRt#';
 	if ($exportOptions['privatize']!='none') {
@@ -267,8 +268,8 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 
 	$head=gedcom_header($gedcom);
 	if ($exportOptions['toANSI']=="yes") {
-		$head=preg_replace("/UTF-8/", "ANSI", $head);
-		$head=utf8_decode($head);
+		$head = str_replace("UTF-8", "ANSI", $head);
+		$head = mb_convert_encoding($head, "UTF-8", mb_detect_encoding($head));
 	}
 	$head=remove_custom_tags($head, $exportOptions['noCustomTags']);
 
@@ -277,11 +278,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 
 	$recs = $gBitDb->query(
 		"SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id NOT LIKE ? ORDER BY i_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec=remove_custom_tags( $rec, $exportOptions['noCustomTags']);
+		$rec=remove_custom_tags( $rec['i_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom( $rec );
-		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode( $rec );
+		if ($exportOptions['toANSI']=="yes") $rec = mb_convert_encoding( $rec, "UTF-8", mb_detect_encoding( $rec));
 		$buffer.=reformat_record_export( $rec );
 		if (strlen($buffer)>65536) {
 			fwrite($gedout, $buffer);
@@ -291,11 +292,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 
 	$recs = $gBitDb->query(
 		"SELECT f_gedcom FROM {$TBLPREFIX}families WHERE f_file=? AND f_id NOT LIKE ? ORDER BY f_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+		$rec=remove_custom_tags( $rec['f_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
-		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
+		if ($exportOptions['toANSI']=="yes") $rec = mb_convert_encoding( $rec, "UTF-8", mb_detect_encoding( $rec));
 		$buffer.=reformat_record_export($rec);
 		if (strlen($buffer)>65536) {
 			fwrite($gedout, $buffer);
@@ -305,11 +306,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 
 	$recs = $gBitDb->query(
 		"SELECT s_gedcom FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id NOT LIKE ? ORDER BY s_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+		$rec=remove_custom_tags( $rec['s_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
-		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
+		if ($exportOptions['toANSI']=="yes") $rec = mb_convert_encoding( $rec, "UTF-8", mb_detect_encoding( $rec));
 		$buffer.=reformat_record_export($rec);
 		if (strlen($buffer)>65536) {
 			fwrite($gedout, $buffer);
@@ -319,11 +320,11 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 
 	$recs = $gBitDb->query(
 		"SELECT o_gedcom FROM {$TBLPREFIX}other WHERE o_file=? AND o_id NOT LIKE ? AND o_type!=? AND o_type!=? ORDER BY o_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%', 'HEAD', 'TRLR'));
+		, [ $ged_id, '%:%', 'HEAD', 'TRLR' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
+		$rec=remove_custom_tags( $rec['o_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
-		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
+		if ($exportOptions['toANSI']=="yes") $rec = mb_convert_encoding( $rec, "UTF-8", mb_detect_encoding( $rec));
 		$buffer.=reformat_record_export($rec);
 		if (strlen($buffer)>65536) {
 			fwrite($gedout, $buffer);
@@ -333,12 +334,12 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
 
 	$recs = $gBitDb->query(
 		"SELECT m_gedrec FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media NOT LIKE ? ORDER BY m_media"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec = convert_media_path($rec, $exportOptions['path'], $exportOptions['slashes']);
+		$rec = convert_media_path( $rec['m_gedrec'], $exportOptions['path'], $exportOptions['slashes']);
 		$rec=remove_custom_tags($rec, $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
-		if ($exportOptions['toANSI']=="yes") $rec=utf8_decode($rec);
+		if ($exportOptions['toANSI']=="yes") $rec = mb_convert_encoding( $rec, "UTF-8", mb_detect_encoding( $rec));;
 		$buffer.=reformat_record_export($rec);
 		if (strlen($buffer)>65536) {
 			fwrite($gedout, $buffer);
@@ -371,12 +372,13 @@ function export_gedcom($gedcom, $gedout, $exportOptions) {
  *			'slashes':		what folder separators apply to media file paths?  (forward, backward)
  */
 function export_gramps($gedcom, $gedout, $exportOptions) {
-	global $GEDCOMS, $GEDCOM, $pgv_lang;
+	global $GEDCOM, $pgv_lang;
 	global $TBLPREFIX, $gBitDb;
 
 	// Temporarily switch to the specified GEDCOM
 	$oldGEDCOM = $GEDCOM;
 	$GEDCOM = $gedcom;
+	$ged_id=get_id_from_gedcom($gedcom);
 
 	$tempUserID = '#ExPoRt#';
 	if ($exportOptions['privatize']!='none') {
@@ -393,36 +395,40 @@ function export_gramps($gedcom, $gedout, $exportOptions) {
 
 	$recs = $gBitDb->query(
 		"SELECT i_id, i_gedcom FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id NOT LIKE ? ORDER BY i_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
+		$id = $rec['i_id'];		
+		$rec = remove_custom_tags( $rec['i_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_person($rec, $id);
 	}
 
 	$recs = $gBitDb->query(
 		"SELECT f_id, f_gedcom FROM {$TBLPREFIX}families WHERE f_file=? AND f_id NOT LIKE ? ORDER BY f_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
+		$id = $rec['f_id'];		
+		$rec = remove_custom_tags( $rec['f_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_family($rec, $id);
 	}
 
 	$recs = $gBitDb->query(
 		"SELECT s_id, s_gedcom FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id NOT LIKE ? ORDER BY s_id"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
+		$id = $rec['s_id'];		
+		$rec = remove_custom_tags( $rec['s_gedcom'], $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_source($rec, $id);
 	}
 
 	$recs = $gBitDb->query(
 		"SELECT m_media, m_gedrec FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media NOT LIKE ? ORDER BY m_media"
-		, array($GEDCOMS[$gedcom]['id'], '%:%'));
+		, [ $ged_id, '%:%' ]);
 	while ( $rec = $recs->fetchRow() ) {
-		$rec = convert_media_path($rec, $exportOptions['path'], $exportOptions['slashes']);
+		$id = $rec['m_media'];		
+		$rec = convert_media_path( $rec['m_gedrec'], $exportOptions['path'], $exportOptions['slashes']);
 		$rec = remove_custom_tags($rec, $exportOptions['noCustomTags']);
 		if ($exportOptions['privatize']!='none') $rec=privatize_gedcom($rec);
 		$geDownloadGedcom->create_media($rec, $id);
@@ -439,31 +445,31 @@ function export_gramps($gedcom, $gedout, $exportOptions) {
 }
 
 function um_export($proceed) {
-	global $INDEX_DIRECTORY, $TBLPREFIX, $pgv_lang, $gBitDb;
+	global $TBLPREFIX, $pgv_lang, $gBitDb;
 
 	// Get user array and create authenticate.php
 	if (($proceed=="export") || ($proceed=="exportovr")) {
 		print $pgv_lang["um_creating"]." \"authenticate.php\"<br /><br />";
 	}
-	$authtext="<?php\n\n\$users=array();\n\n";
+	$authtext="<?php\n\n\$users=[];\n\n";
 	foreach (get_all_users() as $user_id=>$username) {
-		$authtext .="\$user=array();\n";
-		foreach (array('username', 'firstname', 'lastname', 'gedcomid', 'rootid', 'password','canadmin', 'canedit', 'email', 'verified','verified_by_admin', 'language', 'pwrequested', 'reg_timestamp','reg_hashcode', 'theme', 'loggedin', 'sessiontime', 'contactmethod', 'visibleonline', 'editaccount', 'defaulttab','comment', 'comment_exp', 'sync_gedcom', 'relationship_privacy', 'max_relation_path', 'auto_accept') as $ukey) {
+		$authtext .="\$user=[];\n";
+		foreach ( [ 'username', 'firstname', 'lastname', 'gedcomid', 'rootid', 'password', 'canadmin', 'canedit', 'email', 'verified', 'verified_by_admin', 'language', 'pwrequested', 'reg_timestamp', 'reg_hashcode', 'theme', 'loggedin', 'sessiontime', 'contactmethod', 'visibleonline', 'editaccount', 'defaulttab', 'comment', 'comment_exp', 'sync_gedcom', 'relationship_privacy', 'max_relation_path', 'auto_accept' ] as $ukey) {
 			$value=get_user_setting($user_id, $ukey);
 			// Convert Y/N/yes/no to bools
-			if (in_array($ukey, array('canadmin', 'loggedin', 'visibleonline', 'editaccount', 'sync_gedcom', 'relationship_privacy', 'auto_accept'))) {
-				$value=($value=='Y');
+			if (in_array($ukey, [ 'canadmin', 'loggedin', 'visibleonline', 'editaccount', 'sync_gedcom', 'relationship_privacy', 'auto_accept' ])) {
+				$value= $value == 'Y';
 			}
-			if (in_array($ukey, array('verified', 'verified_by_admin'))) {
-				$value=($value=='yes');
+			if (in_array( $ukey, [ 'verified', 'verified_by_admin' ] )) {
+				$value = $value == 'yes';
 			}
 			if (!is_array($value)) {
-				$value=preg_replace('/"/', '\\"', $value);
+				$value=str_replace('"', '\\"', $value);
 				$authtext .="\$user[\"$ukey\"]='$value';\n";
 			} else {
-				$authtext .="\$user[\"$ukey\"]=array();\n";
+				$authtext .="\$user[\"$ukey\"]=[];\n";
 				foreach ($value as $subkey=>$subvalue) {
-					$subvalue=preg_replace('/"/', '\\"', $subvalue);
+					$subvalue=str_replace('"', '\\"', $subvalue);
 					$authtext .="\$user[\"$ukey\"][\"$subkey\"]='$subvalue';\n";
 				}
 			}
@@ -471,34 +477,34 @@ function um_export($proceed) {
 		$authtext .="\$users[\"$username\"]=\$user;\n\n";
 	}
 	$authtext .="?".">\n";
-	if (file_exists($INDEX_DIRECTORY."authenticate.php")) {
-		print $pgv_lang["um_file_create_fail1"]." ".$INDEX_DIRECTORY."authenticate.php<br /><br />";
+	if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) {
+		print $pgv_lang["um_file_create_fail1"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php<br /><br />";
 	} else {
-		$fp=fopen($INDEX_DIRECTORY."authenticate.php", "w");
+		$fp=fopen(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php", "w");
 		if ($fp) {
 			fwrite($fp, $authtext);
 			fclose($fp);
 			$logline=AddToLog("authenticate.php updated");
-			check_in($logline, "authenticate.php", $INDEX_DIRECTORY);
+			check_in($logline, "authenticate.php", PHPGEDVIEW_PKG_INDEX_PATH );
 			if (($proceed=="export") || ($proceed=="exportovr")) {
 				print $pgv_lang["um_file_create_succ1"]." authenticate.php<br /><br />";
 			}
 		} else
-			print $pgv_lang["um_file_create_fail2"]." ".$INDEX_DIRECTORY."authenticate.php. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
+			print $pgv_lang["um_file_create_fail2"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
 	}
 
 	// Get messages and create messages.dat
 	if (($proceed=="export") || ($proceed=="exportovr")) {
 		print $pgv_lang["um_creating"]." \"messages.dat\"<br /><br />";
 	}
-	$messages=array();
+	$messages=[];
 	$mesid=1;
 	$recs = $gBitDb->query(
 		"SELECT * FROM {$TBLPREFIX}messages ORDER BY m_id DESC");
-	while ( $rec = $recs->fetchRow() ) {
-		$message=array();
+	while ( $row = $recs->fetchRow() ) {
+		$message=[];
 		$message["id"]=$mesid;
-		$mesid=$mesid + 1;
+		$mesid++;
 		$message["to"]=$row["m_to"];
 		$message["from"]=$row["m_from"];
 		$message["subject"]=$row["m_subject"];
@@ -508,20 +514,20 @@ function um_export($proceed) {
 	}
 	if ($mesid > 1) {
 		$mstring=serialize($messages);
-			if (file_exists($INDEX_DIRECTORY."messages.dat")) {
-			print $pgv_lang["um_file_create_fail1"]." ".$INDEX_DIRECTORY."messages.dat<br /><br />";
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) {
+			print $pgv_lang["um_file_create_fail1"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat<br /><br />";
 		} else {
-			$fp=fopen($INDEX_DIRECTORY."messages.dat", "wb");
+			$fp=fopen(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat", "wb");
 			if ($fp) {
 				fwrite($fp, $mstring);
 				fclose($fp);
 				$logline=AddToLog("messages.dat updated");
-				check_in($logline, "messages.dat", $INDEX_DIRECTORY);
+				check_in($logline, "messages.dat", PHPGEDVIEW_PKG_INDEX_PATH );
 				if (($proceed=="export") || ($proceed=="exportovr")) {
 					print $pgv_lang["um_file_create_succ1"]." messages.dat<br /><br />";
 				}
 			} else
-				print $pgv_lang["um_file_create_fail2"]." ".$INDEX_DIRECTORY."messages.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
+				print $pgv_lang["um_file_create_fail2"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
 		}
 	} else {
 		if (($proceed=="export") || ($proceed=="exportovr")) {
@@ -533,14 +539,14 @@ function um_export($proceed) {
 	if (($proceed=="export") || ($proceed=="exportovr")) {
 		print $pgv_lang["um_creating"]." \"favorites.dat\"<br /><br />";
 	}
-	$favorites=array();
+	$favorites=[];
 	$recs = $gBitDb->query(
 		"SELECT * FROM {$TBLPREFIX}favorites");
 	$favid=1;
 	while ( $rec = $recs->fetchRow() ) {
-		$favorite=array();
+		$favorite=[];
 		$favorite["id"]=$favid;
-		$favid=$favid + 1;
+		$favid++;
 		$favorite["username"]=$row["fv_username"];
 		$favorite["gid"]=$row["fv_gid"];
 		$favorite["type"]=$row["fv_type"];
@@ -552,20 +558,20 @@ function um_export($proceed) {
 	}
 	if ($favid > 1) {
 		$mstring=serialize($favorites);
-		if (file_exists($INDEX_DIRECTORY."favorites.dat")) {
-			print $pgv_lang["um_file_create_fail1"]." ".$INDEX_DIRECTORY."favorites.dat<br /><br />";
+		if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) {
+			print $pgv_lang["um_file_create_fail1"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat<br /><br />";
 		} else {
-			$fp=fopen($INDEX_DIRECTORY."favorites.dat", "wb");
+			$fp=fopen(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat", "wb");
 			if ($fp) {
 				fwrite($fp, $mstring);
 				fclose($fp);
 				$logline=AddToLog("favorites.dat updated");
-				check_in($logline, "favorites.dat", $INDEX_DIRECTORY);
+				check_in($logline, "favorites.dat", PHPGEDVIEW_PKG_INDEX_PATH );
 				if (($proceed=="export") || ($proceed=="exportovr")) {
 					print $pgv_lang["um_file_create_succ1"]." favorites.dat<br /><br />";
 				}
 			} else
-				print $pgv_lang["um_file_create_fail2"]." ".$INDEX_DIRECTORY."favorites.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
+				print $pgv_lang["um_file_create_fail2"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
 		}
 	} else {
 		if (($proceed=="export") || ($proceed=="exportovr")) {
@@ -577,34 +583,34 @@ function um_export($proceed) {
 	if (($proceed=="export") || ($proceed=="exportovr")) {
 		print $pgv_lang["um_creating"]." \"news.dat\"<br /><br />";
 	}
-	$allnews=array();
+	$allnews=[];
 	$recs = $gBitDb->query(
 		"SELECT * FROM {$TBLPREFIX}news ORDER BY n_date DESC");
 	while ( $rec = $recs->fetchRow() ) {
-		$news=array();
-		$news["id"]=$row["n_id"];
-		$news["username"]=$row["n_username"];
-		$news["date"]=$row["n_date"];
-		$news["title"]=$row["n_title"];
-		$news["text"]=$row["n_text"];
-		$allnews[$row["n_id"]]=$news;
+		$news=[];
+		$news["id"]=$rec["n_id"];
+		$news["username"]=$rec["n_username"];
+		$news["date"]=$rec["n_date"];
+		$news["title"]=$rec["n_title"];
+		$news["text"]=$rec["n_text"];
+		$allnews[$rec["n_id"]]=$news;
 	}
 	if (count($allnews) > 0) {
 		$mstring=serialize($allnews);
-		if (file_exists($INDEX_DIRECTORY."news.dat")) {
-			print $pgv_lang["um_file_create_fail1"].$INDEX_DIRECTORY."news.dat<br /><br />";
+		if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) {
+			print $pgv_lang["um_file_create_fail1"].PHPGEDVIEW_PKG_INDEX_PATH ."news.dat<br /><br />";
 		} else {
-			$fp=fopen($INDEX_DIRECTORY."news.dat", "wb");
+			$fp=fopen(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat", "wb");
 			if ($fp) {
 				fwrite($fp, $mstring);
 				fclose($fp);
 				$logline=AddToLog("news.dat updated");
-				check_in($logline, "news.dat", $INDEX_DIRECTORY);
+				check_in($logline, "news.dat", PHPGEDVIEW_PKG_INDEX_PATH );
 				if (($proceed=="export") || ($proceed=="exportovr")) {
 					print $pgv_lang["um_file_create_succ1"]." news.dat<br /><br />";
 				}
 			} else
-				print $pgv_lang["um_file_create_fail2"]." ".$INDEX_DIRECTORY."news.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
+				print $pgv_lang["um_file_create_fail2"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."news.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
 		}
 	} else {
 		if (($proceed=="export") || ($proceed=="exportovr")) {
@@ -616,13 +622,13 @@ function um_export($proceed) {
 	if (($proceed=="export") || ($proceed=="exportovr")) {
 		print $pgv_lang["um_creating"]." \"blocks.dat\"<br /><br />";
 	}
-	$allblocks=array();
-	$blocks["main"]=array();
-	$blocks["right"]=array();
-	$recs = $gBitDb->query(
+	$allblocks=[];
+	$blocks["main"]=[];
+	$blocks["right"]=[];
+	$rows = $gBitDb->query(
 		"SELECT * FROM {$TBLPREFIX}blocks ORDER BY b_location, b_order");
-	while ( $rec = $recs->fetchRow() ) {
-		$blocks=array();
+	while ( $row = $rows->fetchRow() ) {
+		$blocks=[];
 		$blocks["username"]=$row["b_username"];
 		$blocks["location"]=$row["b_location"];
 		$blocks["order"]=$row["b_order"];
@@ -632,20 +638,20 @@ function um_export($proceed) {
 	}
 	if (count($allblocks) > 0) {
 		$mstring=serialize($allblocks);
-		if (file_exists($INDEX_DIRECTORY."blocks.dat")) {
-			print $pgv_lang["um_file_create_fail1"]." ".$INDEX_DIRECTORY."blocks.dat<br /><br />";
+		if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) {
+			print $pgv_lang["um_file_create_fail1"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat<br /><br />";
 		} else {
-			$fp=fopen($INDEX_DIRECTORY."blocks.dat", "wb");
+			$fp=fopen(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat", "wb");
 			if ($fp) {
 				fwrite($fp, $mstring);
 				fclose($fp);
 				$logline=AddToLog("blocks.dat updated");
-				check_in($logline, "blocks.dat", $INDEX_DIRECTORY);
+				check_in($logline, "blocks.dat", PHPGEDVIEW_PKG_INDEX_PATH );
 				if (($proceed=="export") || ($proceed=="exportovr")) {
 					print $pgv_lang["um_file_create_succ1"]." blocks.dat<br /><br />";
 				}
 			} else
-				print $pgv_lang["um_file_create_fail2"]." ".$INDEX_DIRECTORY."blocks.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
+				print $pgv_lang["um_file_create_fail2"]." ".PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat. ".$pgv_lang["um_file_create_fail3"]."<br /><br />";
 		}
 	} else {
 		if ($proceed=="export" || $proceed=="exportovr") {
@@ -653,4 +659,3 @@ function um_export($proceed) {
 		}
 	}
 }
-?>

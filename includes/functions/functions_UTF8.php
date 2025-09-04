@@ -3,7 +3,7 @@
  * String handling functions for strings optionally containing UTF-8 characters.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_UTF8_PHP', '');
 
@@ -250,6 +247,19 @@ function UTF8_strtolower($text) {
 		if (isset($UTF8_UC_letters[$letter])) $result[] = $UTF8_UC_letters[$letter];
 		else $result[] = $letter;		// No translation when no matching lower case letter exists
 	}
+
+	if (is_array($text)) return $result;
+	else return implode('', $result);
+}
+
+
+/*
+ * Convert first letter of input string to upper case
+ */
+function UTF8_ucfirst($text) {
+	$result = UTF8_str_split($text);
+
+	$result[0] = UTF8_strtoupper($result[0]);
 
 	if (is_array($text)) return $result;
 	else return implode('', $result);

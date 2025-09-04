@@ -23,14 +23,9 @@
 * @version $Id$
 */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_DATE_PHP', '');
-
-require_once(PHPGEDVIEW_PKG_PATH.'includes/classes/class_date.php');
 
 /**
 * translate gedcom age string
@@ -49,9 +44,9 @@ function get_age_at_event($agestring, $show_years) {
 	global $pgv_lang, $lang_short_cut, $LANGUAGE;
 
 	// Allow special processing for different languages
-	$func="age_localisation_{$lang_short_cut[$LANGUAGE]}";
+	$func="\age_localisation_{$lang_short_cut[$LANGUAGE]}";
 	if (!function_exists($func)) {
-		$func="DefaultAgeLocalisation";
+		$func="\Bitweaver\Phpgedview\DefaultAgeLocalisation";
 	}
 	// Localise the age
 	$func($agestring, $show_years);
@@ -64,7 +59,7 @@ function DefaultAgeLocalisation(&$agestring, &$show_years) {
 	global $pgv_lang;
 
 	$agestring=preg_replace(
-		array(
+		[
 			'/\bchi(ld)?\b/i',
 			'/\binf(ant)?\b/i',
 			'/\bsti(llborn)?\b/i',
@@ -75,21 +70,21 @@ function DefaultAgeLocalisation(&$agestring, &$show_years) {
 			'/\b1d/i',
 			'/(\d+)d/i',
 			'/\b1w/i',
-			'/(\d+)w/i'
-		),
-		array(
+			'/(\d+)w/i',
+		],
+		[
 			$pgv_lang["child"],
 			$pgv_lang["infant"],
 			$pgv_lang["stillborn"],
-			($show_years || preg_match('/[dm]/', $agestring)) ? '1 '.$pgv_lang["year1"] : '1',
-			($show_years || preg_match('/[dm]/', $agestring)) ? '$1 '.$pgv_lang["years"] : '$1',
-			'1 '.$pgv_lang["month1"],
-			'$1 '.$pgv_lang["months"],
-			'1 '.$pgv_lang["day1"],
-			'$1 '.$pgv_lang["days"],
-	  	'1 '.$pgv_lang["week1"],
-			'$1 '.$pgv_lang["weeks"]
-		),
+			( $show_years || preg_match( '/[dm]/', $agestring ) ) ? '1 ' . $pgv_lang["year1"] : '1',
+			( $show_years || preg_match( '/[dm]/', $agestring ) ) ? '$1 ' . $pgv_lang["years"] : '$1',
+			'1 ' . $pgv_lang["month1"],
+			'$1 ' . $pgv_lang["months"],
+			'1 ' . $pgv_lang["day1"],
+			'$1 ' . $pgv_lang["days"],
+			'1 ' . $pgv_lang["week1"],
+			'$1 ' . $pgv_lang["weeks"]
+		],
 		$agestring
 	);
 }
@@ -207,9 +202,9 @@ function formatElapsedTime($elapsedTime, $truncate=true) {
 function parse_time($timestr)
 {
 	$time = explode(':', $timestr.':0:0');
-	$time[0] = min(((int) $time[0]), 23); // Hours: integer, 0 to 23
-	$time[1] = min(((int) $time[1]), 59); // Minutes: integer, 0 to 59
-	$time[2] = min(((int) $time[2]), 59); // Seconds: integer, 0 to 59
+	$time[0] = min( (int) $time[0], 23); // Hours: integer, 0 to 23
+	$time[1] = min( (int) $time[1], 59); // Minutes: integer, 0 to 59
+	$time[2] = min( (int) $time[2], 59); // Seconds: integer, 0 to 59
 	$time["hour"] = $time[0];
 	$time["minutes"] = $time[1];
 	$time["seconds"] = $time[2];
@@ -237,16 +232,16 @@ function default_edit_to_gedcom_date($datestr)
 	// ads:adr_leap_year:adr to prevent "Adar" matching "Adar Sheni" or "Adar I" matching "Adar II"
 	// \b prevents the german JULI matching @#DJULIAN@, etc.
 
-	foreach (array('jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec','vend','brum','frim','nivo','pluv','vent','germ','flor','prai','mess','ther','fruc','comp','tsh','csh','ksl','tvt','shv','nsn','iyr','svn','tmz','aav','ell','abt','aft','bef','bet','cal','est','from','int','to','b.c.') as $keyword) {
-		$datestr=preg_replace("/\b".str_replace('.','[.]?',$pgv_lang[$keyword])."\b/i", strtoupper($keyword), $datestr);
+	foreach ( [ 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'vend', 'brum', 'frim', 'nivo', 'pluv', 'vent', 'germ', 'flor', 'prai', 'mess', 'ther', 'fruc', 'comp', 'tsh', 'csh', 'ksl', 'tvt', 'shv', 'nsn', 'iyr', 'svn', 'tmz', 'aav', 'ell', 'abt', 'aft', 'bef', 'bet', 'cal', 'est', 'from', 'int', 'to', 'b.c.' ] as $keyword) {
+		$datestr=preg_replace('/\b'.str_replace('.','[.]?',$pgv_lang[$keyword]).'\b/i', strtoupper($keyword), $datestr);
 	}
 
-	foreach (array('ads','adr_leap_year','adr','jan_1st','feb_1st','mar_1st','apr_1st','may_1st','jun_1st','jul_1st','aug_1st','sep_1st','oct_1st','nov_1st','dec_1st') as $keyword) {
-		$datestr=preg_replace("/\b".str_replace('.','[.]?',$pgv_lang[$keyword])."\b/i", strtoupper(substr($keyword,0,3)), $datestr);
+	foreach ( [ 'ads', 'adr_leap_year', 'adr', 'jan_1st', 'feb_1st', 'mar_1st', 'apr_1st', 'may_1st', 'jun_1st', 'jul_1st', 'aug_1st', 'sep_1st', 'oct_1st', 'nov_1st', 'dec_1st' ] as $keyword) {
+		$datestr=preg_replace('/\b'.str_replace('.','[.]?',$pgv_lang[$keyword]).'\b/i', strtoupper(substr($keyword,0,3)), $datestr);
 	}
 
-	foreach (array('and') as $keyword) {
-		$datestr=preg_replace("/\b".str_replace('.','[.]?',$pgv_lang[$keyword])."\b/i", strtoupper($keyword), $datestr);
+	foreach ( [ 'and' ] as $keyword) {
+		$datestr=preg_replace('/\b'.str_replace('.','[.]?',$pgv_lang[$keyword]).'\b/i', strtoupper($keyword), $datestr);
 	}
 
 	return $datestr;
@@ -305,5 +300,3 @@ function client_time() {
 		return time();
 	}
 }
-
-?>

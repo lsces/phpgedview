@@ -24,17 +24,16 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_PLACE_PHP', '');
 
 function get_plac_label() {
 	global $pgv_lang, $factarray;
+	global $GEDCOM;
+	$ged_id=get_id_from_gedcom($GEDCOM);
 
-	$HEAD = find_gedcom_record("HEAD");
+	$HEAD = find_gedcom_record("HEAD", $ged_id);
 	$HEAD_PLAC = get_sub_record(1, "1 PLAC", $HEAD);
 	$HEAD_PLAC_FORM = get_sub_record(1, "2 FORM", $HEAD_PLAC);
 	$HEAD_PLAC_FORM = substr($HEAD_PLAC_FORM, 7);
@@ -57,17 +56,17 @@ function setup_place_subfields($element_id) {
 	$plac_label = get_plac_label();
 
 	?>
-	<script language="JavaScript" type="text/javascript">
+	<script>
 	<!--
 	include_css('places/dropdown.css');
 	-->
 	</script>
-	<script type="text/javascript" src="places/getobject.js"></script>
-	<script type="text/javascript" src="places/modomt.js"></script>
-	<script type="text/javascript" src="places/xmlextras.js"></script>
-	<script type="text/javascript" src="places/acdropdown.js"></script>
-	<script type="text/javascript" src="js/strings.js"></script>
-	<script type="text/javascript">
+	<script src="places/getobject.js"></script>
+	<script src="places/modomt.js"></script>
+	<script src="places/xmlextras.js"></script>
+	<script src="places/acdropdown.js"></script>
+	<script src="js/strings.js"></script>
+	<script>
 	<!--
 	var element_id = '<?php print $element_id; ?>';
 	function http_loadmap(ctry) {
@@ -298,7 +297,7 @@ function print_place_subfields($element_id) {
 		$subtagid=$element_id."_".$i;
 		$subtagname=$element_id."_".$i;
 		$plac_label[$i]=trim($plac_label[$i]);
-		if (in_array($plac_label[$i], array("Country", "Pays", "Land", "Zeme", "�lke", "Pa�s", "Orsz�g", "Nazione", "Kraj", "Maa", $factarray["CTRY"]))) {
+		if (in_array(UTF8_ucfirst($plac_label[$i]), [ "Country", "Pays", "Land", "Zeme", "Ülke", "País", "Ország", "Nazione", "Kraj", "Maa", $factarray["CTRY"] ])) {
 			$cols="8";
 			$subtagname=$element_id."_PLAC_CTRY";
 			$icountry=$i;
@@ -351,7 +350,7 @@ function print_place_subfields($element_id) {
 
 /**
  * get the URL to link to a place
- * @string a url that can be used to link to placelist
+ * @return string a url that can be used to link to placelist
  */
 function get_place_url($gedcom_place) {
 	global $GEDCOM;
@@ -361,7 +360,7 @@ function get_place_url($gedcom_place) {
 	for ($i=0; $i<$level; $i++) {
 		$url .= "&parent[".$i."]=".trim($exp[$level-$i-1]);
 	}
-	$url .= "&ged=".$GEDCOM;
+	$url .= "&ged=$GEDCOM";
 	return $url;
 }
 

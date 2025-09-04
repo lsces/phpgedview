@@ -23,33 +23,10 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_NAME_PHP', '');
-
-/**
- * Get array of common surnames from index
- *
- * This function returns a simple array of the most common surnames
- * found in the individuals list.
- * @param int $min the number of times a surname must occur before it is added to the array
- */
-function get_common_surnames_index($ged) {
-	global $GEDCOMS;
-
-	if (empty($GEDCOMS[$ged]["commonsurnames"])) store_gedcoms();
-	$surnames = array();
-	if (empty($GEDCOMS[$ged]["commonsurnames"]) || ($GEDCOMS[$ged]["commonsurnames"]==",")) return $surnames;
-	$names = preg_split("/[,;]/", $GEDCOMS[$ged]["commonsurnames"]);
-	foreach($names as $indexval => $name) {
-		$name = trim($name);
-		if (!empty($name)) $surnames[$name]["name"] = stripslashes($name);
-	}
-	return $surnames;
-}
+require_once PGV_ROOT.'includes/functions/functions_lang.php';
 
 /**
  * Get array of common surnames
@@ -59,47 +36,28 @@ function get_common_surnames_index($ged) {
  * @param int $min the number of times a surname must occur before it is added to the array
  */
 function get_common_surnames($min) {
-	global $GEDCOM, $CONFIGURED, $GEDCOMS, $COMMON_NAMES_ADD, $COMMON_NAMES_REMOVE, $pgv_lang, $HNN, $ANN;
+	global $COMMON_NAMES_ADD, $COMMON_NAMES_REMOVE;
 
-	$surnames = array();
-	if (!$CONFIGURED || !adminUserExists() || (count($GEDCOMS)==0) || (!check_for_import($GEDCOM))) return $surnames;
-	$surnames = get_top_surnames(100);
-	arsort($surnames);
-	$topsurns = array();
-	$i=0;
-	foreach($surnames as $indexval => $surname) {
-		$surname["name"] = trim($surname["name"]);
-		if (!empty($surname["name"])
-				&& stristr($surname["name"], "@N.N")===false
-				&& stristr($surname["name"], $HNN)===false
-				&& stristr($surname["name"], $ANN.",")===false
-				&& stristr($COMMON_NAMES_REMOVE, $surname["name"])===false ) {
-			if ($surname["match"]>=$min) {
-				$topsurns[$surname["name"]] = $surname;
-			}
-			$i++;
+	$topsurns=get_top_surnames(PGV_GED_ID, $min, 0);
+	foreach (preg_split('/[,;] /', $COMMON_NAMES_ADD) as $surname) {
+		if (!array_key_exists($surname, $topsurns)) {
+			$topsurns[$surname]=$min;
 		}
 	}
-	$addnames = preg_split("/[,;] /", $COMMON_NAMES_ADD);
-	if ((count($addnames)==0) && (!empty($COMMON_NAMES_ADD))) $addnames[] = $COMMON_NAMES_ADD;
-	foreach($addnames as $indexval => $name) {
-		if (!empty($name)) {
-			$topsurns[$name]["name"] = $name;
-			$topsurns[$name]["match"] = $min;
-		}
-	}
-	$delnames = preg_split("/[,;] /", $COMMON_NAMES_REMOVE);
-	if ((count($delnames)==0) && (!empty($COMMON_NAMES_REMOVE))) $delnames[] = $COMMON_NAMES_REMOVE;
-	foreach($delnames as $indexval => $name) {
-		if (!empty($name)) {
-			unset($topsurns[$name]);
-		}
+	foreach (preg_split('/[,;] /', $COMMON_NAMES_REMOVE) as $surname) {
+		unset($topsurns[UTF8_strtoupper($surname)]);
 	}
 
 	//-- check if we found some, else recurse
-	if (empty($topsurns) && $min>2) $topsurns = get_common_surnames($min/2);
-	uksort($topsurns, "stringsort");
-	return $topsurns;
+	if (empty($topsurns) && $min>2) {
+		return get_common_surnames($min/2);
+	} else {
+		uksort($topsurns, "\Bitweaver\Phpgedview\stringsort");
+		foreach ($topsurns as $key=>$value) {
+			$topsurns[$key] = [ 'name' => $key, 'match' => $value ];
+		}
+		return $topsurns;
+	}
 }
 
 /**
@@ -112,76 +70,11 @@ function get_common_surnames($min) {
  * @return string	The updated name
  */
 function strip_prefix($lastname){
-	$name = preg_replace(array("/ [jJsS][rR]\.?,/", "/ I+,/", "/^([a-z]{1,4}[\. \_\-\(\[])+/"), array(",",",",""), $lastname);
+	$name = preg_replace( [ '/ [jJsS][rR]\.?,/', '/ I+,/', '/^([a-z]{1,4}[\. \_\-\(\[])+/' ], [ ',', ',', '' ], $lastname);
 	$name = trim($name);
-	if ($name=="") return $lastname;
+	if ($name=='') return $lastname;
 	return $name;
 }
-
-/**
- * get first letter
- *
- * get the first letter of a UTF-8 string
- * @param string $text	the text to get the first letter from
- * @return string 	the first letter UTF-8 encoded
- */
-function get_first_letter($text, $import=false) {
-	global $LANGUAGE, $CHARACTER_SET;
-	global $digraph, $trigraph, $quadgraph, $digraphAll, $trigraphAll, $quadgraphAll;
-
-	$danishFrom = array("AA", "Aa", "AE", "Ae", "OE", "Oe", "aa", "ae", "oe");
-	$danishTo   = array("Å", "Å", "Æ", "Æ", "Ø", "Ø", "å", "æ", "ø");
-
-	$text=trim(UTF8_strtoupper($text));
-	if (!$import) {
-		if ($LANGUAGE=="danish" || $LANGUAGE=="norwegian") {
-			$text = str_replace($danishFrom, $danishTo, $text);
-		}
-	}
-
-	$multiByte = false;
-	// Look for 4-byte combinations that should be treated as a single character
-	$letter = substr($text, 0, 4);
-	if ($import) {
-		if (isset($quadgraphAll[$letter])) $multiByte = true;
-	} else {
-		if (isset($quadgraph[$letter])) $multiByte = true;
-	}
-
-	if (!$multiByte) {
-		// 4-byte combination isn't listed: try 3-byte combination
-		$letter = substr($text, 0, 3);
-		if ($import) {
-			if (isset($trigraphAll[$letter])) $multiByte = true;
-		} else {
-			if (isset($trigraph[$letter])) $multiByte = true;
-		}
-	}
-
-	if (!$multiByte) {
-		// 3-byte combination isn't listed: try 2-byte combination
-		$letter = substr($text, 0, 2);
-		if ($import) {
-			if (isset($digraphAll[$letter])) $multiByte = true;
-		} else {
-			if (isset($digraph[$letter])) $multiByte = true;
-		}
-	}
-
-	if (!$multiByte) {
-		// All lists failed: try for a UTF8 character
-		$charLen = 1;
-		$letter = substr($text, 0, 1);
-		if ((ord($letter) & 0xE0) == 0xC0) $charLen = 2;		// 2-byte sequence
-		if ((ord($letter) & 0xF0) == 0xE0) $charLen = 3;		// 3-byte sequence
-		if ((ord($letter) & 0xF8) == 0xF0) $charLen = 4;		// 4-byte sequence
-		$letter = substr($text, 0, $charLen);
-	}
-        if ($letter=="/") $letter="@"; //where has @P.N. vanished from names with a null firstname?
-
-	return $letter;
-}
-
 
 /**
  * This function replaces @N.N. and @P.N. with the language specific translations
@@ -192,47 +85,53 @@ function check_NN($names) {
 	global $pgv_lang, $UNDERLINE_NAME_QUOTES;
 	global $unknownNN, $unknownPN;
 
-	$fullname = "";
+	$fullname = '';
 
 	if (!is_array($names)){
 		$lang = whatLanguage($names);
 		$NN = $unknownNN[$lang];
-		$names = stripslashes($names);
-		$names = preg_replace(array("~ /~","~/,~","~/~"), array(" ", ",", " "), $names);
-		$names = preg_replace(array("/@N.N.?/","/@P.N.?/"), array($unknownNN[$lang],$unknownPN[$lang]), trim($names));
+		$names = preg_replace( [ '~ /~', '~/,~', '~/~' ], [ ' ', ',', ' ' ], $names);
+		$names = preg_replace( [ '/@N.N.?/', '/@P.N.?/' ], [ $unknownNN[$lang], $unknownPN[$lang] ], trim($names));
 		//-- underline names with a * at the end
 		//-- see this forum thread http://sourceforge.net/forum/forum.php?thread_id=1223099&forum_id=185165
 		if ($UNDERLINE_NAME_QUOTES) {
-			$names = preg_replace("/\"(.+)\"/", "<span class=\"starredname\">$1</span>", $names);
+			$names = preg_replace('/"(.+)"/', '<span class="starredname">$1</span>', $names);
 		}
-		$names = preg_replace("/([^ ]+)\*/", "<span class=\"starredname\">$1</span>", $names);
+		$names = preg_replace('/([^ ]+)\*/', '<span class="starredname">$1</span>', $names);
 		return $names;
 	}
-	if (count($names) == 2 && stristr($names[0], "@N.N") && stristr($names[1], "@N.N")){
-		$fullname = $pgv_lang["NN"]. " + ". $pgv_lang["NN"];
-	}
-	else {
+	if (count($names) == 2 && stristr($names[0], '@N.N') && stristr($names[1], '@N.N')){
+		$fullname = $pgv_lang['NN']. ' + '. $pgv_lang['NN'];
+	} else {
 		for($i=0; $i<count($names); $i++) {
 			$lang = whatLanguage($names[$i]);
 			$unknown = false;
-			if (stristr($names[$i], "@N.N")) {
+			if (stristr($names[$i], '@N.N')) {
 				$unknown = true;
-				$names[$i] = preg_replace("/@N.N.?/", $unknownNN[$lang], trim($names[$i]));
+				$names[$i] = preg_replace('/@N.N.?/', $unknownNN[$lang], trim($names[$i]));
 			}
-			if (stristr($names[$i], "@P.N")) $names[$i] = $unknownPN[$lang];
-			if ($i==1 && $unknown && count($names)==3) $fullname .= ", ";
-			else if ($i==2 && $unknown && count($names)==3) $fullname .= " + ";
-				else if ($i==2 && stristr($names[2], "Individual ") && count($names) == 3) $fullname .= " + ";
-			else if ($i==2 && count($names)>3) $fullname .= " + ";
-				else $fullname .= ", ";
-				$fullname .= trim($names[$i]);
+			if (stristr($names[$i], '@P.N')) {
+				$names[$i] = $unknownPN[$lang];
 			}
+			if ($i==1 && $unknown && count($names)==3) {
+				$fullname .= ', ';
+			} elseif ($i==2 && $unknown && count($names)==3) {
+				$fullname .= ' + ';
+			} elseif ($i==2 && stristr($names[2], 'Individual ') && count($names) == 3) {
+				$fullname .= ' + ';
+			} elseif ($i==2 && count($names)>3) {
+				$fullname .= ' + ';
+			} else {
+				$fullname .= ', ';
+			}
+			$fullname .= trim($names[$i]);
 		}
+	}
 	$fullname = trim($fullname);
-	if (substr($fullname,-1)==",") $fullname = substr($fullname,0,strlen($fullname)-1);
-	if (substr($fullname,0,2)==", ") $fullname = substr($fullname,2);
+	if (substr($fullname,-1)==',') $fullname = substr($fullname,0,strlen($fullname)-1);
+	if (substr($fullname,0,2)==', ') $fullname = substr($fullname,2);
 	$fullname = trim($fullname);
-	if (empty($fullname)) return $pgv_lang["NN"];
+	if (empty($fullname)) return $pgv_lang['NN'];
 
 	return $fullname;
 }
@@ -259,25 +158,24 @@ function DMSoundex($name) {
 
 	// If the code tables are not loaded, reload! Keep them global!
 	if (!defined('PGV_DMSOUNDS_UTF8_PHP')) {
-		require ( PHPGEDVIEW_PKG_PATH.'includes/dmsounds_UTF8.php' );
+		require PGV_ROOT.'includes/dmsounds_UTF8.php';
 	}
 
 	// Apply special transformation rules to the input string
 	$name = UTF8_strtoupper($name);
 	foreach($transformNameTable as $transformRule) {
-		$name = ereg_replace($transformRule[0], $transformRule[1], $name);
+		$name = str_replace($transformRule[0], $transformRule[1], $name);
 	}
 
 	// Initialize
 	$nameLanguage = whatLanguage($name);
-	if ($nameLanguage == 'hebrew' || $nameLanguage == 'arabic') $noVowels = true;
-	else $noVowels = false;
+	$noVowels = $nameLanguage == 'hebrew' || $nameLanguage == 'arabic' ? true : false;
 	$lastPos = strlen($name) - 1;
 	$currPos = 0;
 	$state = 1;						// 1: start of input string, 2: before vowel, 3: other
-	$result = array();				// accumulate complete 6-digit D-M codes here
-	$partialResult = array();		// accumulate incomplete D-M codes here
-	$partialResult[] = array('!');	// initialize 1st partial result  ('!' stops "duplicate sound" check)
+	$result = [];				// accumulate complete 6-digit D-M codes here
+	$partialResult = [];		// accumulate incomplete D-M codes here
+	$partialResult[] = [ '!' ];	// initialize 1st partial result  ('!' stops "duplicate sound" check)
 
 	// Loop through the input string.
 	// Stop when the string is exhausted or when no more partial results remain
@@ -295,7 +193,7 @@ function DMSoundex($name) {
 
 		$soundTableEntry = $dmsounds[$thisEntry];
 		$workingResult = $partialResult;
-		$partialResult = array();
+		$partialResult = [];
 		$currPos += strlen($thisEntry);
 
 		if ($state != 1) {			// Not at beginning of input string
@@ -307,8 +205,8 @@ function DMSoundex($name) {
 					$nextEntry = substr($nextEntry, 0, -1);			// Not in table: try a shorter chunk
 				}
 			} else $nextEntry = '';
-			if ($nextEntry != '' && $dmsounds[$nextEntry][0] != '0') $state = 2;	// Next chunk is a vowel
-			else $state = 3;
+			$state = $nextEntry != '' && $dmsounds[$nextEntry][0] != '0' ? 2 // Next chunk is a vowel
+				: 3;
 		}
 
 		while ($state < count($soundTableEntry)) {
@@ -342,7 +240,7 @@ function DMSoundex($name) {
 					}
 				}
 			}
-			$state = $state + 3;	// Advance to next triplet while keeping the same basic state
+			$state += 3;	// Advance to next triplet while keeping the same basic state
 		}
 	}
 
@@ -363,7 +261,7 @@ function DMSoundex($name) {
 function soundex_std($text) {
 	Character_Substitute($text);
 	$words=explode(' ', $text);
-	$soundex_array=array();
+	$soundex_array = [];
 	foreach ($words as $word) {
 		if ($word) {
 			$soundex_array[]=soundex($word);
@@ -372,15 +270,17 @@ function soundex_std($text) {
 	if (count($words)>1) {
 		$soundex_array[]=soundex(strtr($text, ' ', ''));
 	}
+	// A varchar(255) column can only hold 51 4-character codes (plus 50 delimiters)
+	$soundex_array=array_slice($soundex_array, 0, 51);
 	return implode(':', array_unique($soundex_array));
 }
 
 // Wrapper function for soundex function.  Return a colon separated list of values.
 function soundex_dm($text) {
-	Character_Substitute($text);
+	\Bitweaver\Phpgedview\Character_Substitute($text);
 	$words=explode(' ', $text);
-	$soundex_array=array();
-	$combined = "";
+	$soundex_array = [];
+	$combined = '';
 	foreach ($words as $word) {
 		if ($word) {
 			$soundex_array=array_merge($soundex_array, DMSoundex($word));
@@ -389,7 +289,8 @@ function soundex_dm($text) {
 	if (count($words)>1) {
 		$soundex_array=array_merge($soundex_array, DMSoundex(strtr($text, ' ', '')));
 	}
-	return implode(":", array_unique($soundex_array));
+	// A varchar(255) column can only hold 36 6-entries (plus 35 delimiters)
+	$soundex_array=array_slice($soundex_array, 0, 36);
+	return implode(':', array_unique($soundex_array));
 }
 
-?>

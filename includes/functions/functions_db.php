@@ -6,7 +6,7 @@
 * to use an SQL database as its datastore.
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+* Copyright (C) 2002 to 2013  PGV Development Team.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -27,102 +27,54 @@
 * @subpackage DB
 */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_DB_PHP', '');
-
-/**
-* check if a gedcom has been imported into the database
-*
-* this function checks the database to see if the given gedcom has been imported yet.
-* @param string $ged the filename of the gedcom to check for import
-* @return bool return true if the gedcom has been imported otherwise returns false
-*/
-function check_for_import($ged) {
-	global $TBLPREFIX, $GEDCOMS, $gBitDb;
-
-	if ( empty($gBitDb->mDb) || count($GEDCOMS)==0 || !isset($GEDCOMS[$ged])) {
-		return false;
-	}
-
-	if (!isset($GEDCOMS[$ged]["imported"])) {
-		$GEDCOMS[$ged]["imported"]=(bool)
-		$gBitDb->getOne("SELECT count(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=?", array($GEDCOMS[$ged]["id"]));
-		store_gedcoms();
-	}
-
-	return $GEDCOMS[$ged]["imported"];
-}
 
 //-- gets the first record in the gedcom
 function get_first_xref($type, $ged_id=PGV_GED_ID) {
 	global $TBLPREFIX, $gBitDb;
 
-	switch ($type) {
-	case "INDI":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=?"
-				, array($ged_id));
-		break;
-	case "FAM":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(f_id) FROM {$TBLPREFIX}families WHERE f_file=?"
-				, array($ged_id));
-	case "SOUR":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(s_id) FROM {$TBLPREFIX}sources WHERE s_file=?"
-				, array($ged_id));
-	case "OBJE":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=?"
-				, array($ged_id));
-	default:
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=?"
-				, array($ged_id, $type));
-	}
+	return match ( $type ) {
+		"INDI"  => $gBitDb->getOne(
+			"SELECT MIN(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=?"
+			, [ $ged_id ] ),
+		"FAM"   => $gBitDb->getOne(
+			"SELECT MIN(f_id) FROM {$TBLPREFIX}families WHERE f_file=?"
+			, [ $ged_id ] ),
+		"SOUR"  => $gBitDb->getOne(
+			"SELECT MIN(s_id) FROM {$TBLPREFIX}sources WHERE s_file=?"
+			, [ $ged_id ] ),
+		"OBJE"  => $gBitDb->getOne(
+			"SELECT MIN(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=?"
+			, [ $ged_id ] ),
+		default => $gBitDb->getOne(
+			"SELECT MIN(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=?"
+			, [ $ged_id, $type ] ),
+	};
 }
 
 //-- gets the last record in the gedcom
 function get_last_xref($type, $ged_id=PGV_GED_ID) {
 	global $TBLPREFIX, $gBitDb;
 
-	switch ($type) {
-	case "INDI":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=?"
-				, array($ged_id));
-		break;
-	case "FAM":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(f_id) FROM {$TBLPREFIX}families WHERE f_file=?"
-				, array($ged_id));
-	case "SOUR":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(s_id) FROM {$TBLPREFIX}sources WHERE s_file=?"
-				, array($ged_id));
-	case "OBJE":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=?"
-				, array($ged_id));
-	default:
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=?"
-				, array($ged_id, $type));
-	}
+	return match ( $type ) {
+		"INDI"  => $gBitDb->getOne(
+			"SELECT MAX(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=?"
+			, [ $ged_id ] ),
+		"FAM"   => $gBitDb->getOne(
+			"SELECT MAX(f_id) FROM {$TBLPREFIX}families WHERE f_file=?"
+			, [ $ged_id ] ),
+		"SOUR"  => $gBitDb->getOne(
+			"SELECT MAX(s_id) FROM {$TBLPREFIX}sources WHERE s_file=?"
+			, [ $ged_id ] ),
+		"OBJE"  => $gBitDb->getOne(
+			"SELECT MAX(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=?"
+			, [ $ged_id ] ),
+		default => $gBitDb->getOne(
+			"SELECT MAX(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=?"
+			, [ $ged_id, $type ] ),
+	};
 }
 
 //-- gets the next person in the gedcom
@@ -130,34 +82,23 @@ function get_next_xref($pid, $ged_id=PGV_GED_ID) {
 	global $TBLPREFIX, $gBitDb;
 
 	$type=gedcom_record_type($pid, $ged_id);
-	switch ($type) {
-	case "INDI":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id>?"
-				, array($ged_id, $pid));
-		break;
-	case "FAM":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(f_id) FROM {$TBLPREFIX}families WHERE f_file=? AND f_id>?"
-				, array($ged_id, $pid));
-	case "SOUR":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(s_id) FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id>?"
-				, array($ged_id, $pid));
-	case "OBJE":
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media>?"
-				, array($ged_id, $pid));
-	default:
-		return
-			$gBitDb->getOne(
-				"SELECT MIN(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=? AND o_id>?"
-				, array($ged_id, $type, $pid));
-	}
+	return match ( $type ) {
+		"INDI"  => $gBitDb->getOne(
+			"SELECT MIN(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id>?"
+			, [ $ged_id, $pid ] ),
+		"FAM"   => $gBitDb->getOne(
+			"SELECT MIN(f_id) FROM {$TBLPREFIX}families WHERE f_file=? AND f_id>?"
+			, [ $ged_id, $pid ] ),
+		"SOUR"  => $gBitDb->getOne(
+			"SELECT MIN(s_id) FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id>?"
+			, [ $ged_id, $pid ] ),
+		"OBJE"  => $gBitDb->getOne(
+			"SELECT MIN(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media>?"
+			, [ $ged_id, $pid ] ),
+		default => $gBitDb->getOne(
+			"SELECT MIN(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=? AND o_id>?"
+			, [ $ged_id, $type, $pid ] ),
+	};
 }
 
 //-- gets the previous person in the gedcom
@@ -165,34 +106,23 @@ function get_prev_xref($pid, $ged_id=PGV_GED_ID) {
 	global $TBLPREFIX, $gBitDb;
 
 	$type=gedcom_record_type($pid, $ged_id);
-	switch ($type) {
-	case "INDI":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id<?"
-				, array($ged_id, $pid));
-		break;
-	case "FAM":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(f_id) FROM {$TBLPREFIX}families WHERE f_file=? AND f_id<?"
-				, array($ged_id, $pid));
-	case "SOUR":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(s_id) FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id<?"
-				, array($ged_id, $pid));
-	case "OBJE":
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media<?"
-				, array($ged_id, $pid));
-	default:
-		return
-			$gBitDb->getOne(
-				"SELECT MAX(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=? AND o_id<?"
-				, array($ged_id, $type, $pid));
-	}
+	return match ( $type ) {
+		"INDI"  => $gBitDb->getOne(
+			"SELECT MAX(i_id) FROM {$TBLPREFIX}individuals WHERE i_file=? AND i_id<?"
+			, [ $ged_id, $pid ] ),
+		"FAM"   => $gBitDb->getOne(
+			"SELECT MAX(f_id) FROM {$TBLPREFIX}families WHERE f_file=? AND f_id<?"
+			, [ $ged_id, $pid ] ),
+		"SOUR"  => $gBitDb->getOne(
+			"SELECT MAX(s_id) FROM {$TBLPREFIX}sources WHERE s_file=? AND s_id<?"
+			, [ $ged_id, $pid ] ),
+		"OBJE"  => $gBitDb->getOne(
+			"SELECT MAX(m_media) FROM {$TBLPREFIX}media WHERE m_gedfile=? AND m_media<?"
+			, [ $ged_id, $pid ] ),
+		default => $gBitDb->getOne(
+			"SELECT MAX(o_id) FROM {$TBLPREFIX}other WHERE o_file=? AND o_type=? AND o_id<?"
+			, [ $ged_id, $type, $pid ] ),
+	};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,8 +133,8 @@ function db_collation_alternatives($letter) {
 
 	// Multi-letter collation.
 	// e.g. on czech pages, we don't include "CH" under "C"
-	$include=array($letter);
-	$exclude=array();
+	$include = [ $letter ];
+	$exclude = [];
 	foreach (preg_split('/[ ,;]/', UTF8_strtoupper($MULTI_LETTER_ALPHABET[$LANGUAGE])) as $digraph) {
 		if ($letter && $digraph!=$letter && strpos($digraph, $letter)===0) {
 			$exclude[]=$digraph;
@@ -236,7 +166,7 @@ function db_collation_alternatives($letter) {
 		}
 	}
 
-	return array($include, $exclude);
+	return [ $include, $exclude ];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -247,7 +177,7 @@ function db_collation_digraphs() {
 
 	// Multi-letter collation.
 	// e.g. on czech pages, we don't include "CH" under "C"
-	$digraphs=array();
+	$digraphs = [];
 	foreach (preg_split('/[ ,;]/', UTF8_strtoupper($MULTI_LETTER_ALPHABET[$LANGUAGE]), -1, PREG_SPLIT_NO_EMPTY) as $digraph) {
 		$digraphs[$digraph]=$digraph;
 	}
@@ -283,13 +213,10 @@ function get_indilist_salpha($marnm, $fams, $ged_id) {
 	if (!$marnm) {
 		$join.=" AND n_type!='_MARNM'";
 	}
-	if ( $gBitDb->mType == 'firebird' ) {
-		$column="SUBSTRING ( n_sort FROM 1 FOR 1)";
-	} else if ($DB_UTF8_COLLATION) {
-		$column="SUBSTR(n_sort {$DBCOLLATE}, 1, 1)";
-	} else {
-		$column="SUBSTR(n_sort {$DBCOLLATE}, 1, 3)";
-	}
+	$column = $gBitDb->mType == 'firebird' || $gBitDb->mDb->dsnType == 'firebird'
+		? "SUBSTRING ( n_sort FROM 1 FOR 1)"
+		: ( $DB_UTF8_COLLATION ? "SUBSTR(n_sort {$DBCOLLATE}, 1, 1)" : "SUBSTR(n_sort {$DBCOLLATE}, 1, 3)"
+);
 
 	$exclude='';
 	$include='';
@@ -303,19 +230,15 @@ function get_indilist_salpha($marnm, $fams, $ged_id) {
 	$alphas=
 		$gBitDb->getAll("SELECT {$column} AS alpha FROM {$tables} WHERE {$join} {$exclude} GROUP BY 1 {$include} ORDER BY 1");
 
-	$list=array();
+	$list = [];
 	foreach ($alphas as $alpha) {
-		if ($DB_UTF8_COLLATION) {
-			$letter=$alpha['alpha'];
-		} else {
-			$letter=UTF8_strtoupper(UTF8_substr($alpha['alpha'],0,1));
-		}
+		$letter = $DB_UTF8_COLLATION ? $alpha['alpha'] : UTF8_strtoupper( UTF8_substr( $alpha['alpha'], 0, 1 ) );
 		$list[$letter]=$letter;
 	}
 
 	// If we didn't sort in the DB, sort ourselves
 	if (!$DB_UTF8_COLLATION) {
-		uasort($list, 'stringsort');
+		uasort($list, "\Bitweaver\Phpgedview\stringsort");
 	}
 	// sorting puts "," and "@" first, so force them to the end
 	if (in_array(',', $list)) {
@@ -338,7 +261,7 @@ function get_indilist_salpha($marnm, $fams, $ged_id) {
 // $ged_id - only consider individuals from this gedcom
 ////////////////////////////////////////////////////////////////////////////////
 function get_indilist_galpha($surn, $salpha, $marnm, $fams, $ged_id) {
-	global $TBLPREFIX, $DB_UTF8_COLLATION, $DBCOLLATE, $gBitDb;
+	global $TBLPREFIX, $DB_UTF8_COLLATION, $DBCOLLATE, $gBitDb, $gBitDbType;
 
 	if ($fams) {
 		$tables="{$TBLPREFIX}name, {$TBLPREFIX}individuals, {$TBLPREFIX}link";
@@ -356,11 +279,11 @@ function get_indilist_galpha($surn, $salpha, $marnm, $fams, $ged_id) {
 		$join.=" AND n_sort LIKE {$salpha}%";
 	}
 
-	if ($DB_UTF8_COLLATION) {
-		$column="UPPER(SUBSTR(n_givn {$DBCOLLATE}, 1, 1))";
-	} else {
-		$column="UPPER(SUBSTR(n_givn {$DBCOLLATE}, 1, 3))";
-	}
+	$column = $gBitDbType == 'firebird'
+		? "UPPER(SUBSTRING(n_givn FROM 1 FOR 1))"
+		: ( $DB_UTF8_COLLATION
+			? "UPPER(SUBSTR(n_givn {$DBCOLLATE}, 1, 1))"
+			: "UPPER(SUBSTR(n_givn {$DBCOLLATE}, 1, 3))" );
 
 	$exclude='';
 	$include='';
@@ -373,19 +296,15 @@ function get_indilist_galpha($surn, $salpha, $marnm, $fams, $ged_id) {
 	}
 	$alphas=
 		$gBitDb->getOne("SELECT {$column} AS alpha FROM {$tables} WHERE {$join} {$exclude} GROUP BY 1 {$include} ORDER BY 1");
-	$list=array();
+	$list = [];
 	foreach ($alphas as $alpha) {
-		if ($DB_UTF8_COLLATION) {
-			$letter=$alpha;
-		} else {
-			$letter=UTF8_strtoupper(UTF8_substr($alpha,0,1));
-		}
+		$letter = $DB_UTF8_COLLATION ? $alpha : UTF8_strtoupper( UTF8_substr( $alpha, 0, 1 ) );
 		$list[$letter]=$letter;
 	}
 
 	// If we didn't sort in the DB, sort ourselves
 	if (!$DB_UTF8_COLLATION) {
-		uasort($list, 'stringsort');
+		uasort($list, "\Bitweaver\Phpgedview\stringsort");
 	}
 	// sorting puts "," and "@" first, so force them to the end
 	if (in_array(',', $list)) {
@@ -414,14 +333,14 @@ function get_indilist_surns($surn, $salpha, $marnm, $fams, $ged_id) {
 	if ($fams) {
 		$sql.=" JOIN {$TBLPREFIX}link ON (i_id=l_from AND i_file=l_file AND l_type='FAMS')";
 	}
-	$where = array("n_file = $ged_id ");
+	$where = [ "n_file={$ged_id}" ];
 	if (!$marnm) {
-		$where[]="n_type != '_MARNM'";
+		$where[]="n_type!='_MARNM'";
 	}
 
 	list($s_incl, $s_excl)=db_collation_alternatives($salpha);
 
-	$includes=array();
+	$includes = [];
 	if ($surn) {
 		// Match a surname
 		$includes[]="n_surn {$DBCOLLATE} LIKE '{$surn}'";
@@ -448,14 +367,14 @@ function get_indilist_surns($surn, $salpha, $marnm, $fams, $ged_id) {
 
 	$sql.=" WHERE ".implode(' AND ', $where)." ORDER BY n_surn";
 
-	$list=array();
+	$list = [];
 	$result = $gBitDb->query($sql);
 
 	while ( $row = $result->fetchRow() ) {
 		$list[$row['n_surn']][$row['n_surname']][$row['n_id']]=true;
 	}
 	if (!$DB_UTF8_COLLATION) {
-		uksort($list, 'stringsort');
+		uksort($list, "\Bitweaver\Phpgedview\stringsort");
 	}
 	return $list;
 }
@@ -471,14 +390,14 @@ function get_famlist_surns($surn, $salpha, $marnm, $ged_id) {
 	global $TBLPREFIX, $DB_UTF8_COLLATION, $DBCOLLATE, $gBitDb;
 
 	$sql="SELECT DISTINCT n_surn, n_surname, l_to FROM {$TBLPREFIX}individuals JOIN {$TBLPREFIX}name ON (i_id=n_id AND i_file=n_file) JOIN {$TBLPREFIX}link ON (i_id=l_from AND i_file=l_file AND l_type='FAMS')";
-	$where=array("n_file={$ged_id}");
+	$where= [ "n_file={$ged_id}" ];
 	if (!$marnm) {
 		$where[]="n_type!='_MARNM'";
 	}
 
 	list($s_incl, $s_excl)=db_collation_alternatives($salpha);
 
-	$includes=array();
+	$includes = [];
 	if ($surn) {
 		// Match a surname
 		$includes[]="n_surn {$DBCOLLATE} LIKE '{$surn}'";
@@ -505,13 +424,13 @@ function get_famlist_surns($surn, $salpha, $marnm, $ged_id) {
 
 	$sql.=" WHERE ".implode(' AND ', $where)." ORDER BY n_surn";
 
-	$list=array();
+	$list = [];
 	$results = $gBitDb->query($sql);
 	while ( $row = $results->fetchRow() ) {
 		$list[$row['n_surn']][$row['n_surname']][$row['l_to']]=true;
 	}
 	if (!$DB_UTF8_COLLATION) {
-		uksort($list, 'stringsort');
+		uksort($list, "\Bitweaver\Phpgedview\stringsort");
 	}
 	return $list;
 }
@@ -539,7 +458,7 @@ function get_indilist_indis($surn='', $salpha='', $galpha='', $marnm=false, $fam
 	if ($fams) {
 		$sql.=" JOIN {$TBLPREFIX}link ON (i_id=l_from AND i_file=l_file)";
 	}
-	$where=array();
+	$where = [];
 	if ($ged_id) {
 		$where[]="n_file={$ged_id}";
 	}
@@ -550,7 +469,7 @@ function get_indilist_indis($surn='', $salpha='', $galpha='', $marnm=false, $fam
 	list($s_incl, $s_excl)=db_collation_alternatives($salpha);
 	list($g_incl, $g_excl)=db_collation_alternatives($galpha);
 
-	$includes=array();
+	$includes = [];
 	if ($surn) {
 		// Match a surname, with or without a given initial
 		if ($galpha) {
@@ -610,9 +529,9 @@ function get_indilist_indis($surn='', $salpha='', $galpha='', $marnm=false, $fam
 		$where[]='('.implode(' OR ', $includes).')';
 	}
 
-	$sql.=" WHERE ".implode(' AND ', $where)." ORDER BY n_sort";
+	$sql.=" WHERE ".implode(' AND ', $where)." ORDER BY CASE n_surn WHEN '@N.N.' THEN 1 ELSE 0 END, n_surn, CASE n_givn WHEN '@P.N.' THEN 1 ELSE 0 END, n_givn";
 
-	$list=array();
+	$list = [];
 	$result = $gBitDb->query($sql);
 	while ( $row = $result->fetchRow() ) {
 		$person=Person::getInstance($row);
@@ -625,7 +544,7 @@ function get_indilist_indis($surn='', $salpha='', $galpha='', $marnm=false, $fam
 		$list[]=clone $person;
 	}
 	if (!$DB_UTF8_COLLATION) {
-		usort($list, array('GedcomRecord', 'Compare'));
+		usort($list, [ '\Bitweaver\Phpgedview\GedcomRecord', 'Compare' ]);
 	}
 	return $list;
 }
@@ -645,10 +564,10 @@ function get_indilist_indis($surn='', $salpha='', $galpha='', $marnm=false, $fam
 // To search for unknown names, use $surn="@N.N.", $salpha="@" or $galpha="@"
 // To search for names with no surnames, use $salpha=","
 ////////////////////////////////////////////////////////////////////////////////
-function get_famlist_fams($surn='', $salpha='', $galpha='', $marnm, $ged_id=null) {
+function get_famlist_fams($surn='', $salpha='', $galpha='', $marnm='', $ged_id=null) {
 	global $TBLPREFIX, $gBitDb;
 
-	$list=array();
+	$list = [];
 	foreach (get_indilist_indis($surn, $salpha, $galpha, $marnm, true, $ged_id) as $indi) {
 		foreach ($indi->getSpouseFamilies() as $family) {
 			$list[$family->getXref()]=$family;
@@ -660,13 +579,13 @@ function get_famlist_fams($surn='', $salpha='', $galpha='', $marnm, $ged_id=null
 		$rows=
 			$gBitDb->getAssoc(
 				"SELECT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil FROM {$TBLPREFIX}families f WHERE f_file={$ged_id} AND (f_husb='' OR f_wife='')"
-				, array($ged_id));
+				, [ $ged_id ]);
 
 		foreach ($rows as $row) {
 			$list[]=Family::getInstance($row);
 		}
 	}
-	usort($list, array('GedcomRecord', 'Compare'));
+	usort($list, [ '\Bitweaver\Phpgedview\GedcomRecord', 'Compare' ] );
 	return $list;
 }
 
@@ -676,9 +595,9 @@ function get_famlist_fams($surn='', $salpha='', $galpha='', $marnm, $ged_id=null
 function fetch_child_ids($parent_id, $ged_id) {
 	global $TBLPREFIX, $gBitDb;
 
-	return $gBitDb->getOne(
+	return $gBitDb->getCol(
 		   "SELECT DISTINCT child.l_from AS xref FROM {$TBLPREFIX}link child, {$TBLPREFIX}link spouse WHERE child.l_type=? AND spouse.l_type=? AND child.l_file=spouse.l_file AND child.l_to=spouse.l_to AND spouse.l_from=? AND child.l_file=?"
-		   , array('FAMC', 'FAMS', $parent_id, $ged_id));
+		   , [ 'FAMC', 'FAMS', $parent_id, $ged_id ]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -687,24 +606,38 @@ function fetch_child_ids($parent_id, $ged_id) {
 ////////////////////////////////////////////////////////////////////////////////
 function count_all_records($ged_id) {
 	global $TBLPREFIX, $gBitDb;
-	$test = array();
+/*
+	$test = [];
 	$test['INDI'] = $gBitDb->getOne(
 			"SELECT COUNT(*) AS num FROM {$TBLPREFIX}individuals WHERE i_file=?"
-			, array($ged_id));
+			, [ $ged_id ]);
 	$test['FAM'] = $gBitDb->getOne(
 			"SELECT COUNT(*) AS num FROM {$TBLPREFIX}families WHERE f_file=?"
-			, array($ged_id));
+			, [ $ged_id ]);
 	$test['NOTE'] = $gBitDb->getOne(
 			"SELECT COUNT(*) AS num FROM {$TBLPREFIX}other WHERE o_file=?"
-			, array($ged_id));
+			, [ $ged_id ]);
 	$test['SOUR'] = $gBitDb->getOne(
 			"SELECT COUNT(*) AS num FROM {$TBLPREFIX}sources WHERE s_file=?"
-			, array($ged_id));
+			, [ $ged_id ]);
 	$test['OBJE'] = $gBitDb->getOne(
 			"SELECT COUNT(*) AS num FROM {$TBLPREFIX}media WHERE m_gedfile=?"
-			, array($ged_id));
+			, [ $ged_id ]);
+*/
 	return
-		$test;
+
+		$gBitDb->getAssoc(
+			"SELECT 'INDI' AS type, COUNT(*) AS num FROM {$TBLPREFIX}individuals WHERE i_file=?".
+			" UNION ALL ".
+			"SELECT 'FAM'  AS type, COUNT(*) AS num FROM {$TBLPREFIX}families    WHERE f_file=?".
+			" UNION ALL ".
+			"SELECT 'SOUR' AS type, COUNT(*) AS num FROM {$TBLPREFIX}sources     WHERE s_file=?".
+			" UNION ALL ".
+			"SELECT 'OBJE' AS type, COUNT(*) AS num FROM {$TBLPREFIX}media       WHERE m_gedfile=?".
+			" UNION ALL ".
+			"SELECT o_type AS type, COUNT(*) as num FROM {$TBLPREFIX}other       WHERE o_file=? GROUP BY type"
+		, [ $ged_id, $ged_id, $ged_id, $ged_id, $ged_id ] );
+//		$test;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -716,7 +649,7 @@ function count_linked_indi($xref, $link, $ged_id) {
 	return
 		$gBitDb->getOne(
 			"SELECT COUNT(*) FROM {$TBLPREFIX}link, {$TBLPREFIX}individuals WHERE i_file=l_file AND i_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array($ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 }
 function count_linked_fam($xref, $link, $ged_id) {
 	global $TBLPREFIX, $gBitDb;
@@ -724,7 +657,7 @@ function count_linked_fam($xref, $link, $ged_id) {
 	return
 		$gBitDb->getOne(
 			"SELECT COUNT(*) FROM {$TBLPREFIX}link, {$TBLPREFIX}families WHERE f_file=l_file AND f_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array($ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 }
 function count_linked_note($xref, $link, $ged_id) {
 	global $TBLPREFIX, $gBitDb;
@@ -732,7 +665,7 @@ function count_linked_note($xref, $link, $ged_id) {
 	return
 		$gBitDb->getOne(
 			"SELECT COUNT(*) FROM {$TBLPREFIX}link, {$TBLPREFIX}other WHERE o_file=l_file AND o_id=l_from AND o_type=? AND l_file=? AND l_type=? AND l_to=?"
-			, array('NOTE', $ged_id, $link, $xref));
+			, [ 'NOTE', $ged_id, $link, $xref ]);
 }
 function count_linked_sour($xref, $link, $ged_id) {
 	global $TBLPREFIX, $gBitDb;
@@ -740,7 +673,7 @@ function count_linked_sour($xref, $link, $ged_id) {
 	return
 		$gBitDb->getOne(
 			"SELECT COUNT(*) FROM {$TBLPREFIX}link, {$TBLPREFIX}sources WHERE s_file=l_file AND s_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array($ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 }
 function count_linked_obje($xref, $link, $ged_id) {
 	global $TBLPREFIX, $gBitDb;
@@ -748,7 +681,7 @@ function count_linked_obje($xref, $link, $ged_id) {
 	return
 		$gBitDb->getOne(
 			"SELECT COUNT(*) FROM {$TBLPREFIX}link, {$TBLPREFIX}media WHERE m_gedfile=l_file AND m_media=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array($ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -760,9 +693,9 @@ function fetch_linked_indi($xref, $link, $ged_id) {
 	$rows =
 		$gBitDb->getAll(
 			"SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex FROM {$TBLPREFIX}link, {$TBLPREFIX}individuals WHERE i_file=l_file AND i_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array( $ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Person::getInstance($row);
 	}
@@ -775,9 +708,9 @@ function fetch_linked_fam($xref, $link, $ged_id) {
 	$rows =
 		$gBitDb->getAll(
 			"SELECT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil FROM {$TBLPREFIX}link, {$TBLPREFIX}families f WHERE f_file=l_file AND f_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array( $ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Family::getInstance($row);
 	}
@@ -790,9 +723,9 @@ function fetch_linked_note($xref, $link, $ged_id) {
 	$rows =
 		$gBitDb->getAll(
 			"SELECT 'NOTE' AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec FROM {$TBLPREFIX}link, {$TBLPREFIX}other o WHERE o_file=l_file AND o_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array( $ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Note::getInstance($row);
 	}
@@ -805,9 +738,9 @@ function fetch_linked_sour($xref, $link, $ged_id) {
 	$rows=
 		$gBitDb->getAll(
 			"SELECT 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec FROM {$TBLPREFIX}link, {$TBLPREFIX}sources s WHERE s_file=l_file AND s_id=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array( $ged_id, $link, $xref));
+			, [ $ged_id, $link, $xref ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Source::getInstance($row);
 	}
@@ -819,10 +752,15 @@ function fetch_linked_obje($xref, $link, $ged_id) {
 
 	$rows=
 		$gBitDb->getAll(
-			"SELECT 'OBJE' AS type, m_media AS xref, m_gedfile AS ged_id, m_gedrec AS gedrec, m_titl, m_file FROM {$TBLPREFIX}link, {$TBLPREFIX}media m WHERE m_gedfile=l_file AND m_media=l_from AND l_file=? AND l_type=? AND l_to=?"
-			, array( $ged_id, $link, $xref));
+		"SELECT 'OBJE' AS type, m_media AS xref, m_gedfile AS ged_id, m_gedrec AS gedrec, m_titl, m_file".
+		" FROM {$TBLPREFIX}media".
+		" JOIN {$TBLPREFIX}link ON (m_gedfile=l_file AND m_media=l_from)".
+		" LEFT JOIN {$TBLPREFIX}name ON (m_gedfile=n_file AND m_media=n_id AND n_num=0)".
+		" WHERE m_gedfile=? AND l_type=? AND l_to=?".	
+		" ORDER BY n_sort"
+			, [ $ged_id, $link, $xref ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Media::getInstance($row);
 	}
@@ -839,7 +777,7 @@ function fetch_all_links($xref, $ged_id) {
 	return
 		$gBitDb->getOne(
 			"SELECT l_from FROM {$TBLPREFIX}link WHERE l_file=? AND l_to=?"
-			, array($ged_id, $xref));
+			, [ $ged_id, $xref ]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -854,7 +792,7 @@ function fetch_person_record($xref, $ged_id) {
 	return $gBitDb->getRow(
 		"SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex ".
 		"FROM {$TBLPREFIX}individuals WHERE i_id=? AND i_file=?"
-		,array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 		
 }
 function fetch_family_record($xref, $ged_id) {
@@ -863,7 +801,7 @@ function fetch_family_record($xref, $ged_id) {
 	return $gBitDb->getRow(
 		"SELECT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil ".
 		"FROM {$TBLPREFIX}families WHERE f_id=? AND f_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 }
 
 function fetch_source_record($xref, $ged_id) {
@@ -872,7 +810,7 @@ function fetch_source_record($xref, $ged_id) {
 	return $gBitDb->getRow(
 		"SELECT 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec ".
 		"FROM {$TBLPREFIX}sources WHERE s_id=? AND s_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 }
 
 function fetch_note_record($xref, $ged_id) {
@@ -886,7 +824,7 @@ function fetch_media_record($xref, $ged_id) {
 	return $gBitDb->getRow(
 			"SELECT 'OBJE' AS type, m_media AS xref, m_gedfile AS ged_id, m_gedrec AS gedrec, m_titl, m_file ".
 			"FROM {$TBLPREFIX}media WHERE m_media=? AND m_gedfile=?"
-			, array($xref, $ged_id));
+			, [ $xref, $ged_id ]);
 }
 
 function fetch_other_record($xref, $ged_id) {
@@ -895,7 +833,7 @@ function fetch_other_record($xref, $ged_id) {
 	return $gBitDb->getRow(
 		"SELECT o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
 		"FROM {$TBLPREFIX}other WHERE o_id=? AND o_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 }
 
 function fetch_gedcom_record($xref, $ged_id) {
@@ -919,14 +857,12 @@ function fetch_gedcom_record($xref, $ged_id) {
 * @param string $famid the unique gedcom xref id of the family record to retrieve
 * @return string the raw gedcom record is returned
 */
-function find_family_record($xref) {
-	global $TBLPREFIX, $GEDCOM, $gBitDb;
-	if ( empty($xref) ) return '';
-	$ged_id=get_id_from_gedcom($GEDCOM);
+function find_family_record($xref, $ged_id) {
+	global $TBLPREFIX, $gBitDb;
 
-	$gBitDb->getOne(
+	return $gBitDb->getOne(
 		"SELECT f_gedcom FROM {$TBLPREFIX}families WHERE f_id=? AND f_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ] );
 }
 
 /**
@@ -936,14 +872,13 @@ function find_family_record($xref) {
 * @param string $pid the unique gedcom xref id of the individual record to retrieve
 * @return string the raw gedcom record is returned
 */
-function find_person_record($xref) {
-	global $TBLPREFIX, $GEDCOM, $gBitDb;
-	if ( empty($xref) ) return '';
-	$ged_id=get_id_from_gedcom($GEDCOM);
-
+function find_person_record($xref, $ged_id) {
+	global $TBLPREFIX, $gBitDb;
+	if( !isset($xref) ) $xref = '';
+	
 	return $gBitDb->getOne(
 		"SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_id=? AND i_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ] );
 }
 
 /**
@@ -953,73 +888,63 @@ function find_person_record($xref) {
 * @param string $sid the unique gedcom xref id of the source record to retrieve
 * @return string the raw gedcom record is returned
 */
-function find_source_record($xref) {
-	global $TBLPREFIX, $GEDCOM, $gBitDb;
-	if ( empty($xref) ) return '';
-	$ged_id=get_id_from_gedcom($GEDCOM);
-
+function find_source_record($xref, $ged_id) {
+	global $TBLPREFIX, $gBitDb;
 	return $gBitDb->getOne(
 		"SELECT s_gedcom FROM {$TBLPREFIX}sources WHERE s_id=? AND s_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 }
 
 /**
 * Find a repository record by its ID
 * @param string $rid the record id
-* @param string $gedfile the gedcom file id
+* @param string $ged_id the gedcom file id
 */
-function find_other_record($xref) {
+function find_other_record($xref, $ged_id) {
 	global $TBLPREFIX, $GEDCOM, $gBitDb;
 	if ( empty($xref) ) return '';
 	$ged_id=get_id_from_gedcom($GEDCOM);
 
 	return $gBitDb->getOne(
 		"SELECT o_gedcom FROM {$TBLPREFIX}other WHERE o_id=? AND o_file=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 }
 
 /**
 * Find a media record by its ID
 * @param string $rid the record id
+* @param string $ged_id the gedcom file id
 */
-function find_media_record($xref) {
-	global $TBLPREFIX, $GEDCOM, $gBitDb;
-	if ( empty($xref) ) return '';
-	$ged_id=get_id_from_gedcom($GEDCOM);
+function find_media_record($xref, $ged_id) {
+	global $TBLPREFIX, $gBitDb;
 
 	return $gBitDb->getOne(
 		"SELECT m_gedrec FROM {$TBLPREFIX}media WHERE m_media=? AND m_gedfile=?"
-		, array($xref, $ged_id));
+		, [ $xref, $ged_id ]);
 }
 
 /**
 * find the gedcom record
 *
 * @link http://phpgedview.sourceforge.net/devdocs/arrays.php#other
-* @param string $pid the unique gedcom xref id of the record to retrieve
-* @param string $gedfile [optional] the gedcomfile to search in
+* @param string $xref the unique gedcom xref id of the record to retrieve
+* @param string $ged_id the gedcom to search in
 * @return string the raw gedcom record is returned
 */
-function find_gedcom_record($xref, $gedfile='') {
-	global $TBLPREFIX, $GEDCOM, $DBTYPE, $gBitDb;
+function find_gedcom_record($xref, $ged_id) {
+	global $TBLPREFIX, $DBTYPE, $gBitDb;
 	if ( empty($xref) ) return '';
-
-	if ($gedfile) {
-		$ged_id=get_id_from_gedcom($gedfile);
-	} else {
-		$ged_id=get_id_from_gedcom($GEDCOM);
-	}
 
 	// Exact match on xref?
 	$gedcom = $gBitDb->getOne(
-		"SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_id   =? AND i_file   =? UNION ALL ".
+		"SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_id   = ? AND i_file   =? UNION ALL ".
 		"SELECT f_gedcom FROM {$TBLPREFIX}families    WHERE f_id   =? AND f_file   =? UNION ALL ".
 		"SELECT s_gedcom FROM {$TBLPREFIX}sources     WHERE s_id   =? AND s_file   =? UNION ALL ".
 		"SELECT m_gedrec FROM {$TBLPREFIX}media       WHERE m_media=? AND m_gedfile=? UNION ALL ".
 		"SELECT o_gedcom FROM {$TBLPREFIX}other       WHERE o_id   =? AND o_file   =?"
-		, array($xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id));
+		, [ $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id ] );
 	
-	if (!$gedcom) {
+/*	if (!$gedcom) {
 		// Not found.  Maybe i123 instead of I123 on a DB with a case-sensitive collation?
 		$gedcom = $gBitDb->getOne(
 			"SELECT i_gedcom FROM {$TBLPREFIX}individuals WHERE i_id    LIKE ? ESCAPE '@' AND i_file   =? UNION ALL ".
@@ -1027,9 +952,9 @@ function find_gedcom_record($xref, $gedfile='') {
 			"SELECT s_gedcom FROM {$TBLPREFIX}sources     WHERE s_id    LIKE ? ESCAPE '@' AND s_file   =? UNION ALL ".
 			"SELECT m_gedrec FROM {$TBLPREFIX}media       WHERE m_media LIKE ? ESCAPE '@' AND m_gedfile=? UNION ALL ".
 			"SELECT o_gedcom FROM {$TBLPREFIX}other       WHERE o_id    LIKE ? ESCAPE '@' AND o_file   =?"
-			, array($xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id));
+			, [ $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id ] );
 	}
-
+*/
 	return $gedcom;
 }
 
@@ -1048,7 +973,7 @@ function gedcom_record_type($xref, $ged_id) {
 			"SELECT 'SOUR' FROM {$TBLPREFIX}sources     WHERE s_id   =? AND s_file   =? UNION ALL ".
 			"SELECT 'OBJE' FROM {$TBLPREFIX}media       WHERE m_media=? AND m_gedfile=? UNION ALL ".
 			"SELECT o_type FROM {$TBLPREFIX}other       WHERE o_id   =? AND o_file   =?"
-		, array( $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id));
+		, [ $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id, $xref, $ged_id ]);
 	}
 }
 
@@ -1067,7 +992,7 @@ function update_isdead($xref, $ged_id, $isdead) {
 	global $TBLPREFIX, $gBitDb;
 
 	$isdead=$isdead ? 1 : 0; // DB uses int, not bool
-	$gBitDb->query("UPDATE {$TBLPREFIX}individuals SET i_isdead=? WHERE i_id=? AND i_file=?", array($isdead, $xref, $ged_id));
+	$gBitDb->query("UPDATE {$TBLPREFIX}individuals SET i_isdead=? WHERE i_id=? AND i_file=? AND i_isdead <> ?", [ $isdead, $xref, $ged_id, $isdead ]);
 	return $isdead;
 }
 
@@ -1076,7 +1001,7 @@ function update_isdead($xref, $ged_id, $isdead) {
 function reset_isdead($ged_id=PGV_GED_ID) {
 	global $TBLPREFIX, $gBitDb;
 
-	$gBitDb->query("UPDATE {$TBLPREFIX}individuals SET i_isdead=-1 WHERE i_file=?", array($ged_id));
+	$gBitDb->query("UPDATE {$TBLPREFIX}individuals SET i_isdead=-1 WHERE i_file=?", [ $ged_id ]);
 }
 
 /**
@@ -1092,13 +1017,13 @@ function get_source_list($ged_id) {
 	$rows=
 		$gBitDb->getAll(
 			"SELECT 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec FROM {$TBLPREFIX}sources s WHERE s_file=?"
-			, array($ged_id));
+			, [ $ged_id ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Source::getInstance($row);
 	}
-	usort($list, array('GedcomRecord', 'Compare'));
+	usort($list, [ '\Bitweaver\Phpgedview\GedcomRecord', 'Compare' ]);
 	return $list;
 }
 
@@ -1110,13 +1035,13 @@ function get_repo_list($ged_id) {
 	$rows =
 		$gBitDb->GetAssoc(
 			"SELECT 'REPO' AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec FROM {$TBLPREFIX}other WHERE o_type='REPO' AND o_file=?"
-			, array($ged_id));
+			, [ $ged_id ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Repository::getInstance($row);
 	}
-	usort($list, array('GedcomRecord', 'Compare'));
+	usort($list, [ '\Bitweaver\Phpgedview\GedcomRecord', 'Compare' ]);
 	return $list;
 }
 
@@ -1127,13 +1052,13 @@ function get_note_list($ged_id) {
 	$rows =
 		$gBitDb->GetAssoc(
 			"SELECT 'NOTE' AS type, o_id AS xref, {$ged_id} AS ged_id, o_gedcom AS gedrec FROM {$TBLPREFIX}other WHERE o_type=? AND o_file=?"
-			, array('NOTE', $ged_id));
+			, [ 'NOTE', $ged_id ]);
 
-	$list=array();
+	$list = [];
 	foreach ($rows as $row) {
 		$list[]=Note::getInstance($row);
 	}
-	usort($list, array('GedcomRecord', 'Compare'));
+	usort($list, [ '\Bitweaver\Phpgedview\GedcomRecord', 'Compare' ]);
 	return $list;
 }
 
@@ -1147,7 +1072,7 @@ function search_indis_custom($join, $where, $order) {
 		$sql.=' ORDER BY '.implode(' ', $order);
 	}
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->getAssoc( $sql );
 	$GED_ID=PGV_GED_ID;
 	foreach ($rows as $row) {
@@ -1161,7 +1086,7 @@ function search_indis_custom($join, $where, $order) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1176,7 +1101,7 @@ function search_fams_custom($join, $where, $order) {
 		$sql.=' ORDER BY '.implode(' ', $order);
 	}
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->getAssoc( $sql );
 	$GED_ID=PGV_GED_ID;
 	foreach ($rows as $row) {
@@ -1190,7 +1115,7 @@ function search_fams_custom($join, $where, $order) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1206,21 +1131,17 @@ function search_indis($query, $geds, $match, $skip) {
 
 	// No query => no results
 	if (!$query) {
-		return array();
+		return [];
 	}
 
 	// Convert the query into a SQL expression
-	$querysql=array();
+	$querysql = [];
 	// Convert the query into a regular expression
-	$queryregex=array();
+	$queryregex = [];
 
 	foreach ($query as $q) {
 		$queryregex[]=preg_quote(UTF8_strtoupper($q), '/');
-		if ($DB_UTF8_COLLATION || !has_utf8($q)) {
-			$querysql[]="i_gedcom LIKE '%{$q}%";
-		} else {
-			$querysql[]="(i_gedcom LIKE '%{$q}%' OR i_gedcom LIKE '%'".UTF8_strtoupper($q)."%' OR i_gedcom LIKE '%".UTF8_strtolower($q)."%')";
-		}
+		$querysql[] = $DB_UTF8_COLLATION || !has_utf8( $q ) ? "i_gedcom LIKE '%{$q}%'" : "(i_gedcom LIKE '%{$q}%' OR i_gedcom LIKE '%'" . UTF8_strtoupper( $q ) . "%' OR i_gedcom LIKE '%" . UTF8_strtolower( $q ) . "%')";
 	}
 
 	$sql="SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex FROM {$TBLPREFIX}individuals WHERE (".implode(" {$match} ", $querysql).') AND i_file IN ('.implode(',', $geds).')';
@@ -1229,16 +1150,13 @@ function search_indis($query, $geds, $match, $skip) {
 	$sql.=' ORDER BY ged_id';
 
 	// Tags we might not want to search
-	if (PGV_USER_IS_ADMIN) {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*('.implode('|', $queryregex).')/im';
-	} else {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*('.implode('|', $queryregex).')/im';
-	}
+	$skipregex = PGV_USER_IS_ADMIN ? '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*(' . implode( '|', $queryregex ) . ')/im' : '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*(' . implode( '|', $queryregex ) . ')/im';
 
-	$list=array();
-	$rows = $gBitDb->getAll( $sql );
+	$list = [];
+	$rows = $gBitDb->query( $sql );
+
 	$GED_ID=PGV_GED_ID;
-	while ( $row = $roes->fetchRow() ) {
+	while ( $row = $rows->fetchRow() ) {
 		// Switch privacy file if necessary
 		if ($row['ged_id']!=$GED_ID) {
 			$GEDCOM=get_gedcom_from_id($row['ged_id']);
@@ -1260,7 +1178,7 @@ function search_indis($query, $geds, $match, $skip) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1275,24 +1193,20 @@ function search_indis_names($query, $geds, $match) {
 
 	// No query => no results
 	if (!$query) {
-		return array();
+		return [];
 	}
 
 	// Convert the query into a SQL expression
-	$querysql=array();
+	$querysql = [];
 	foreach ($query as $q) {
-		if ($DB_UTF8_COLLATION || !has_utf8($q)) {
-			$querysql[]="n_full LIKE '%{$q}%'";
-		} else {
-			$querysql[]="(n_full LIKE '%{$q}%' OR n_full LIKE '%".UTF8_strtoupper($q)."%' OR n_full LIKE '%".UTF8_strtolower($q)."%')";
-		}
+		$querysql[] = $DB_UTF8_COLLATION || !has_utf8( $q ) ? "n_full LIKE '%{$q}%'" : "(n_full LIKE '%{$q}%' OR n_full LIKE '%" . UTF8_strtoupper( $q ) . "%' OR n_full LIKE '%" . UTF8_strtolower( $q ) . "%')";
 	}
 	$sql="SELECT DISTINCT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex, n_num FROM {$TBLPREFIX}individuals JOIN {$TBLPREFIX}name ON i_id=n_id AND i_file=n_file WHERE (".implode(" {$match} ", $querysql).') AND i_file IN ('.implode(',', $geds).')';
 
 	// Group results by gedcom, to minimise switching between privacy files
 	$sql.=' ORDER BY ged_id';
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->getAssoc( $sql );
 	$GED_ID=PGV_GED_ID;
 	foreach ($rows as $row) {
@@ -1374,7 +1288,7 @@ function search_indis_soundex($soundex, $lastname, $firstname, $place, $geds) {
 	// Group results by gedcom, to minimise switching between privacy files
 	$sql.=' ORDER BY ged_id';
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->getAssoc( $sql );
 	$GED_ID=PGV_GED_ID;
 	foreach ($rows as $row) {
@@ -1391,7 +1305,7 @@ function search_indis_soundex($soundex, $lastname, $firstname, $place, $geds) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1406,7 +1320,7 @@ function get_recent_changes($jd=0, $allgeds=false) {
 	global $TBLPREFIX, $gBitDb;
 
 	$sql="SELECT d_gid FROM {$TBLPREFIX}dates WHERE d_fact='CHAN' AND d_julianday1>=? AND d_gid NOT LIKE ?";
-	$vars=array($jd, '%:%');
+	$vars= [ $jd, '%:%' ];
 	if (!$allgeds) {
 		$sql.=" AND d_file=?";
 		$vars[]=PGV_GED_ID;
@@ -1421,7 +1335,7 @@ function search_indis_dates($day, $month, $year, $facts) {
 	global $TBLPREFIX, $gBitDb;
 
 	$sql="SELECT DISTINCT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex FROM {$TBLPREFIX}individuals JOIN {$TBLPREFIX}dates ON i_id=d_gid AND i_file=d_file WHERE i_file=?";
-	$vars=array(PGV_GED_ID);
+	$vars= [ PGV_GED_ID ];
 	if ($day) {
 		$sql.=" AND d_day=?";
 		$vars[]=$day;
@@ -1448,7 +1362,7 @@ function search_indis_dates($day, $month, $year, $facts) {
 		$sql.=' AND '.implode(' AND ', $facts);
 	}
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->getAssoc( $sql, $vars );
 	foreach ($rows as $row) {
 		$list[]=Person::getInstance($row);
@@ -1461,7 +1375,7 @@ function search_indis_daterange($start, $end, $facts) {
 	global $TBLPREFIX, $gBitDb;
 
 	$sql="SELECT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex FROM {$TBLPREFIX}individuals JOIN {$TBLPREFIX}dates ON i_id=d_gid AND i_file=d_file WHERE i_file=? AND d_julianday1 BETWEEN ? AND ?";
-	$vars=array(PGV_GED_ID, $start, $end);
+	$vars= [ PGV_GED_ID, $start, $end ];
 	
 	if ($facts) {
 		$facts=explode(',', $facts);
@@ -1472,7 +1386,7 @@ function search_indis_daterange($start, $end, $facts) {
 		$sql.=' AND d_fact IN ('.implode(',', $facts).')';
 	}
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->getAssoc( $sql, $vars );
 	foreach ($rows as $row) {
 		$list[]=Person::getInstance($row);
@@ -1501,22 +1415,18 @@ function search_fams($query, $geds, $match, $skip) {
 
 	// No query => no results
 	if (!$query) {
-		return array();
+		return [];
 	}
 
 	// Convert the query into a SQL expression
-	$querysql=array();
+	$querysql = [];
 	// Convert the query into a regular expression
-	$queryregex=array();
+	$queryregex = [];
 
 	foreach ($query as $q) {
 		$queryregex[]=preg_quote(UTF8_strtoupper($q), '/');
 
-		if ($DB_UTF8_COLLATION || !has_utf8($q)) {
-			$querysql[]="f_gedcom LIKE '%{$q}%'";
-		} else {
-			$querysql[]="(f_gedcom LIKE '%{$q}%' OR f_gedcom LIKE '%".UTF8_strtoupper($q)."%' OR f_gedcom LIKE '%".UTF8_strtolower($q)."%')";
-		}
+		$querysql[] = $DB_UTF8_COLLATION || !has_utf8( $q ) ? "f_gedcom LIKE '%{$q}%'" : "(f_gedcom LIKE '%{$q}%' OR f_gedcom LIKE '%" . UTF8_strtoupper( $q ) . "%' OR f_gedcom LIKE '%" . UTF8_strtolower( $q ) . "%')";
 	}
 
 	$sql="SELECT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil FROM {$TBLPREFIX}families WHERE (".implode(" {$match} ", $querysql).') AND f_file IN ('.implode(',', $geds).')';
@@ -1525,13 +1435,9 @@ function search_fams($query, $geds, $match, $skip) {
 	$sql.=' ORDER BY ged_id';
 
 	// Tags we might not want to search
-	if (PGV_USER_IS_ADMIN) {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*('.implode('|', $queryregex).')/im';
-	} else {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*('.implode('|', $queryregex).')/im';
-	}
+	$skipregex = PGV_USER_IS_ADMIN ? '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*(' . implode( '|', $queryregex ) . ')/im' : '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*(' . implode( '|', $queryregex ) . ')/im';
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->query( $sql );
 	$GED_ID=PGV_GED_ID;
 	while ( $row = $rows->fetchRow() ) {
@@ -1557,7 +1463,7 @@ function search_fams($query, $geds, $match, $skip) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1572,17 +1478,13 @@ function search_fams_names($query, $geds, $match) {
 
 	// No query => no results
 	if (!$query) {
-		return array();
+		return [];
 	}
 
 	// Convert the query into a SQL expression
-	$querysql=array();
+	$querysql = [];
 	foreach ($query as $q) {
-		if ($DB_UTF8_COLLATION || !has_utf8($q)) {
-			$querysql[]="(husb.n_full LIKE '%{$q}%' OR wife.n_full LIKE '%{$q}%')";
-		} else {
-			$querysql[]="(husb.n_full LIKE '%{$q}%' OR wife.n_full LIKE '%{$q}%' OR husb.n_full LIKE '%".UTF8_strtoupper($q)."%' OR husb.n_full LIKE '%".UTF8_strtolower($q)."%' OR wife.n_full LIKE '%".UTF8_strtoupper($q)."%' OR wife.n_full LIKE '%".UTF8_strtolower($q)."%' )";
-		}
+		$querysql[] = $DB_UTF8_COLLATION || !has_utf8( $q ) ? "(husb.n_full LIKE '%{$q}%' OR wife.n_full LIKE '%{$q}%')" : "(husb.n_full LIKE '%{$q}%' OR wife.n_full LIKE '%{$q}%' OR husb.n_full LIKE '%" . UTF8_strtoupper( $q ) . "%' OR husb.n_full LIKE '%" . UTF8_strtolower( $q ) . "%' OR wife.n_full LIKE '%" . UTF8_strtoupper( $q ) . "%' OR wife.n_full LIKE '%" . UTF8_strtolower( $q ) . "%' )";
 	}
 
 	$sql="SELECT DISTINCT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil FROM {$TBLPREFIX}families LEFT OUTER JOIN {$TBLPREFIX}name husb ON f_husb=husb.n_id AND f_file=husb.n_file LEFT OUTER JOIN {$TBLPREFIX}name wife ON f_wife=wife.n_id AND f_file=wife.n_file WHERE (".implode(" {$match} ", $querysql).') AND f_file IN ('.implode(',', $geds).')';
@@ -1590,7 +1492,7 @@ function search_fams_names($query, $geds, $match) {
 	// Group results by gedcom, to minimise switching between privacy files
 	$sql.=' ORDER BY ged_id';
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->query( $sql );
 	$GED_ID=PGV_GED_ID;
 	while ( $row = $rows->fetchRow() ) {
@@ -1607,7 +1509,7 @@ function search_fams_names($query, $geds, $match) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1623,21 +1525,17 @@ function search_sources($query, $geds, $match, $skip) {
 
 	// No query => no results
 	if (!$query) {
-		return array();
+		return [];
 	}
 
 	// Convert the query into a SQL expression
-	$querysql=array();
+	$querysql = [];
 	// Convert the query into a regular expression
-	$queryregex=array();
+	$queryregex = [];
 
 	foreach ($query as $q) {
 		$queryregex[]=preg_quote(UTF8_strtoupper($q), '/');
-		if ($DB_UTF8_COLLATION || !has_utf8($q)) {
-			$querysql[]="s_gedcom LIKE '%{$q}%'";
-		} else {
-			$querysql[]="(s_gedcom LIKE '%{$q}%' OR s_gedcom LIKE '%".UTF8_strtoupper($q)."' OR s_gedcom LIKE '%".UTF8_strtolower($q)."%')";
-		}
+		$querysql[] = $DB_UTF8_COLLATION || !has_utf8( $q ) ? "s_gedcom LIKE '%{$q}%'" : "(s_gedcom LIKE '%{$q}%' OR s_gedcom LIKE '%" . UTF8_strtoupper( $q ) . "' OR s_gedcom LIKE '%" . UTF8_strtolower( $q ) . "%')";
 	}
 
 	$sql="SELECT 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec FROM {$TBLPREFIX}sources WHERE (".implode(" {$match} ", $querysql).') AND s_file IN ('.implode(',', $geds).')';
@@ -1646,13 +1544,9 @@ function search_sources($query, $geds, $match, $skip) {
 	$sql.=' ORDER BY ged_id';
 
 	// Tags we might not want to search
-	if (PGV_USER_IS_ADMIN) {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*('.implode('|', $queryregex).')/im';
-	} else {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*('.implode('|', $queryregex).')/im';
-	}
+	$skipregex = PGV_USER_IS_ADMIN ? '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*(' . implode( '|', $queryregex ) . ')/im' : '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*(' . implode( '|', $queryregex ) . ')/im';
 
-	$list=array();
+	$list = [];
 	$rows = $gBitDb->query( $sql );
 	$GED_ID=PGV_GED_ID;
 	while ( $row= $rows->fetchRow() ) {
@@ -1677,7 +1571,7 @@ function search_sources($query, $geds, $match, $skip) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1693,21 +1587,17 @@ function search_notes($query, $geds, $match, $skip) {
 
 	// No query => no results
 	if (!$query) {
-		return array();
+		return [];
 	}
 
 	// Convert the query into a SQL expression
-	$querysql=array();
+	$querysql = [];
 	// Convert the query into a regular expression
-	$queryregex=array();
+	$queryregex = [];
 	
 	foreach ($query as $q) {
 		$queryregex[]=preg_quote(UTF8_strtoupper($q), '/');
-		if ($DB_UTF8_COLLATION || !has_utf8($q)) {
-			$querysql[]="o_gedcom LIKE '%{$q}%'";
-		} else {
-			$querysql[]="(o_gedcom LIKE '%{$q}% OR o_gedcom LIKE '%".UTF8_strtoupper($q)."%' OR o_gedcom LIKE '%".UTF8_strtolower($q)."%'";
-		}
+		$querysql[] = $DB_UTF8_COLLATION || !has_utf8( $q ) ? "o_gedcom LIKE '%{$q}%'" : "(o_gedcom LIKE '%{$q}% OR o_gedcom LIKE '%" . UTF8_strtoupper( $q ) . "%' OR o_gedcom LIKE '%" . UTF8_strtolower( $q ) . "%'";
 	}
 
 	$sql="SELECT 'NOTE' AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec FROM {$TBLPREFIX}other WHERE (".implode(" {$match} ", $querysql).") AND o_type='NOTE' AND o_file IN (".implode(',', $geds).')';
@@ -1716,13 +1606,9 @@ function search_notes($query, $geds, $match, $skip) {
 	$sql.=' ORDER BY ged_id';
 
 	// Tags we might not want to search
-	if (PGV_USER_IS_ADMIN) {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*('.implode('|', $queryregex).')/im';
-	} else {
-		$skipregex='/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*('.implode('|', $queryregex).')/im';
-	}
+	$skipregex = PGV_USER_IS_ADMIN ? '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN) .*(' . implode( '|', $queryregex ) . ')/im' : '/^\d (_UID|_PGVU|FILE|FORM|TYPE|CHAN|SUBM|REFN|RESN) .*(' . implode( '|', $queryregex ) . ')/im';
 
-	$list=array();
+	$list = [];
 	$result = $gBitDb->query($sql);
 	$GED_ID=PGV_GED_ID;
 	while ( $row = $result->fetchRow() ) {
@@ -1747,7 +1633,7 @@ function search_notes($query, $geds, $match, $skip) {
 	}
 	// Switch privacy file if necessary
 	if ($GED_ID!=PGV_GED_ID) {
-		$GEDCOM=get_gedcom_from_id(PGV_GED_ID);
+		$GEDCOM=PGV_GEDCOM;
 		load_privacy_file(PGV_GED_ID);
 	}
 	return $list;
@@ -1766,7 +1652,7 @@ function get_place_parent_id($parent, $level) {
 	for ($i=0; $i<$level; $i++) {
 		$p_id = $gBitDb->getOne( 
 				"SELECT p_id FROM {$TBLPREFIX}places WHERE p_level=? AND p_parent_id=? AND p_place LIKE ? AND p_file=?"
-				, array($i, $parent_id, $parent[$i], PGV_GED_ID));
+				, [ $i, $parent_id, $parent[$i], PGV_GED_ID ]);
 		if (is_null($p_id)) {
 			break;
 		}
@@ -1787,14 +1673,15 @@ function get_place_list($parent, $level) {
 	// --- find all of the place in the file
 	if ($level==0) {
 		return
-			$gBitDb->getOne("" .
+			$gBitDb->getCol(
 				"SELECT p_place FROM {$TBLPREFIX}places WHERE p_level=? AND p_file=? ORDER BY p_place"
-				, array(0, PGV_GED_ID));
+				, [ 0, PGV_GED_ID ]);
 	} else {
 		return
-			$gBitDb->getOne(
+			[ $gBitDb->getOne(
 				"SELECT p_place FROM {$TBLPREFIX}places WHERE p_level=? AND p_parent_id=? AND p_file=? ORDER BY p_place"
-				, array($level, get_place_parent_id($parent, $level), PGV_GED_ID));
+				, [ $level, get_place_parent_id( $parent, $level ), PGV_GED_ID ])
+			];
 	}
 }
 
@@ -1811,15 +1698,15 @@ function get_place_positions($parent, $level='') {
 
 	if ($level!=='') {
 		return
-			$gBitDb->getOne(
+			$gBitDb->getAll(
 				"SELECT DISTINCT pl_gid FROM {$TBLPREFIX}placelinks WHERE pl_p_id=? AND pl_file=?"
-				, array(get_place_parent_id($parent, $level), PGV_GED_ID));
+				, [ get_place_parent_id( $parent, $level ), PGV_GED_ID ]);
 	} else {
 		//-- we don't know the level so get the any matching place
 		return
-			$gBitDb->getOne(
+			$gBitDb->getAll(
 				"SELECT DISTINCT pl_gid FROM {$TBLPREFIX}placelinks, {$TBLPREFIX}places WHERE p_place LIKE ? AND p_file=pl_file AND p_id=pl_p_id AND p_file=?"
-				, array($parent, PGV_GED_ID));
+				, [ $parent, PGV_GED_ID ]);
 	}
 }
 
@@ -1830,20 +1717,16 @@ function find_place_list($place) {
 	$rows=
 		$gBitDb->getAll(
 		"SELECT p_id, p_place, p_parent_id  FROM {$TBLPREFIX}places WHERE p_file=? ORDER BY p_parent_id, p_id"
-		, array(PGV_GED_ID));
+		, [ PGV_GED_ID ]);
 
-	$placelist=array();
+	$placelist = [];
 	foreach ($rows as $row) {
-		if ($row->p_parent_id==0) {
-			$placelist[$row->p_id] = $row->p_place;
-		} else {
-			$placelist[$row->p_id] = $placelist[$row->p_parent_id].", ".$row->p_place;
-		}
+		$placelist[$row['p_id']] = $row['p_parent_id'] == 0 ? $row['p_place'] : $placelist[$row['p_parent_id']] . ", " . $row['p_place'];
 	}
 	if (!empty($place)) {
-		$found = array();
+		$found = [];
 		foreach ($placelist as $indexval => $pplace) {
-			if (preg_match("/$place/i", $pplace)>0) {
+			if (stripos($pplace, $place)!==false) {
 				$upperplace = UTF8_strtoupper($pplace);
 				if (!isset($found[$upperplace])) {
 					$found[$upperplace] = $pplace;
@@ -1862,7 +1745,7 @@ function find_rin_id($rin) {
 	$xref=
 		$gBitDb->getOne(
 			"SELECT i_id FROM {$TBLPREFIX}individuals WHERE i_rin=? AND i_file=?"
-			, array($rin, PGV_GED_ID));
+			, [ $rin, PGV_GED_ID ]);
 
 	return $xref ? $xref : $rin;
 }
@@ -1872,30 +1755,32 @@ function find_rin_id($rin) {
 * Does not delete the file from the file system
 * @param string $ged  the filename of the gedcom to delete
 */
-function delete_gedcom($ged) {
-	global $TBLPREFIX, $pgv_changes, $GEDCOMS, $gBitDb;
+function delete_gedcom($ged_id) {
+	global $TBLPREFIX, $pgv_changes, $gBitDb;
 
-	if (!isset($GEDCOMS[$ged])) {
-		return;
-	}
+	$ged=get_gedcom_from_id($ged_id);
 
-	$ged_id=get_id_from_gedcom($ged);
-
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks        WHERE b_username=?", array($ged));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}dates         WHERE d_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}families      WHERE f_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites     WHERE fv_file   =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}individuals   WHERE i_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}link          WHERE l_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}media         WHERE m_gedfile =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}media_mapping WHERE mm_gedfile=?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}name          WHERE n_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}news          WHERE n_username=?", array($ged));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}nextid        WHERE ni_gedfile=?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}other         WHERE o_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}placelinks    WHERE pl_file   =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}places        WHERE p_file    =?", array($ged_id));
-	$gBitDb->query("DELETE FROM {$TBLPREFIX}sources       WHERE s_file    =?", array($ged_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks        WHERE b_username=?", [ $ged ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}dates         WHERE d_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}families      WHERE f_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites     WHERE fv_file   =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}gedcom              WHERE gedcom_id =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}gedcom_setting      WHERE gedcom_id =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}individuals   WHERE i_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}link          WHERE l_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}media         WHERE m_gedfile =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}media_mapping WHERE mm_gedfile=?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}module_privacy      WHERE mp_file   =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}mutex               WHERE mx_name   =?", [ $ged ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}name          WHERE n_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}news          WHERE n_username=?", [ $ged ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}nextid        WHERE ni_gedfile=?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}other         WHERE o_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}placelinks    WHERE pl_file   =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}places        WHERE p_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}sources       WHERE s_file    =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}user_gedcom_setting WHERE gedcom_id =?", [ $ged_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}hit_counter         WHERE gedcom_id =?", [ $ged_id ]);
 
 	if (isset($pgv_changes)) {
 		//-- erase any of the changes
@@ -1907,34 +1792,37 @@ function delete_gedcom($ged) {
 		write_changes();
 	}
 
-	unset($GEDCOMS[$ged]);
-	store_gedcoms();
-
 	if (get_site_setting('DEFAULT_GEDCOM')==$ged) {
 		set_site_setting('DEFAULT_GEDCOM', '');
 	}
 }
 
 /**
-* get the top surnames
-* @param int $num how many surnames to return
-* @return array
-*/
-function get_top_surnames($num) {
+ * get the top surnames
+ * @param int $ged_id	fetch surnames from this gedcom
+ * @param int $min	only fetch surnames occuring this many times
+ * @param int $max only fetch this number of surnames (0=all)
+ * @return array
+ */
+function get_top_surnames($ged_id, $min, $max) {
 	global $TBLPREFIX, $gBitDb;
 
-	$result = $gBitDb->query(
-			"SELECT COUNT(n_surname) AS sn_count, n_surn FROM {$TBLPREFIX}name WHERE n_file=? AND n_type!=? AND n_surn NOT IN (?, ?, ?, ?) GROUP BY n_surn ORDER BY sn_count DESC"
-			, array(PGV_GED_ID, '_MARNM', '@N.N.', '', '?', 'UNKNOWN')
-			, $num+1);
-	while ( $row = $result->fetchRow() )
-	{
+	$surnames = [];
+	// Use n_surn, rather than n_surname, as it is used to generate url's for
+	// the inid-list, etc.
+	$rows = $gBitDb->query(
+			"SELECT n_surn, COUNT(n_surn) AS sn_count FROM {$TBLPREFIX}name WHERE n_file=? AND n_type!=? AND n_surn NOT IN (?, ?, ?, ?) GROUP BY n_surn HAVING COUNT(n_surn)>=".$min." ORDER BY 2 DESC"
+			, [ $ged_id, '_MARNM', '@N.N.', '', '?', 'UNKNOWN' ]);
+	$i = $max ? $max : 100;
+	while ( $row = $rows->fetchRow() ) {
 		if (isset($surnames[$row['n_surn']]['match'])) {
-			$surnames[$row['n_surn']]['match'] += $row['count'];
+			$surnames[$row['n_surn']]['match'] += $row['sn_count'];
 		} else {
 			$surnames[$row['n_surn']]['name'] = $row['n_surn'];
-			$surnames[$row['n_surn']]['match'] = $row['count'];
+			$surnames[$row['n_surn']]['match'] = $row['sn_count'];
+			$i--;
 		}
+		if ( $i < 0 ) break;
 	}
 	return $surnames;
 }
@@ -1949,13 +1837,13 @@ function get_next_id($table, $field) {
 	global $TBLPREFIX, $TABLE_IDS, $gBitDb;
 
 	if (!isset($TABLE_IDS)) {
-		$TABLE_IDS = array();
+		$TABLE_IDS = [];
 	}
 	if (isset($TABLE_IDS[$table][$field])) {
 		$TABLE_IDS[$table][$field]++;
 		return $TABLE_IDS[$table][$field];
 	}
-	$newid = $gBitDb->getOne("SELECT MAX({$field}) FROM {$TBLPREFIX}{$table}");
+	$newid = $gBitDb->getOne("SELECT COALESCE( MAX({$field}), 0) FROM {$TBLPREFIX}{$table}");
 	$newid++;
 	$TABLE_IDS[$table][$field] = $newid;
 	return $newid;
@@ -1964,24 +1852,22 @@ function get_next_id($table, $field) {
 /**
 * get a list of remote servers
 */
-function get_server_list(){
-	global $GEDCOM, $GEDCOMS, $TBLPREFIX, $sitelist, $gBitDb;
+function get_server_list($ged_id=PGV_GED_ID){
+	global $TBLPREFIX, $gBitDb;
 
-	$sitelist = array();
+	$sitelist = [];
 
-	if (isset($GEDCOMS[$GEDCOM]) && check_for_import($GEDCOM)) {
-		$rows = $gBitDb->getAll(
+	$rows = $gBitDb->query(
 			"SELECT s_id, s_name, s_gedcom, s_file FROM {$TBLPREFIX}sources WHERE s_file=? AND s_dbid=? ORDER BY s_name"
-			, array(PGV_GED_ID, 'Y'));
-		foreach ( $rows as $row ) {
-			$source = array();
+			, [ $ged_id, 'Y' ]);
+		while ( $row = $rows->fetchRow() ) {
+			$source = [];
 			$source["name"] = $row['s_name'];
 			$source["gedcom"] = $row['s_gedcom'];
 			$source["gedfile"] = $row['s_file'];
 			$source["url"] = get_gedcom_value("URL", 1, $row['s_gedcom']);
 			$sitelist[$row['s_id']] = $source;
 		}
-	}
 
 	return $sitelist;
 }
@@ -1994,10 +1880,10 @@ function get_server_list(){
 function get_faq_data($id='') {
 	global $TBLPREFIX, $GEDCOM, $gBitDb;
 
-	$faqs = array();
+	$faqs = [];
 	// Read the faq data from the DB
 	$sql="SELECT b_id, b_location, b_order, b_config, b_username FROM {$TBLPREFIX}blocks WHERE b_username IN (?, ?) AND b_name=?";
-	$vars=array($GEDCOM, '*all*', 'faq');
+	$vars= [ $GEDCOM, '*all*', 'faq' ];
 	if ($id!='') {
 		$sql.=" AND b_order=?";
 		$vars[]=$id;
@@ -2006,10 +1892,10 @@ function get_faq_data($id='') {
 	}
 	$rows = $gBitDb->getAll( $sql, $vars );
 
-	foreach ($rows as $row) {
-		$faqs[$row['b_order']][$row['b_location']]["text"  ]=unserialize($row['b_config']);
-		$faqs[$row['b_order']][$row['b_location']]["pid"   ]=$row['b_id'];
-		$faqs[$row['b_order']][$row['b_location']]["gedcom"]=$row['b_username'];
+	foreach ( $rows as $row ) {
+		$faqs[$row['b_order']][$row->b_location]["text"  ]=unserialize($row['b_config']);
+		$faqs[$row['b_order']][$row->b_location]["pid"   ]=$row['b_id'];
+		$faqs[$row['b_order']][$row->b_location]["gedcom"]=$row['b_username'];
 	}
 	return $faqs;
 }
@@ -2042,7 +1928,7 @@ function delete_fact($linenum, $pid, $gedrec) {
 				$i++;
 				if ($i<$ctlines) {
 					// Remove the fact
-					while ((isset($gedlines[$i]))&&($gedlines[$i]{0}>$glevel)) {
+					while (isset($gedlines[$i]) && ($gedlines[$i][0]>$glevel)) {
 						$i++;
 					}
 					// Add the remaining lines
@@ -2064,7 +1950,7 @@ function delete_fact($linenum, $pid, $gedrec) {
 *
 * @param mixed $rfn RFN number to see if it exists
 * @access public
-* @return gid Stub ID that contains the RFN number. Returns false if it didn't find anything
+* @return integer gid Stub ID that contains the RFN number. Returns false if it didn't find anything
 */
 function get_remote_id($rfn) {
 	global $TBLPREFIX, $gBitDb;
@@ -2072,7 +1958,7 @@ function get_remote_id($rfn) {
 	return
 		$gBitDb->getOne(
 			"SELECT r_gid FROM {$TBLPREFIX}remotelinks WHERE r_linkid=? AND r_file=?"
-			,array($rfn, PGV_GED_ID));
+			,[ $rfn, PGV_GED_ID ] );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2091,116 +1977,115 @@ function get_anniversary_events($jd, $facts='', $ged_id=PGV_GED_ID) {
 		$skipfacts.=',_TODO';
 	}
 
-	$found_facts=array();
-	foreach (array(new GregorianDate($jd), new JulianDate($jd), new FrenchRDate($jd), new JewishDate($jd), new HijriDate($jd)) as $anniv) {
+	$found_facts = [];
+	foreach ( [ new GregorianDate( $jd ), new JulianDate( $jd ), new FrenchRDate( $jd ), new JewishDate( $jd ), new HijriDate( $jd ) ] as $anniv) {
 		// Build a SQL where clause to match anniversaries in the appropriate calendar.
 		$where="WHERE d_type='".$anniv->CALENDAR_ESCAPE()."'";
 		// SIMPLE CASES:
 		// a) Non-hebrew anniversaries
 		// b) Hebrew months TVT, SHV, IYR, SVN, TMZ, AAV, ELL
-		if ($anniv->CALENDAR_ESCAPE()!='@#DHEBREW@' || in_array($anniv->m, array(1, 5, 9, 10, 11, 12, 13))) {
+		if ($anniv->CALENDAR_ESCAPE()!='@#DHEBREW@' || in_array($anniv->m, [ 1, 5, 9, 10, 11, 12, 13 ])) {
 			// Dates without days go on the first day of the month
 			// Dates with invalid days go on the last day of the month
-			if ($anniv->d==1) {
-				$where.=" AND d_day<=1";
-			} else
-				if ($anniv->d==$anniv->DaysInMonth()) {
-					$where.=" AND d_day>={$anniv->d}";
-				} else {
-					$where.=" AND d_day={$anniv->d}";
-				}
-			$where.=" AND d_mon={$anniv->m}";
+			$where .= match ( $anniv->d ) {
+				1                     => " AND d_day<=1",
+				$anniv->DaysInMonth() => " AND d_day>={$anniv->d}",
+				default               => " AND d_day={$anniv->d}",
+			};
+			$where .= " AND d_mon={$anniv->m}";
 		} else {
 			// SPECIAL CASES:
 			switch ($anniv->m) {
 			case 2:
 				// 29 CSH does not include 30 CSH (but would include an invalid 31 CSH if there were no 30 CSH)
 				if ($anniv->d==1) {
-					$where.=" AND d_day<=1 AND d_mon=2";
+					$where .=" AND d_day<=1 AND d_mon=2";
 				} elseif ($anniv->d==30) {
-					$where.=" AND d_day>=30 AND d_mon=2";
+					$where .=" AND d_day>=30 AND d_mon=2";
 				} elseif ($anniv->d==29 && $anniv->DaysInMonth()==29) {
-					$where.=" AND (d_day=29 OR d_day>30) AND d_mon=2";
+					$where .=" AND (d_day=29 OR d_day>30) AND d_mon=2";
 				} else {
-					$where.=" AND d_day={$anniv->d} AND d_mon=2";
+					$where .=" AND d_day={$anniv->d} AND d_mon=2";
 				}
 				break;
 			case 3:
 				// 1 KSL includes 30 CSH (if this year didn't have 30 CSH)
 				// 29 KSL does not include 30 KSL (but would include an invalid 31 KSL if there were no 30 KSL)
 				if ($anniv->d==1) {
-					$tmp=new JewishDate(array($anniv->y, 'csh', 1));
-					if ($tmp->DaysInMonth()==29) {
-						$where.=" AND (d_day<=1 AND d_mon=3 OR d_day=30 AND d_mon=2)";
-					} else {
-						$where.=" AND d_day<=1 AND d_mon=3";
-					}
+					$tmp=new JewishDate( [ $anniv->y, 'csh', 1 ]);
+						$where .= match ( $tmp->DaysInMonth() ) {
+							29      => " AND (d_day<=1 AND d_mon=3 OR d_day=30 AND d_mon=2)",
+							default => " AND d_day<=1 AND d_mon=3",
+						};
 				} else
 					if ($anniv->d==30) {
-						$where.=" AND d_day>=30 AND d_mon=3";
+						$where .=" AND d_day>=30 AND d_mon=3";
 					} elseif ($anniv->d==29 && $anniv->DaysInMonth()==29) {
-						$where.=" AND (d_day=29 OR d_day>30) AND d_mon=3";
+						$where .=" AND (d_day=29 OR d_day>30) AND d_mon=3";
 					} else {
-						$where.=" AND d_day={$anniv->d} AND d_mon=3";
+						$where .=" AND d_day={$anniv->d} AND d_mon=3";
 					}
 				break;
 			case 4:
 				// 1 TVT includes 30 KSL (if this year didn't have 30 KSL)
-				if ($anniv->d==1) {
-					$tmp=new JewishDate($anniv->y, 'ksl', 1);
-					if ($tmp->DaysInMonth()==29) {
-						$where.=" AND (d_day<=1 AND d_mon=4 OR d_day=30 AND d_mon=3)";
-					} else {
-						$where.=" AND d_day<=1 AND d_mon=4";
-					}
-				} else
-					if ($anniv->d==$anniv->DaysInMonth()) {
-						$where.=" AND d_day>={$anniv->d} AND d_mon=4";
-					} else {
-						$where.=" AND d_day={$anniv->d} AND d_mon=4";
+					switch ($anniv->d) {
+						case 1:
+							$tmp = new JewishDate( $anniv->y ); // , 'ksl', 1);
+							$where .= match ( $tmp->DaysInMonth() ) {
+								29      => " AND (d_day<=1 AND d_mon=4 OR d_day=30 AND d_mon=3)",
+								default => " AND d_day<=1 AND d_mon=4",
+							};
+							break;
+						case $anniv->DaysInMonth():
+							$where .= " AND d_day>={$anniv->d} AND d_mon=4";
+							break;
+						default:
+							$where .= " AND d_day={$anniv->d} AND d_mon=4";
+							break;
 					}
 				break;
 			case 6: // ADR (non-leap) includes ADS (leap)
-				if ($anniv->d==1) {
-					$where.=" AND d_day<=1";
-				} elseif ($anniv->d==$anniv->DaysInMonth()) {
-					$where.=" AND d_day>={$anniv->d}";
-				} else {
-					$where.=" AND d_day={$anniv->d}";
-				}
+					$where .= match ( $anniv->d ) {
+						1                     => " AND d_day<=1",
+						$anniv->DaysInMonth() => " AND d_day>={$anniv->d}",
+						default               => " AND d_day={$anniv->d}",
+					};
 				if ($anniv->IsLeapYear()) {
-					$where.=" AND (d_mon=6 AND ".$gBitDb->mod_function("7*d_year+1","19")."<7)";
+					$where .=" AND (d_mon=6 AND ".$gBitDb->mod_function()."(7*d_year+1,19)"."<7)";
 				} else {
-					$where.=" AND (d_mon=6 OR d_mon=7)";
+					$where .=" AND (d_mon=6 OR d_mon=7)";
 				}
 				break;
 			case 7: // ADS includes ADR (non-leap)
-				if ($anniv->d==1) {
-					$where.=" AND d_day<=1";
-				} elseif ($anniv->d==$anniv->DaysInMonth()) {
-					$where.=" AND d_day>={$anniv->d}";
-				} else {
-					$where.=" AND d_day={$anniv->d}";
-				}
-				$where.=" AND (d_mon=6 AND ".$gBitDb->mod_function("7*d_year+1","19").">=7 OR d_mon=7)";
+					$where .= match ( $anniv->d ) {
+						1                     => " AND d_day<=1",
+						$anniv->DaysInMonth() => " AND d_day>={$anniv->d}",
+						default               => " AND d_day={$anniv->d}",
+					};
+				$where.=" AND (d_mon=6 AND ".$gBitDb->mod_function()."(7*d_year+1,19)".">=7 OR d_mon=7)";
 				break;
 			case 8: // 1 NSN includes 30 ADR, if this year is non-leap
-				if ($anniv->d==1) {
-					if ($anniv->IsLeapYear()) {
-						$where.=" AND d_day<=1 AND d_mon=8";
-					} else {
-						$where.=" AND (d_day<=1 AND d_mon=8 OR d_day=30 AND d_mon=6)";
+					switch ($anniv->d) {
+						case 1:
+							if ($anniv->IsLeapYear()) {
+								$where .= " AND d_day<=1 AND d_mon=8";
+							}
+							else {
+								$where .= " AND (d_day<=1 AND d_mon=8 OR d_day=30 AND d_mon=6)";
+							}
+							break;
+						case $anniv->DaysInMonth():
+							$where .= " AND d_day>={$anniv->d} AND d_mon=8";
+							break;
+						default:
+							$where .= " AND d_day={$anniv->d} AND d_mon=8";
+							break;
 					}
-				} elseif ($anniv->d==$anniv->DaysInMonth()) {
-					$where.=" AND d_day>={$anniv->d} AND d_mon=8";
-				} else {
-					$where.=" AND d_day={$anniv->d} AND d_mon=8";
-				}
 				break;
 			}
 		}
 		// Only events in the past (includes dates without a year)
-		$where.=" AND d_year<={$anniv->y}";
+		$where .=" AND d_year<={$anniv->y}";
 		// Restrict to certain types of fact
 		if (empty($facts)) {
 			$excl_facts="'".preg_replace('/\W+/', "','", $skipfacts)."'";
@@ -2210,51 +2095,41 @@ function get_anniversary_events($jd, $facts='', $ged_id=PGV_GED_ID) {
 			$where.=" AND d_fact IN ({$incl_facts})";
 		}
 		// Only get events from the current gedcom
-		$where.=" AND d_file=".$ged_id;
+		$where .= " AND d_file=$ged_id";
 
 		// Now fetch these anniversaries
 		$ind_sql="SELECT DISTINCT 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex, d_type, d_day, d_month, d_year, d_fact, d_type FROM {$TBLPREFIX}dates, {$TBLPREFIX}individuals {$where} AND d_gid=i_id AND d_file=i_file ORDER BY d_day ASC, d_year DESC";
 		$fam_sql="SELECT DISTINCT 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil, d_type, d_day, d_month, d_year, d_fact, d_type FROM {$TBLPREFIX}dates, {$TBLPREFIX}families {$where} AND d_gid=f_id AND d_file=f_file ORDER BY d_day ASC, d_year DESC";
-		foreach (array($ind_sql, $fam_sql) as $sql) {
+
+		foreach ( [ $ind_sql, $fam_sql ] as $sql) {
 			$rows = $gBitDb->getAll( $sql );
 			foreach ($rows as $row) {
-				if ($row['type']=='INDI') {
-					$record=Person::getInstance($row);
-				} else {
-					$record=Family::getInstance($row);
-				}
+				$record = $row['type'] == 'INDI' ? Person::getInstance( $row ) : Family::getInstance( $row );
 				// Generate a regex to match the retrieved date - so we can find it in the original gedcom record.
 				// TODO having to go back to the original gedcom is lame.  This is why it is so slow, and needs
 				// to be cached.  We should store the level1 fact here (or somewhere)
-				if ($row['d_type']=='@#DJULIAN@') {
-					if ($row['d_year']<0) {
-						$year_regex=$row['d_year']." ?[Bb]\.? ?[Cc]\.\ ?";
-					} else {
-						$year_regex="({$row['d_year']}|".($row['d_year']-1)."\/".($row['d_year']%100).")";
-					}
-				} else
-					$year_regex="0*".$row['d_year'];
+				$year_regex = ( $row['d_type'] == '@#DJULIAN@' )
+					? ( $row['d_year'] < 0
+						? $row['d_year'] . ' ?[Bb]\.? ?[Cc]\.\ ?'
+						: "({$row['d_year']}|" . ( $row['d_year'] - 1 ) . "\/" . ( $row['d_year'] % 100 ) . ")" )
+					: "0*" . $row['d_year'];
 				$ged_date_regex="/2 DATE.*(".($row['d_day']>0 ? "0?{$row['d_day']}\s*" : "").$row['d_month']."\s*".($row['d_year']!=0 ? $year_regex : "").")/i";
 				foreach (get_all_subrecords($row['gedrec'], $skipfacts, false, false) as $factrec) {
 					if (preg_match("/(^1 {$row['d_fact']}|^1 (FACT|EVEN).*\n2 TYPE {$row['d_fact']})/s", $factrec) && preg_match($ged_date_regex, $factrec) && preg_match('/2 DATE (.+)/', $factrec, $match)) {
 						$date=new GedcomDate($match[1]);
-						if (preg_match('/2 PLAC (.+)/', $factrec, $match)) {
-							$plac=$match[1];
-						} else {
-							$plac='';
-						}
+						$plac = ( preg_match( '/2 PLAC (.+)/', $factrec, $match ) ) ? $match[1] : '';
 						if (showFactDetails($row['d_fact'], $row['xref']) && !FactViewRestricted($row['xref'], $factrec)) {
-							$found_facts[]=array(
-								'record'=>$record,
-								'id'=>$row['xref'],
-								'objtype'=>$row['type'],
-								'fact'=>$row['d_fact'],
-								'factrec'=>$factrec,
-								'jd'=>$jd,
-								'anniv'=>($row['d_year']==0?0:$anniv->y-$row['d_year']),
-								'date'=>$date,
-								'plac'=>$plac
-							);
+							$found_facts[]= [
+								'record'  => $record,
+								'id'      => $row['xref'],
+								'objtype' => $row['type'],
+								'fact'    => $row['d_fact'],
+								'factrec' => $factrec,
+								'jd'      => $jd,
+								'anniv'   => ( $row['d_year'] == 0 ? 0 : $anniv->y - $row['d_year'] ),
+								'date'    => $date,
+								'plac'    => $plac,
+							];
 						}
 					}
 				}
@@ -2281,7 +2156,7 @@ function get_calendar_events($jd1, $jd2, $facts='', $ged_id=PGV_GED_ID) {
 		$skipfacts.=',_TODO';
 	}
 
-	$found_facts=array();
+	$found_facts = [];
 
 	// This where clause gives events that start/end/overlap the period
 	// e.g. 1914-1918 would show up on 1916
@@ -2301,43 +2176,35 @@ function get_calendar_events($jd1, $jd2, $facts='', $ged_id=PGV_GED_ID) {
 	$where.=" AND d_file=".$ged_id;
 
 	// Now fetch these events
-	$ind_sql="SELECT d_gid, i_gedcom, 'INDI', d_type, d_day, d_month, d_year, d_fact, d_type FROM {$TBLPREFIX}dates, {$TBLPREFIX}individuals {$where} AND d_gid=i_id AND d_file=i_file ORDER BY d_julianday1";
-	$fam_sql="SELECT d_gid, f_gedcom, 'FAM',  d_type, d_day, d_month, d_year, d_fact, d_type FROM {$TBLPREFIX}dates, {$TBLPREFIX}families    {$where} AND d_gid=f_id AND d_file=f_file ORDER BY d_julianday1";
-	foreach (array($ind_sql, $fam_sql) as $sql) {
-		$rows = $gBitDb->getAll->fetchAll($sql);
+	$ind_sql="SELECT d_gid, i_gedcom AS gedcom, 'INDI' AS objtype, d_type, d_day, d_month, d_year, d_fact FROM {$TBLPREFIX}dates, {$TBLPREFIX}individuals {$where} AND d_gid=i_id AND d_file=i_file ORDER BY d_julianday1";
+	$fam_sql="SELECT d_gid, f_gedcom AS gedcom, 'FAM'  AS objtype, d_type, d_day, d_month, d_year, d_fact FROM {$TBLPREFIX}dates, {$TBLPREFIX}families    {$where} AND d_gid=f_id AND d_file=f_file ORDER BY d_julianday1";
+	foreach ( [ $ind_sql, $fam_sql ] as $sql) {
+		$rows = $gBitDb->getAll($sql);
 		foreach ($rows as $row) {
 			// Generate a regex to match the retrieved date - so we can find it in the original gedcom record.
 			// TODO having to go back to the original gedcom is lame.  This is why it is so slow, and needs
 			// to be cached.  We should store the level1 fact here (or somewhere)
-			if ($row[8]=='@#DJULIAN@') {
-				if ($row[6]<0) {
-					$year_regex=$row[6]." ?[Bb]\.? ?[Cc]\.\ ?";
-				} else {
-					$year_regex="({$row[6]}|".($row[6]-1)."\/".($row[6]%100).")";
-				}
-			} else {
-				$year_regex="0*".$row[6];
-			}
-			$ged_date_regex="/2 DATE.*(".($row[4]>0 ? "0?{$row[4]}\s*" : "").$row[5]."\s*".($row[6]!=0 ? $year_regex : "").")/i";
-			foreach (get_all_subrecords($row[1], $skipfacts, false, false) as $factrec) {
-				if (preg_match("/(^1 {$row[7]}|^1 (FACT|EVEN).*\n2 TYPE {$row[7]})/s", $factrec) && preg_match($ged_date_regex, $factrec) && preg_match('/2 DATE (.+)/', $factrec, $match)) {
+			$year_regex = ( $row['d_type'] == '@#DJULIAN@' )
+				? ( ( $row['d_year'] < 0 )
+					? $row['d_year'] . " ?[Bb]\.? ?[Cc]\.\ ?"
+					: "({$row['d_year']}|" . ( $row['d_year'] - 1 ) . "\/" . ( $row['d_year'] % 100 ) . ")" )
+				: "0*" . $row['d_year'];
+			$ged_date_regex="/2 DATE.*(".($row['d_day']>0 ? "0?{$row['d_day']}\s*" : "").$row['d_month']."\s*".($row['d_year']!=0 ? $year_regex : "").")/i";
+			foreach (get_all_subrecords($row['gedcom'], $skipfacts, false, false) as $factrec) {
+				if (preg_match("/(^1 {$row['d_fact']}|^1 (FACT|EVEN).*\n2 TYPE {$row['d_fact']})/s", $factrec) && preg_match($ged_date_regex, $factrec) && preg_match('/2 DATE (.+)/', $factrec, $match)) {
 					$date=new GedcomDate($match[1]);
-					if (preg_match('/2 PLAC (.+)/', $factrec, $match)) {
-						$plac=$match[1];
-					} else {
-						$plac='';
-					}
-					if (showFactDetails($row[7], $row[0]) && !FactViewRestricted($row[0], $factrec)) {
-						$found_facts[]=array(
-							'id'=>$row[0],
-							'objtype'=>$row[2],
-							'fact'=>$row[7],
-							'factrec'=>$factrec,
-							'jd'=>$jd1,
-							'anniv'=>0,
-							'date'=>$date,
-							'plac'=>$plac
-						);
+					$plac = ( preg_match( '/2 PLAC (.+)/', $factrec, $match ) ) ? $match[1] : '';
+					if (showFactDetails($row['d_fact'], $row['d_gid']) && !FactViewRestricted($row['d_gid'], $factrec)) {
+						$found_facts[]= [
+							'id'      => $row['d_gid'],
+							'objtype' => $row['objtype'],
+							'fact'    => $row['d_fact'],
+							'factrec' => $factrec,
+							'jd'      => $jd1,
+							'anniv'   => 0,
+							'date'    => $date,
+							'plac'    => $plac,
+						];
 					}
 				}
 			}
@@ -2363,7 +2230,7 @@ function get_calendar_events($jd1, $jd2, $facts='', $ged_id=PGV_GED_ID) {
 * to be done by the routine that makes use of the event list.
 */
 function get_events_list($jd1, $jd2, $events='') {
-	$found_facts=array();
+	$found_facts = [];
 	for ($jd=$jd1; $jd<=$jd2; ++$jd) {
 		$found_facts=array_merge($found_facts, get_anniversary_events($jd, $events));
 	}
@@ -2379,128 +2246,271 @@ function is_media_used_in_other_gedcom($file_name, $ged_id) {
 	return
 		(bool)$gBitDb->getOne(
 			"SELECT COUNT(*) FROM {$TBLPREFIX}media WHERE m_file LIKE ? AND m_gedfile<>?"
-			, array("%{$file_name}", $ged_id));
+			, [ "%{$file_name}", $ged_id ]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to access the PGV_SITE_SETTING table
+// We can't cache/reuse prepared statements here, as we need to call these
+// functions after performing DDL statements, and these invalidate any
+// existing prepared statement handles in some databases.
 ////////////////////////////////////////////////////////////////////////////////
-function get_site_setting($site_setting_name, $default=null) {
+function get_site_setting($site_setting_name, $default='') {
 	global $TBLPREFIX, $gBitDb;
 
 	return $gBitDb->getOne(
 		"SELECT COALESCE( site_setting_value, '{$default}' ) FROM {$TBLPREFIX}site_setting WHERE site_setting_name=?"
-		, array($site_setting_name) );
+		, [ $site_setting_name ] );
 }
 
 function set_site_setting($site_setting_name, $site_setting_value) {
 	global $TBLPREFIX, $gBitDb;
-	// We can't cache/reuse prepared statements here, as we need to call this
-	// function after performing DDL statements, and these invalidate any
-	// existing prepared statement handles in some databases.
 
-	$old_site_setting_value=
-		$gBitDb->getOne(
-			"SELECT site_setting_value FROM {$TBLPREFIX}site_setting WHERE site_setting_name=?"
-			, array($site_setting_name));
-
-	if (is_null($old_site_setting_value)) {
-		// Value doesn't exist - insert
+	if ($site_setting_value === null) {
+		delete_site_setting($site_setting_name);
+	} else {
+		$old_site_setting_value=get_site_setting($site_setting_name);
+		if ($old_site_setting_value === null) {
+			// Value doesn't exist - insert
 		$gBitDb->query(
 			"INSERT INTO {$TBLPREFIX}site_setting (site_setting_name, site_setting_value) VALUES (?, ?)"
-			, array($site_setting_name, $site_setting_value));
-	} elseif ($old_site_setting_value!=$site_setting_value) {
-		// Value exists, and is different
+			, [ $site_setting_name, $site_setting_value ]);
+		} elseif ($old_site_setting_value!=$site_setting_value) {
+			// Value exists, and is different
 		$gBitDb->query(
 			"UPDATE {$TBLPREFIX}site_setting SET site_setting_value=? WHERE site_setting_name=?"
-			, array($site_setting_value, $site_setting_name));	
+			, [ $site_setting_value, $site_setting_name ]);	
+		}
 	}
 }
+
 function delete_site_setting($site_setting_name) {
 	global $TBLPREFIX, $gBitDb;
 	$gBitDb->query(
 		"DELETE FROM {$TBLPREFIX}site_setting WHERE site_setting_name=?"
-		, array($site_setting_name));
+		, [ $site_setting_name ]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to access the PGV_GEDCOM table
-// A future version of PGV will have a table PGV_GEDCOM, which will
-// contain the values currently stored the array $GEDCOMS[].
-//
-// Until then, we use this "logical" structure, but with the access functions
-// mapped onto the existing "physical" structure.
 ////////////////////////////////////////////////////////////////////////////////
 
 function get_all_gedcoms() {
-	global $GEDCOMS, $gGedcom;
-
-	$gedcoms=array();
-/*	foreach ($GEDCOMS as $key=>$value) {
-		$gedcoms[$value['id']]=$key;
-	}
-*/	
-	$gedcoms = $gGedcom->getList();
-	uasort($gedcoms, 'stringsort');
-	return $gedcoms;
+	global $TBLPREFIX, $gBitDb;
+	
+	return
+		$gBitDb->getAssoc("SELECT gedcom_id, gedcom_name FROM {$TBLPREFIX}gedcom");
 }
 
-function get_gedcom_from_id( $ged_id ) {
-/*	global $GEDCOMS, $gGedcom;
+function get_gedcom_titles() {
+	global $TBLPREFIX, $gBitDb;
+	
+	return
+		$gBitDb->getAll(
+			"SELECT g.gedcom_id, g.gedcom_name, COALESCE(gs.setting_value, g.gedcom_name) AS gedcom_title".
+			" FROM {$TBLPREFIX}gedcom g".
+			" LEFT JOIN {$TBLPREFIX}gedcom_setting gs ON (g.gedcom_id=gs.gedcom_id AND gs.setting_name=?)".
+			" ORDER BY 3"
+			, [ 'title' ] );
+}
 
-	if (isset($GEDCOMS[$ged_id])) {
-		return $ged_id;
+function get_gedcom_from_id($ged_id) {
+	global $TBLPREFIX, $gBitDb;
+
+	// No need to look up the default gedcom
+	if (defined('PGV_GED_ID') && defined('PGV_GEDCOM') && $ged_id==PGV_GED_ID) {
+		return PGV_GEDCOM;
 	}
-	foreach ($GEDCOMS as $ged=>$gedarray) {
-		if ( $gedarray['id'] == $ged_id ) {
-			return $ged;
+
+	return
+		$gBitDb->getOne("SELECT gedcom_name FROM {$TBLPREFIX}gedcom WHERE gedcom_id=?"
+			, [ $ged_id ] );
+}
+
+// Convert an (external) gedcom name to an (internal) gedcom ID.
+// Optionally create an entry for it, if it does not exist.
+function get_id_from_gedcom($ged_name, $create=false) {
+	global $TBLPREFIX, $gBitDb;
+
+	// No need to look up the default gedcom
+	if (defined('PGV_GED_ID') && defined('PGV_GEDCOM') && $ged_name==PGV_GEDCOM) {
+		return PGV_GED_ID;
+	}
+
+	if ($create) {
+		try {
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}gedcom (gedcom_name) VALUES (?)"
+				, [ $ged_name ] );
+		} catch (\ADODB_Exception $ex) {
+			// The gedcom already exists - can't create
 		}
 	}
 
-*/
-	return $ged_id;
+	return
+		$gBitDb->getOne("SELECT gedcom_id FROM {$TBLPREFIX}gedcom WHERE gedcom_name=?"
+			, [ $ged_name ] );
 }
-
-function get_id_from_gedcom( $ged_name ) {
-	global $GEDCOMS, $gGedcom;
-
-//	if (array_key_exists($ged_name, $GEDCOMS)) {
-//		return (int)$GEDCOMS[$ged_name]['id']; // Cast to (int) for safe use in SQL
-//	} else {
-		return $gGedcom->mGEDCOMId;
-//	}
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to access the PGV_GEDCOM_SETTING table
-// A future version of PGV will have a table PGV_GEDCOM_SETTING, which will
-// contain the values currently stored the array $GEDCOMS[].
-//
-// Until then, we use this "logical" structure, but with the access functions
-// mapped onto the existing "physical" structure.
 ////////////////////////////////////////////////////////////////////////////////
 
-function get_gedcom_setting( $ged_id, $parameter ) {
-	global $GEDCOMS;
-	$ged_id = get_gedcom_from_id($ged_id);
-	if (array_key_exists($ged_id, $GEDCOMS) && array_key_exists($parameter, $GEDCOMS[$ged_id])) {
-		return $GEDCOMS[get_gedcom_from_id($ged_id)][$parameter];
+function get_gedcom_setting($ged_id, $setting_name) {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getOne("SELECT setting_value FROM {$TBLPREFIX}gedcom_setting WHERE gedcom_id=? AND setting_name=?"
+			, [ $ged_id, $setting_name ] );
+}
+
+function set_gedcom_setting($ged_id, $setting_name, $setting_value) {
+	global $TBLPREFIX, $gBitDb;
+
+	if (empty($setting_value)) {
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}gedcom_setting WHERE gedcom_id=? AND setting_name=?"
+			, [ $ged_id, $setting_name ] );
 	} else {
-		return null;
+		$current_value=get_gedcom_setting($ged_id, $setting_name);
+		if (is_null($current_value)) {
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}gedcom_setting (gedcom_id, setting_name, setting_value) VALUES (?, ?, ?)"
+				, [ $ged_id, $setting_name, $setting_value ] );
+		} elseif ($current_value!=$setting_value) {
+			$gBitDb->query("UPDATE {$TBLPREFIX}gedcom_setting SET setting_value=? WHERE gedcom_id=? AND setting_name=?"
+				, [ $setting_value, $ged_id, $setting_name ] );
+		} else {
+			// The value is unchanged
+		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to access the PGV_USER table
-// Mapped to BW $gBitUser functions
 ////////////////////////////////////////////////////////////////////////////////
+
+function create_user($username, $password) {
+	global $TBLPREFIX, $gBitDb;
+
+	try {
+	$gBitDb->query( "INSERT INTO {$TBLPREFIX}user (user_name, password) VALUES (?, ?)"
+			, [ $username, $password ] );
+	} catch (\ADODB_Exception $ex) {
+		// User already exists?
+	}
+	return
+		$gBitDb->getOne("SELECT user_id FROM {$TBLPREFIX}user WHERE user_name=?"
+			, [ $username ] );
+}
+
+function rename_user($old_username, $new_username) {
+	global $TBLPREFIX, $gBitDb;
+
+	$gBitDb->query("UPDATE {$TBLPREFIX}user      SET user_name  =? WHERE user_name  =?", [ $new_username, $old_username ]);
+	$gBitDb->query("UPDATE {$TBLPREFIX}blocks    SET b_username =? WHERE b_username =?", [ $new_username, $old_username ]);
+	$gBitDb->query("UPDATE {$TBLPREFIX}favorites SET fv_username=? WHERE fv_username=?", [ $new_username, $old_username ]);
+	$gBitDb->query("UPDATE {$TBLPREFIX}messages  SET m_from     =? WHERE m_from     =?", [ $new_username, $old_username ]);
+	$gBitDb->query("UPDATE {$TBLPREFIX}messages  SET m_to       =? WHERE m_to       =?", [ $new_username, $old_username ]);
+	$gBitDb->query("UPDATE {$TBLPREFIX}news      SET n_username =? WHERE n_username =?", [ $new_username, $old_username ]);
+}
+
+function delete_user($user_id) {
+	global $TBLPREFIX, $gBitDb;
+
+	$user_name=get_user_name($user_id);
+
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}user     WHERE user_id =?", [ $user_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}user_gedcom_setting 	WHERE user_id =?", [ $user_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}user_setting        	WHERE user_id =?", [ $user_id ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks    WHERE b_username =?", [ $user_name ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites WHERE fv_username=?", [ $user_name ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}messages  WHERE m_from=? OR m_to=?", [ $user_name, $user_name ]);
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}news      WHERE n_username =?", [ $user_name ]);
+}
+
+function get_all_users($order='ASC', $key1='lastname', $key2='firstname') {
+	global $TBLPREFIX, $gBitDb;
+
+	if ($key1=='username') {
+		return
+			$gBitDb->getAssoc(
+					"SELECT user_id, user_name FROM {$TBLPREFIX}user ORDER BY user_name"
+			);
+	} else {
+		return
+			$gBitDb->getAssoc(
+					"SELECT u.user_id, user_name".
+					" FROM {$TBLPREFIX}user u".
+					" LEFT JOIN {$TBLPREFIX}user_setting us1 ON (u.user_id=us1.user_id AND us1.setting_name=?)".
+					" LEFT JOIN {$TBLPREFIX}user_setting us2 ON (u.user_id=us2.user_id AND us2.setting_name=?)".
+					" ORDER BY us1.setting_value {$order}, us2.setting_value {$order}"
+			, [ $key1, $key2 ] );
+	}
+}
 
 function get_user_count() {
 	global $TBLPREFIX, $gBitDb;
 
 	return
-		$gBitDb->getOne("SELECT COUNT(*) FROM `".BIT_DB_PREFIX."users_users`");
+		$gBitDb->getOne("SELECT COUNT(*) FROM {$TBLPREFIX}user");
+}
+
+function get_admin_user_count() {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getOne(
+			"SELECT COUNT(*) FROM {$TBLPREFIX}user_setting WHERE setting_name=? AND setting_value=?"
+			, [ 'canadmin', 'Y' ]);
+}
+
+function get_non_admin_user_count() {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getOne(
+			"SELECT COUNT(*) FROM {$TBLPREFIX}user_setting WHERE  setting_name=? AND setting_value<>?"
+			, [ 'canadmin', 'Y' ]);
+}
+
+// Get a list of logged-in users
+function get_logged_in_users() {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getAssoc(
+			"SELECT u.user_id, user_name".
+			" FROM {$TBLPREFIX}user u".
+			" JOIN {$TBLPREFIX}user_setting us USING (user_id)".
+			" WHERE setting_name=? AND setting_value=?"
+			, [ 'loggedin', 'Y' ]);
+}
+
+// Get a list of logged-in users who haven't been active recently
+function get_idle_users($time) {
+	global $TBLPREFIX, $gBitDb;
+
+	// Convert string column to numeric
+	switch ($gBitDb->mType) {
+	case 'sqlite':
+	case 'pgsql':
+		$expr='CAST(us2.setting_value AS INTEGER)';
+		break;
+	case 'mysql':
+		$expr='CAST(us2.setting_value AS UNSIGNED)';
+		break;
+	default:
+		$expr='us2.setting_value';
+		break;
+	}
+
+	return
+		$gBitDb->getAssoc(
+			"SELECT u.user_id, user_name".
+			" FROM {$TBLPREFIX}user u".
+			" JOIN {$TBLPREFIX}user_setting us1 USING (user_id)".
+			" JOIN {$TBLPREFIX}user_setting us2 USING (user_id)".
+			" WHERE us1.setting_name=? AND us1.setting_value=? AND us2.setting_name=?".
+			" AND {$expr} BETWEEN 1 AND ?"
+			, [ 'loggedin', 'Y', 'sessiontime', $time ]) ;
 }
 
 // Get the ID for a username
@@ -2508,134 +2518,397 @@ function get_user_count() {
 function get_user_id( $username ) {
 	global $TBLPREFIX, $gBitDb;
 
+	if (!isset($username)) { return false; }
 	return $gBitDb->getOne(
-			"SELECT `user_id` FROM `".BIT_DB_PREFIX."users_users` WHERE `login`=? OR `email`=?"
-			, array($username, $username) );
+			"SELECT user_id FROM {$TBLPREFIX}user WHERE user_name=?"
+			, [ $username ] );
 }
 
 // Get the username for a user ID
-// (Currently ID is the same as username, but this will change in the future)
-function get_user_name( $user_id ) {
+function get_user_name($user_id) {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getOne(
+			"SELECT user_name FROM {$TBLPREFIX}user WHERE user_id=?"
+			, [ $user_id ] );
+}
+
+function get_newest_registered_user() {
 	global $TBLPREFIX, $gBitDb;
 
 	return $gBitDb->getOne(
-			"SELECT `real_name` FROM `".BIT_DB_PREFIX."users_users` WHERE `user_id`=? OR `login`=?"
-			, array($user_id, $user_id) );
+		"SELECT u.user_id".
+		" FROM {$TBLPREFIX}user u".
+		" LEFT JOIN {$TBLPREFIX}user_setting us ON (u.user_id=us.user_id AND us.setting_name=?) ".
+		" ORDER BY us.setting_value DESC"
+	, [ 'reg_timestamp' ] );
+}
+
+function set_user_password($user_id, $password) {
+	global $TBLPREFIX, $gBitDb;
+
+	$gBitDb->query(
+		"UPDATE {$TBLPREFIX}user SET password=? WHERE user_id=?"
+		, [ $password, $user_id ]);
+}
+
+function get_user_password($user_id) {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getOne(
+			"SELECT password FROM {$TBLPREFIX}user WHERE user_id=?"
+			, [ $user_id ]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to access the PGV_USER_SETTING table
-// A future version of PGV will have a table PGV_USER_SETTING, which will
-// contain the values currently stored in columns in the table PGV_USERS.
-//
-// Until then, we use this "logical" structure, but with the access functions
-// mapped onto the existing "physical" structure.
-//
-// $parameter is one of the column names in PGV_USERS, without the u_ prefix.
 ////////////////////////////////////////////////////////////////////////////////
 
-function get_user_setting( $user_id, $parameter ) {
-	global $TBLPREFIX, $gBitDb, $gBitUser;
+function get_user_setting($user_id, $parameter) {
+	global $TBLPREFIX, $gBitDb;
 
-	return $gBitUser->getPreference( $parameter ); 
-	// $gBitDb->getOne("SELECT u_{$parameter} FROM {$TBLPREFIX}users WHERE u_username=?",array($user_id));
+	return $gBitDb->getOne("SELECT setting_value FROM {$TBLPREFIX}user_setting WHERE user_id=? AND setting_name=?", [ $user_id, $parameter ]);
 }
 
-function set_user_setting( $user_id, $parameter, $value ) {
-	global $TBLPREFIX, $gBitDb, $gBitUser;
-	$gBitUser->setPreference( $parameter, $value );
-//	$gBitDb->query("UPDATE {$TBLPREFIX}users SET u_{$parameter}=? WHERE u_username=?", array($value, $user_id));
+function set_user_setting($user_id, $setting_name, $setting_value) {
+	global $TBLPREFIX, $gBitDb;
+
+	if (empty($setting_value)) {
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}user_setting WHERE user_id=? AND setting_name=?"
+			, [ $user_id, $setting_name ] );
+	} else {
+		$current_value=get_user_setting($user_id, $setting_name);
+		if (is_null($current_value)) {
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}user_setting (user_id, setting_name, setting_value) VALUES (?, ?, ?)"
+				, [ $user_id, $setting_name, $setting_value ] );
+		} elseif ($current_value!=$setting_value) {
+			$gBitDb->query("UPDATE {$TBLPREFIX}user_setting SET setting_value=? WHERE user_id=? AND setting_name=?"
+				, [ $setting_value, $user_id, $setting_name ] );
+		} else {
+			// The value is unchanged
+		}
+	}
 }
 
 function admin_user_exists() {
-	global $TBLPREFIX, $gBitDb;
-
-	return
-		true;
+	return get_admin_user_count()>0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to access the PGV_USER_GEDCOM_SETTING table
-// A future version of PGV will have a table PGV_USER_GEDCOM_SETTING, which will
-// contain the values currently stored in serialized arrays in columns in the
-// table PGV_USERS.
-//
-// Until then, we use this "logical" structure, but with the access functions
-// mapped onto the existing "physical" structure.
-//
 // $parameter is one of: "gedcomid", "rootid" and "canedit".
 ////////////////////////////////////////////////////////////////////////////////
 
-function get_user_gedcom_setting($user_id, $ged_id, $parameter) {
-	$ged_name=get_gedcom_from_id($ged_id);
-
-	$tmp=get_user_setting($user_id, $parameter);
-	if (!is_string($tmp)) {
-		return null;
-	}
-	$tmp_array=unserialize($tmp);
-	if (!is_array($tmp_array)) {
-		return null;
-	}
-	if (array_key_exists($ged_name, $tmp_array)) {
-		// Convert old PGV3.1 values to PGV3.2 format
-		if ($parameter=='canedit') {
-			if ($tmp_array[$ged_name]=='yes') {
-				$tmp_array[$ged_name]=='edit';
-			}
-			if ($tmp_array[$ged_name]=='no') {
-				$tmp_array[$ged_name]=='access';
-			}
-		}
-		return $tmp_array[$ged_name];
-	} else {
-		return null;
-	}
-}
-
-function set_user_gedcom_setting($user_id, $ged_id, $parameter, $value) {
-	$ged_name=get_gedcom_from_id($ged_id);
-
-	$tmp=get_user_setting($user_id, $parameter);
-	if (is_string($tmp)) {
-		$tmp_array=unserialize($tmp);
-		if (!is_array($tmp_array)) {
-			$tmp_array=array();
-		}
-	} else {
-		$tmp_array=array();
-	}
-	if (empty($value)) {
-		// delete the value
-		unset($tmp_array[$ged_name]);
-	} else {
-		// update the value
-		$tmp_array[$ged_name]=$value;
-	}
-	set_user_setting($user_id, $parameter, serialize($tmp_array));
-
-	global $PGV_USERS_cache;
-	if (isset($PGV_USERS_cache[$user_id])) {
-		unset($PGV_USERS_cache[$user_id]);
-	}
-}
-
-function get_user_from_gedcom_xref( $ged_id, $xref) {
+function get_user_gedcom_setting($user_id, $ged_id, $setting_name) {
 	global $TBLPREFIX, $gBitDb;
 
-	$ged_name=get_gedcom_from_id( $ged_id );
-
-	$rows = null; // $gBitDb->query("SELECT u_username, u_gedcomid FROM {$TBLPREFIX}users");
-	$username=false;
-	while ( $row = $rows->fetchRow() ) {
-		if ($row['u_gedcomid']) {
-			$tmp_array=unserialize($row['u_gedcomid']);
-			if (array_key_exists($ged_name, $tmp_array) && $tmp_array[$ged_name]==$xref) {
-				return $row['u_username'];
-			}
-		}
-	}
-	return null;
+	return
+		$gBitDb->getOne("SELECT setting_value FROM {$TBLPREFIX}user_gedcom_setting WHERE user_id=? AND gedcom_id=? AND setting_name=?"
+			, [ $user_id, $ged_id, $setting_name ] );
 }
 
-?>
+function set_user_gedcom_setting($user_id, $ged_id, $setting_name, $setting_value) {
+	global $TBLPREFIX, $gBitDb;
+
+	if (empty($setting_value)) {
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}user_gedcom_setting WHERE user_id=? AND gedcom_id=? AND setting_name=?"
+			, [ $user_id, $ged_id, $setting_name ] );
+	} else {
+		$current_value=get_user_gedcom_setting($user_id, $ged_id, $setting_name);
+		if (is_null($current_value)) {
+			$gBitDb->query("INSERT INTO {$TBLPREFIX}user_gedcom_setting (user_id, gedcom_id, setting_name, setting_value) VALUES (?, ?, ?, ?)"
+				, [ $user_id, $ged_id, $setting_name, $setting_value ] );
+		} elseif ($current_value!=$setting_value) {
+			$gBitDb->query("UPDATE {$TBLPREFIX}user_gedcom_setting SET setting_value=? WHERE user_id=? AND gedcom_id=? AND setting_name=?"
+				, [ $setting_value, $user_id, $ged_id, $setting_name ] );
+		} else {
+			// The value is unchanged
+		}
+	}
+}
+
+function get_user_from_gedcom_xref($ged_id, $xref) {
+	global $TBLPREFIX, $gBitDb;
+
+	return
+		$gBitDb->getOne(
+			"SELECT user_id FROM {$TBLPREFIX}user_gedcom_setting".
+			" WHERE gedcom_id=? AND setting_name=? AND setting_value=?"
+			, [ $ged_id, 'gedcomid', $xref ] );
+}
+
+/**
+* update favorites regarding a merge of records
+*
+* @param string $xref_from id to update
+* @param string $xref_to id to update to
+* @param string $ged_id gedcom to update
+*/
+function update_favorites($xref_from, $xref_to, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+$ged_name=get_gedcom_from_id($ged_id);
+
+		$gBitDb->query("UPDATE {$TBLPREFIX}favorites SET fv_gid=? WHERE fv_gid=? AND fv_file=?"
+			, [ $xref_to, $xref_from, $ged_name ] );
+	return
+		$gBitDb->Affected_Rows();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Autocomplete functions
+////////////////////////////////////////////////////////////////////////////////
+
+function get_autocomplete_INDI($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	// search for ids first and request the exact id from FILTER and ids with one additional digit
+	$sql=
+		"SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex".
+		" FROM {$TBLPREFIX}individuals, {$TBLPREFIX}name".
+		" WHERE (i_id=? OR i_id  LIKE  ?)".
+		" AND i_id=n_id AND i_file=n_file AND i_file=?".
+		" ORDER BY i_id";
+	$rows=
+		$gBitDb->getAll($sql
+			, [ "{$FILTER}", "{$FILTER}_", $ged_id ] );
+	// if the number of rows is not zero, the input is an id and you don't need to search the names for
+	if (count($rows) ==0) {
+		$sql=
+			"SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex".
+			" FROM {$TBLPREFIX}individuals, {$TBLPREFIX}name".
+			" WHERE n_sort  LIKE  ?".
+			" AND i_id=n_id AND i_file=n_file AND i_file=?".
+			" ORDER BY n_sort";
+		return
+			$gBitDb->getAll($sql
+				, [ "%{$FILTER}%", $ged_id ] );
+	}
+	else {
+		return $rows;
+	}
+}
+
+function get_autocomplete_FAM($FILTER, $ids, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$vars = [];
+	if (empty($ids)) {
+		//-- no match : search for FAM id
+		$where = "f_id  LIKE  ?";
+		$vars[]="%{$FILTER}%";
+	} else {
+		//-- search for spouses
+		$qs=implode(',', array_fill(0, count($ids), '?'));
+		$where = "(f_husb IN ($qs) OR f_wife IN ($qs))";
+		$vars=array_merge($vars, $ids, $ids);
+	}
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil ".
+			 "FROM {$TBLPREFIX}families ".
+			 "WHERE {$where} AND f_file=?";
+	$vars[]=$ged_id;
+	return
+		$gBitDb->getAll($sql, $vars );
+}
+
+function get_autocomplete_NOTE($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
+			 "FROM {$TBLPREFIX}other ".
+			 "WHERE o_gedcom  LIKE  ? AND o_type='NOTE' AND o_file=?";
+	return
+		$gBitDb->getAll($sql, [ "%{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_SOUR($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec ".
+			 "FROM {$TBLPREFIX}sources ".
+			 "WHERE (s_name  LIKE  ? OR s_id  LIKE  ?) AND s_file=? ORDER BY s_name";
+	return
+		$gBitDb->getAll($sql, [ "%{$FILTER}%", "{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_SOUR_TITL($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'SOUR' AS type, s_id AS xref, s_file AS ged_id, s_gedcom AS gedrec ".
+			 "FROM {$TBLPREFIX}sources ".
+			 "WHERE s_name  LIKE  ? AND s_file=? ORDER BY s_name";
+	return
+		$gBitDb->getAll($sql, [ "%{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_INDI_BURI_CEME($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql=
+		"SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex ".
+		"FROM {$TBLPREFIX}individuals ".
+		"WHERE i_gedcom  LIKE  ? AND i_file=?";
+	return
+		$gBitDb->getAll($sql, [ "%1 BURI%2 CEME %{$FILTER}%", $ged_id ] );
+
+}
+
+function get_autocomplete_INDI_SOUR_PAGE($FILTER, $OPTION, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'INDI' AS type, i_id AS xref, i_file AS ged_id, i_gedcom AS gedrec, i_isdead, i_sex ".
+			 "FROM {$TBLPREFIX}individuals ".
+			 "WHERE i_gedcom  LIKE  ? AND i_file=?";
+	return
+		$gBitDb->getAll($sql, [ "% SOUR @{$OPTION}@% PAGE %{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_FAM_SOUR_PAGE($FILTER, $OPTION, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql=
+		"SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." 'FAM' AS type, f_id AS xref, f_file AS ged_id, f_gedcom AS gedrec, f_husb, f_wife, f_chil, f_numchil ".
+		"FROM {$TBLPREFIX}families ".
+		"WHERE f_gedcom  LIKE  ? AND f_file=?";
+	return
+		$gBitDb->getAll($sql, [ "% SOUR @{$OPTION}@% PAGE %{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_REPO($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql=
+		"SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
+		"FROM {$TBLPREFIX}other ".
+		"WHERE (o_gedcom  LIKE  ? OR o_id  LIKE  ?) AND o_file=? AND o_type='REPO'";
+	return
+		$gBitDb->getAll($sql, [ "%1 NAME %{$FILTER}%", "{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_REPO_NAME($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql=
+		"SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." o_type AS type, o_id AS xref, o_file AS ged_id, o_gedcom AS gedrec ".
+		"FROM {$TBLPREFIX}other ".
+		"WHERE o_gedcom  LIKE  ? AND o_file=? AND o_type='REPO'";
+	return
+		$gBitDb->getAll($sql, [ "%1 NAME %{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_OBJE($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." m_media ".
+			 "FROM {$TBLPREFIX}media ".
+			 "WHERE (m_titl  LIKE  ? OR m_media  LIKE  ?) AND m_gedfile=?";
+	return
+		$gBitDb->getAll($sql, [ "%{$FILTER}%", "{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_SURN($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." DISTINCT n_surname ".
+			 "FROM {$TBLPREFIX}name ".
+			 "WHERE n_surname  LIKE  ? AND n_file=? ORDER BY n_surname";
+	return 
+		$gBitDb->getAll($sql, [ "%{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_GIVN($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb;
+
+	$sql="SELECT FIRST ".PGV_AUTOCOMPLETE_LIMIT." DISTINCT n_givn ".
+			 "FROM {$TBLPREFIX}name ".
+			 "WHERE n_givn  LIKE  ? AND n_file=? ORDER BY n_givn";
+	return 
+		$gBitDb->getAll($sql, [ "%{$FILTER}%", $ged_id ] );
+}
+
+function get_autocomplete_PLAC($FILTER, $ged_id=PGV_GED_ID) {
+	global $TBLPREFIX, $gBitDb, $DBTYPE;
+
+	// sqlite and postgreSQL don't have a CONCAT() function
+	// postgreSQL "like" is case-sensitive
+	// TODO: mssql might use + instead
+	
+	$like = 'like';
+	
+	switch ($DBTYPE) {
+	case 'pgsql':
+		$like = 'ilike';	//	Force case-insensitive comparison in postgreSQL
+	case 'sqlite':
+		$sql=
+			"select p1.p_place".
+			" from {$TBLPREFIX}places p1".
+			" where p1.p_place {$like} ? and p1.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" where p1.p_place {$like} ? and p2.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place || ', ' || p3.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" join {$TBLPREFIX}places p3 ON (p2.p_parent_id=p3.p_id AND p2.p_file=p3.p_file)".
+			" where p1.p_place {$like} ? and p3.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place || ', ' || p3.p_place || ', ' || p4.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" join {$TBLPREFIX}places p3 ON (p2.p_parent_id=p3.p_id AND p2.p_file=p3.p_file)".
+			" join {$TBLPREFIX}places p4 ON (p3.p_parent_id=p4.p_id AND p3.p_file=p4.p_file)".
+			" where p1.p_place {$like} ? and p4.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place || ', ' || p3.p_place || ', ' || p4.p_place || ', ' || p5.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" join {$TBLPREFIX}places p3 ON (p2.p_parent_id=p3.p_id AND p2.p_file=p3.p_file)".
+			" join {$TBLPREFIX}places p4 ON (p3.p_parent_id=p4.p_id AND p3.p_file=p4.p_file)".
+			" join {$TBLPREFIX}places p5 ON (p4.p_parent_id=p5.p_id AND p4.p_file=p5.p_file)".
+			" where p1.p_place {$like} ? and p5.p_parent_id=0 AND p1.p_file=?";
+		break;
+	default:
+		$sql=
+			"select p1.p_place".
+			" from {$TBLPREFIX}places p1".
+			" where p1.p_place like ? and p1.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" where p1.p_place like ? and p2.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place || ', ' || p3.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" join {$TBLPREFIX}places p3 ON (p2.p_parent_id=p3.p_id AND p2.p_file=p3.p_file)".
+			" where p1.p_place like ? and p3.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place || ', ' || p3.p_place || ', ' || p4.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" join {$TBLPREFIX}places p3 ON (p2.p_parent_id=p3.p_id AND p2.p_file=p3.p_file)".
+			" join {$TBLPREFIX}places p4 ON (p3.p_parent_id=p4.p_id AND p3.p_file=p4.p_file)".
+			" where p1.p_place like ? and p4.p_parent_id=0 AND p1.p_file=?".
+			" union ".
+			"select p1.p_place || ', ' || p2.p_place || ', ' || p3.p_place || ', ' || p4.p_place || ', ' || p5.p_place".
+			" from {$TBLPREFIX}places p1".
+			" join {$TBLPREFIX}places p2 ON (p1.p_parent_id=p2.p_id AND p1.p_file=p2.p_file)".
+			" join {$TBLPREFIX}places p3 ON (p2.p_parent_id=p3.p_id AND p2.p_file=p3.p_file)".
+			" join {$TBLPREFIX}places p4 ON (p3.p_parent_id=p4.p_id AND p3.p_file=p4.p_file)".
+			" join {$TBLPREFIX}places p5 ON (p4.p_parent_id=p5.p_id AND p4.p_file=p5.p_file)".
+			" where p1.p_place like ? and p5.p_parent_id=0 AND p1.p_file=?";
+		break;
+	}
+ 
+	$rows = $gBitDb->query($sql
+		, [ "%{$FILTER}%", $ged_id, "%{$FILTER}%", $ged_id, "%{$FILTER}%", $ged_id, "%{$FILTER}%", $ged_id, "%{$FILTER}%", $ged_id ]
+		, PGV_AUTOCOMPLETE_LIMIT);
+	return
+		$rows->GetArray(PGV_AUTOCOMPLETE_LIMIT);
+}

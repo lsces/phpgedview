@@ -2,10 +2,8 @@
 /**
  * Functions used Tools to cleanup and manipulate Gedcoms before they are imported
  *
- * $Id$
- *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2015  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +18,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  * @package PhpGedView
  * @subpackage Tools
  * @see validategedcom.php
+ * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_TOOLS_PHP', '');
 
@@ -146,14 +143,19 @@ function line_endings_cleanup() {
  * @return boolean	returns true if the cleanup is needed
  * @see place_cleanup()
  */
-function need_place_cleanup()
-{
+function need_place_cleanup() {
 	global $fcontents;
 	//$ct = preg_match("/SOUR.+(Family Tree Maker|FTW)/", $fcontents);
 	//if ($ct==0) return false;
 	$ct = preg_match_all ("/^1 (CAST|DSCR|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|SSN|TITL|_FA1|_FA2|_FA3|_FA4|_FA5|_FA6)(\s*)$[\s]+(^2 TYPE(.*)[\s]+)?(^2 DATE(.*)[\s]+)?^2 PLAC (.*)$/m",$fcontents,$matches, PREG_SET_ORDER);
-	if($ct>0)
-		return $matches[0];
+	if($ct>0) {
+		$samplePlace = array();
+		$max = min(count($matches), 5);		//  Return first 5 occurrences
+		for ($i=0; $i<$max; $i++) {
+			$samplePlace[] = $matches[$i][0];
+		}
+		return $samplePlace;
+	}
 	return false;
 }
 
@@ -207,55 +209,81 @@ function fixreplaceval($val1,$val7,$val3,$val5)
  * @return boolean	returns true if the cleanup is needed
  * @see date_cleanup()
  */
-function need_date_cleanup()
-{
+function need_date_cleanup() {
 	global $fcontents;
-	$ct = preg_match_all ("/\n\d DATE[^\d]+(\d\d\d\d)[\/\\\\\-\.](\d\d)[\/\\\\\-\.](\d\d)/",$fcontents,$matches, PREG_SET_ORDER);
-	if($ct>0) {
-			return $matches[0];
-		}
-	else
-	{
-			$ct = preg_match_all ("/\n\d DATE[^\d]+(\d\d)[\/\\\\\-\.](\d\d)[\/\\\\\-\.](\d\d\d\d)/",$fcontents,$matches, PREG_SET_ORDER);
-		if($ct>0) {
-			// The user needs to choose between DMY and MDY
-			$matches[0]["choose"] = true;
-			return $matches[0];
-		}
-		else {
-			$ct = preg_match_all ("/\n\d DATE ([^\d]+) [0-9]{1,2}, (\d\d\d\d)/",$fcontents,$matches, PREG_SET_ORDER);
-			if($ct>0) {
-				return $matches[0];
-			}
-			else {
-				$ct = preg_match_all("/\n\d DATE (\d\d)[^\s]([^\d]+)[^\s](\d\d\d\d)/", $fcontents, $matches, PREG_SET_ORDER);
-				if($ct>0) {
-					return $matches[0];
-				} else {
-					if (preg_match_all("/^\d DATE (BET|FROM) \d\d? (AND|TO) \d\d? \w\w\w \d\d\d\d/m", $fcontents, $matches, PREG_SET_ORDER)) {
-						return $matches[0];
-					}
-				}
+	$ambiguousDate = false;
+	$sampleDate = array();
+
+	while (true) {
+		$ct = preg_match_all ("/\n\d DATE[^\d]+(\d{8})/",$fcontents,$matches, PREG_SET_ORDER);
+		if ($ct>0) {		// yyyymmdd
+			foreach ($matches as $sample) {
+				$sampleDate[] = $sample[0];
 			}
 		}
+
+		$ct = preg_match_all ("/\n\d DATE[^\d]+(\d{4})[^\d](\d{1,2})[^\d](\d{1,2})/",$fcontents,$matches, PREG_SET_ORDER);
+		if ($ct>0) {		// yyyy-mm-dd  (alternate punctuation possible)
+			foreach ($matches as $sample) {
+				$sampleDate[] = $sample[0];
+			}
+		}
+
+		$ct = preg_match_all ("/\n\d DATE[^\d]+(\d{1,2})[^\d](\d{1,2})[^\d](\d{4})/",$fcontents,$matches, PREG_SET_ORDER);
+		if ($ct>0) {		// mm-dd-yyyy or dd-mm-yyyy   (alternate punctuation possible)
+			$ambiguousDate = true;		// The user needs to choose between DMY and MDY
+			foreach ($matches as $sample) {
+				$sampleDate[] = $sample[0];
+			}
+		}
+
+		$ct = preg_match_all ("/\n\d DATE ([^\d]+) (\d{1,2}),? (\d{4})/",$fcontents,$matches, PREG_SET_ORDER);
+		if ($ct>0) {		// mmm dd, yyyy   (longer or shorter month names possible)
+			$ambiguousDate = true;		// The user needs to choose between DMY and MDY
+			foreach ($matches as $sample) {
+				$sampleDate[] = $sample[0];
+			}
+		}
+
+		$ct = preg_match_all("/\n\d DATE (\d{1,2})[^\s]([^\d]+)[^\s](\d{4})/", $fcontents, $matches, PREG_SET_ORDER);
+		if ($ct>0) {		// dd-mmm-yyyy   (longer or shorter month names possible, alternate punctuation possible)
+			foreach ($matches as $sample) {
+				$sampleDate[] = $sample[0];
+			}
+		}
+
+		$ct = (preg_match_all("/^\d DATE (BET|FROM) (\d{1,2}) (AND|TO) (\d{1,2}) (\w{3,}) (\d{4})/m", $fcontents, $matches, PREG_SET_ORDER));
+		if ($ct>0) {
+			foreach ($matches as $sample) {
+				$sampleDate[] = $sample[0];
+			}
+		}
+
+		break;
 	}
-	return false;
+
+	$max = count($sampleDate);
+	if ($max==0) return false;
+	if ($max > 5) $sampleDate = array_slice($sampleDate, 0, 5);
+	if ($ambiguousDate) $sampleDate['choose'] = true;
+	return $sampleDate;
+
 }
 
 function changemonth($monval)
 {
 		if($monval=="01") return "JAN";
-		else if($monval=="02") return "FEB";
-		else if($monval=="03") return "MAR";
-		else if($monval=="04") return "APR";
-		else if($monval=="05") return "MAY";
-		else if($monval=="06") return "JUN";
-		else if($monval=="07") return "JUL";
-		else if($monval=="08") return "AUG";
-		else if($monval=="09") return "SEP";
-		else if($monval=="10") return "OCT";
-		else if($monval=="11") return "NOV";
-		else if($monval=="12") return "DEC";
+		elseif($monval=="02") return "FEB";
+		elseif($monval=="03") return "MAR";
+		elseif($monval=="04") return "APR";
+		elseif($monval=="05") return "MAY";
+		elseif($monval=="06") return "JUN";
+		elseif($monval=="07") return "JUL";
+		elseif($monval=="08") return "AUG";
+		elseif($monval=="09") return "SEP";
+		elseif($monval=="10") return "OCT";
+		elseif($monval=="11") return "NOV";
+		elseif($monval=="12") return "DEC";
 		return $monval;
 }
 
@@ -269,27 +297,53 @@ function date_cleanup($dayfirst=1)
 	global $fcontents;
 	// Run all fixes twice, as there can be two dates in each DATE record
 
-	// Convert ISO/Japanese style dates "2000-12-31"
-	$fcontents=preg_replace("/2 DATE (.*)(\d\d\d\d)\W(0?[1-9]|1[0-2])\W(\d\d)/e", "'2 DATE $1$4 '.changemonth('$3').' $2'", $fcontents);
-	$fcontents=preg_replace("/2 DATE (.*)(\d\d\d\d)\W(0?[1-9]|1[0-2])\W(\d\d)/e", "'2 DATE $1$4 '.changemonth('$3').' $2'", $fcontents);
+	// Convert ISO style dates "20001231"
+	$fcontents=preg_replace_callback('/2 DATE (.*)(\d{4})(\d{2})(\d{2})/', 
+	                                 function ($match) {return "2 DATE $match[1]$match[4] ".changemonth($match[3])." $match[2]"; }, 
+	                                 $fcontents);
+	$fcontents=preg_replace_callback('/2 DATE (.*)(\d{4})(\d{2})(\d{2})/', 
+	                                 function ($match) {return "2 DATE $match[1]$match[4] ".changemonth($match[3])." $match[2]"; }, 
+	                                 $fcontents);
+	// Convert ISO style dates "2000-12-31"
+	$fcontents=preg_replace_callback('/2 DATE (.*)(\d\d\d\d)\W(0?[1-9]|1[0-2])\W(\d\d)/', 
+	                                 function ($match) {return "2 DATE $match[1]$match[4] ".changemonth($match[3])." $match[2]"; }, 
+	                                 $fcontents);
+	$fcontents=preg_replace_callback('/2 DATE (.*)(\d\d\d\d)\W(0?[1-9]|1[0-2])\W(\d\d)/', 
+	                                 function ($match) {return "2 DATE $match[1]$match[4] ".changemonth($match[3])." $match[2]"; }, 
+	                                 $fcontents);
+	// Convert dates of the form "2000 DEC 31"
+	$fcontents=preg_replace_callback('/2 DATE (\d{4})\W(\w+)\W(\d\d?)/',
+	                                  function($match) {return "2 DATE $match[3] $match[2] $match[1]"; },
+	                                  $fcontents);
+	$fcontents=preg_replace_callback('/2 DATE (\d{4})\W(\w+)\W(\d\d?)/',
+	                                  function($match) {return "2 DATE $match[3] $match[2] $match[1]"; },
+	                                  $fcontents);
 	// Convert US style dates "FEB 14, 2000" or "February 5, 2000"
-	$fcontents=preg_replace("/2 DATE (.*)((JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*) (\d{1,2}), (\d{4})/i", "2 DATE $1$4 $3 $5", $fcontents);
-	$fcontents=preg_replace("/2 DATE (.*)((JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*) (\d{1,2}), (\d{4})/i", "2 DATE $1$4 $3 $5", $fcontents);
+	$fcontents=preg_replace('/2 DATE (.*)((JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*) (\d{1,2}), (\d{4})/i', "2 DATE $1$4 $3 $5", $fcontents);
+	$fcontents=preg_replace('/2 DATE (.*)((JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*) (\d{1,2}), (\d{4})/i', "2 DATE $1$4 $3 $5", $fcontents);
 
 	// Convert non-space delimiters "12-DEC-2000" or "01/02/2000"
 	// Without the "ungreedy" qualifier, this regex won't match the first of a pair of dates and
 	// with it, it won't match the second.  Not sure why.
-	$fcontents=preg_replace("/2 DATE (.*?)(\d\d?)\W(\w+)\W(\d\d\d\d)/", "2 DATE $1$2 $3 $4", $fcontents);
-	$fcontents=preg_replace("/2 DATE (.*)(\d\d?)\W(\w+)\W(\d\d\d\d)/", "2 DATE $1$2 $3 $4", $fcontents);
+	$fcontents=preg_replace('/2 DATE (.*?)(\d\d?)\W(\w+)\W(\d\d\d\d)/', "2 DATE $1$2 $3 $4", $fcontents);
+	$fcontents=preg_replace('/2 DATE (.*)(\d\d?)\W(\w+)\W(\d\d\d\d)/', "2 DATE $1$2 $3 $4", $fcontents);
 
 	if ($dayfirst==1) {
 		// Interpret numeric dates as DD MM YYYY
-		$fcontents=preg_replace("/2 DATE (.*)(\d\d?) (0?[1-9]|1[0-2]) (\d\d\d\d)/e", "'2 DATE $1$2 '.changemonth('$3').' $4'", $fcontents);
-		$fcontents=preg_replace("/2 DATE (.*)(\d\d?) (0?[1-9]|1[0-2]) (\d\d\d\d)/e", "'2 DATE $1$2 '.changemonth('$3').' $4'", $fcontents);
+		$fcontents=preg_replace_callback('/2 DATE (.*)(\d\d?) (0?[1-9]|1[0-2]) (\d\d\d\d)/',
+		                                 function ($match) {return "2 DATE $match[1]$match[2] ".changemonth($match[3])." $match[4]"; }, 
+		                                 $fcontents);
+		$fcontents=preg_replace_callback('/2 DATE (.*)(\d\d?) (0?[1-9]|1[0-2]) (\d\d\d\d)/',
+		                                 function ($match) {return "2 DATE $match[1]$match[2] ".changemonth($match[3])." $match[4]"; }, 
+		                                 $fcontents);
 	} else if ($dayfirst==2) {
 		// Interpret numeric dates as MM DD YYYY
-		$fcontents=preg_replace("/2 DATE (.*)(0?[1-9]|1[0-2]) (\d\d?) (\d\d\d\d)/e", "'2 DATE $1$3 '.changemonth('$2').' $4'", $fcontents);
-		$fcontents=preg_replace("/2 DATE (.*)(0?[1-9]|1[0-2]) (\d\d?) (\d\d\d\d)/e", "'2 DATE $1$3 '.changemonth('$2').' $4'", $fcontents);
+		$fcontents=preg_replace_callback('/2 DATE (.*)(0?[1-9]|1[0-2]) (\d\d?) (\d\d\d\d)/', 
+		                                 function ($match) {return "2 DATE $match[1]$match[3] ".changemonth($match[2])." $match[4]"; }, 
+		                                 $fcontents);
+		$fcontents=preg_replace_callback('/2 DATE (.*)(0?[1-9]|1[0-2]) (\d\d?) (\d\d\d\d)/', 
+		                                 function ($match) {return "2 DATE $match[1]$match[3] ".changemonth($match[2])." $match[4]"; }, 
+		                                 $fcontents);
 	}
 
 	// Convert "BET 1 AND 11 JUN 1900" to "BET 1 JUN 1900 AND 11 JUN 1900"
@@ -340,17 +394,20 @@ function macfile_cleanup()
 function xref_change($tag="RIN")
 {
 	global $fcontents;
+	global $GEDCOM;
+	$ged_id=get_id_from_gedcom($GEDCOM);
+
 	//-- find all of the XREFS in the file
 	$ct = preg_match_all("/0 @(.*)@ INDI/", $fcontents, $match, PREG_SET_ORDER);
 	for($i=0; $i<$ct; $i++) {
 		$xref = trim($match[$i][1]);
-		$indirec = find_updated_record($xref);
+		$indirec = find_updated_record($xref, $ged_id);
 		if ($indirec!==false) {
 			$rt = preg_match("/1 NAME (.*)/", $indirec, $rmatch);
 			if($rt>0)
 			{
 				$name = trim($rmatch[1])." (".$xref.")";
-				$name = preg_replace("/\//","",$name);
+				$name = str_replace("/","",$name);
 			}
 			else
 				$name = $xref;
@@ -358,7 +415,7 @@ function xref_change($tag="RIN")
 			$rt = preg_match("/1 $tag (.*)/", $indirec, $rmatch);
 			if ($rt>0) {
 				$rin = trim($rmatch[1]);
-				$fcontents = preg_replace("/@$xref@/", "@$rin@", $fcontents);
+				$fcontents = str_replace("@$xref@", "@$rin@", $fcontents);
 //  			print "successfully set to $rin<br />\n";
 			}
 			else   print "<span class=\"error\">No $tag found in record<br /></span>\n";

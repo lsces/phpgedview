@@ -24,10 +24,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_EDITLANG_PHP', '');
 
@@ -47,13 +44,13 @@ function crlf_lf_to_br($dstring) {
 
 //-----------------------------------------------------------------
 function mask_all($dstring) {
-	$dummy = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $dstring);
+	$dummy = str_replace( [ '&', '<', '>' ], [ '&amp;', '&lt;', '&gt;' ], $dstring);
 	return $dummy;
 }
 
 //-----------------------------------------------------------------
 function unmask_all($dstring) {
-	$dummy = str_replace(array('&lt;', '&gt;', '&amp;'), array('<', '>', '&'), $dstring);
+	$dummy = str_replace( [ '&lt;', '&gt;', '&amp;' ], [ '<', '>', '&' ], $dstring);
 	return $dummy;
 }
 
@@ -76,15 +73,14 @@ function UnLockFile($Temp_Filename) {
 function read_complete_file_into_array($dFileName, $string_needle) {
 	global $file_type, $language2, $lang_shortcut;
 
-	if (!is_array($string_needle)) $array_needle = array($string_needle);
-	else $array_needle = $string_needle;
+	$array_needle = ( !is_array( $string_needle ) ) ? [ $string_needle ] : $string_needle;
 
 	$Filename =  $dFileName;
 	LockFile($Filename);
 
 	$LineCounter = 0;
-	$InfoArray = array();
-	$dFound = ($fp = @fopen($Filename, "r"));
+	$InfoArray = [];
+	$dFound = $fp = @fopen( $Filename, "r" );
 
 	if (!$dFound) {
 		$dUserRealName = getUserFullName(PGV_USER_ID);
@@ -131,7 +127,7 @@ function read_complete_file_into_array($dFileName, $string_needle) {
 			break;
 		}
 
-		$dFound = ($fp = @fopen($Filename, "w"));
+		$dFound = $fp = @fopen( $Filename, "w" );
 		fwrite($fp, "<?php".PGV_EOL);
 		fwrite($fp, "/**".PGV_EOL);
 		fwrite($fp, " * $comment1".PGV_EOL);
@@ -159,8 +155,8 @@ function read_complete_file_into_array($dFileName, $string_needle) {
 		fwrite($fp, " * @version \$Id\$".PGV_EOL);
 		fwrite($fp, " */".PGV_EOL);
 		fwrite($fp, PGV_EOL);
-		fwrite($fp, "if (stristr(\$_SERVER[\"SCRIPT_NAME\"], basename(__FILE__))!==false) {".PGV_EOL);
-		fwrite($fp, "	print \"You cannot access a language file directly.\";".PGV_EOL);
+		fwrite($fp, "if (!defined('PGV_PHPGEDVIEW')) {".PGV_EOL);
+		fwrite($fp, "	header('HTTP/1.0 403 Forbidden');".PGV_EOL);
 		fwrite($fp, "	exit;".PGV_EOL);
 		fwrite($fp, "}".PGV_EOL);
 		fwrite($fp, PGV_EOL);
@@ -169,7 +165,7 @@ function read_complete_file_into_array($dFileName, $string_needle) {
 		fwrite($fp, "?>".PGV_EOL);
 		fclose($fp);
 
-		$dFound = ($fp = @fopen($Filename, "r"));
+		$dFound = $fp = @fopen( $Filename, "r" );
 	}
 
 	if ($dFound) {
@@ -177,7 +173,7 @@ function read_complete_file_into_array($dFileName, $string_needle) {
 		$slashStar = "/*";
 		$starSlash = "*/";
 		while (!feof($fp)) {
-			$line = fgets($fp, (6 * 1024));
+			$line = fgets($fp, 6 * 1024);
 
 			if (!$inComment) {
 				if (substr(trim($line), 0, 2) == $slashStar) {
@@ -230,7 +226,6 @@ function read_complete_file_into_array($dFileName, $string_needle) {
 
 //-----------------------------------------------------------------
 function find_in_file($MsgNr, $dlang_file) {
-	global $PGV_BASE_DIRECTORY;
 	$openfilename =  $dlang_file;
 	$my_array = @file($openfilename);
 
@@ -245,8 +240,6 @@ function find_in_file($MsgNr, $dlang_file) {
 
 //-----------------------------------------------------------------
 function write_array_into_file($dFileName01, $writeArray, $add_new_message_at_line, $new_message_string) {
-	global $PGV_BASE_DIRECTORY;
-
 	$Filename =  $dFileName01;
 	LockFile($Filename);
 
@@ -273,8 +266,8 @@ function write_array_into_file($dFileName01, $writeArray, $add_new_message_at_li
 					fwrite($fp, rtrim($var[0]).PGV_EOL);
 				}
 			} else {
-				$textTerminator = substr($var[3], ($var[2]-1), 1).';';		// Repeat the leading quote or apostrophe
-				$comment = substr($var[3], (strrpos($var[3], $textTerminator)+2));
+				$textTerminator = substr($var[3], $var[2] - 1, 1).';';		// Repeat the leading quote or apostrophe
+				$comment = substr($var[3], strrpos( $var[3], $textTerminator ) + 2);
 				$output = substr($var[3], 0, $var[2]).$var[1].$textTerminator.$comment.PGV_EOL;
 				fwrite($fp, $output);
 			}
@@ -291,14 +284,13 @@ function write_array_into_file($dFileName01, $writeArray, $add_new_message_at_li
 //-----------------------------------------------------------------
 function read_export_file_into_array($dFileName, $string_needle) {
 
-	if (!is_array($string_needle)) $array_needle = array($string_needle);
-	else $array_needle = $string_needle;
+	$array_needle = !is_array( $string_needle ) ? [ $string_needle ] : $string_needle;
 
 	$Filename = $dFileName;
 
 	$LineCounter = 0;
-	$InfoArray = array();
-	$dFound = ($fp = @fopen($Filename, "r"));
+	$InfoArray = [];
+	$dFound = $fp = @fopen( $Filename, "r" );
 
 	if (!$dFound)  {
 		print "Error file not found";
@@ -308,7 +300,7 @@ function read_export_file_into_array($dFileName, $string_needle) {
 		$slashStar = "/*";
 		$starSlash = "*/";
 		while (!feof($fp)) {
-			$line = fgets($fp, (6 * 1024));
+			$line = fgets($fp, 6 * 1024);
 
 			if (!$inComment) {
 				if (substr($line, 0, 2) == $slashStar) {
@@ -332,8 +324,7 @@ function read_export_file_into_array($dFileName, $string_needle) {
 						$key = trim(substr($line, 0, $keyLen));
 						$ct = preg_match("/=\s*\"(.*)\";/", $line, $match, PREG_OFFSET_CAPTURE, $keyLen);
 						if ($ct==0) $ct = preg_match("/=\s*'(.*)';/", $line, $match, PREG_OFFSET_CAPTURE, $keyLen);
-						if ($ct>0) $content = $match[1][0];
-						else $content = "";
+						$content = ( $ct > 0 ) ? $match[1][0] : "";
 						$InfoArray[$LineCounter][0] = $key;				// keystring
 						$InfoArray[$LineCounter][1] = $content;			// message of keystring
 						$foundNeedle = true;
@@ -351,7 +342,7 @@ function read_export_file_into_array($dFileName, $string_needle) {
 function check_bom() {
 	global $language_settings, $pgv_lang;
 	$check = false;
-	$fileList = array("pgv_language", "confighelpfile", "helptextfile", "factsfile", "adminfile", "editorfile", "countryfile");
+	$fileList = [ "pgv_language", "confighelpfile", "helptextfile", "factsfile", "adminfile", "editorfile", "countryfile" ];
 
 	foreach ($language_settings as $key => $language) {
 		// Check if language is active
@@ -388,5 +379,3 @@ function check_bom() {
 	}
 	if ($check == false) print $pgv_lang["bom_not_found"];
 }
-
-?>

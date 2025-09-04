@@ -3,7 +3,7 @@
  * Mail specific functions
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2015  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_MAIL_PHP', '');
 
@@ -51,13 +48,9 @@ function pgvMail($to, $from, $subject, $message) {
 		$mailFormat = "html";
 	}
 
-	if ($mailFormat == "html") {
-		$mailFormatText = "text/html";
-	} else if ($mailFormat == "multipart") {
-		$mailFormatText = "multipart/related; \n\tboundary=\"$boundary\""; //for double display use:multipart/mixed
-	} else {
-		$mailFormatText = "text/plain";
-	}
+	$mailFormatText = ( $mailFormat == "html" )
+		? "text/html"
+		: ( ( $mailFormat == "multipart" ) ? "multipart/related; \n\tboundary=\"$boundary\"" : "text/plain" );
 
 	$extraHeaders = "From: $from\nContent-type: $mailFormatText;";
 
@@ -113,8 +106,8 @@ function pgvMail($to, $from, $subject, $message) {
 	}
 	// if SMTP mail is set active AND we have SMTP settings available, use the PHPMailer classes
 	if ($PGV_SMTP_ACTIVE  && ( $PGV_SMTP_HOST && $PGV_SMTP_PORT ) ) {
-		require_once 'includes/class.phpmailer.php';
-		$mail_object = new PHPMailer();
+		require_once UTIL_PKG_INCLUDE_PATH.'phpmailer/class.phpmailer.php';
+		$mail_object = new \PHPMailer();
 		$mail_object->IsSMTP();
 		$mail_object->SetLanguage('en','languages/');
 		if ( $PGV_SMTP_AUTH && ( $PGV_SMTP_AUTH_USER && $PGV_SMTP_AUTH_PASS ) ) {
@@ -258,7 +251,7 @@ function hex4email ($string,$charset) {
 	global $LANGUAGE;
 
 	//-- check if the string has extended characters in it
-	$str = utf8_decode($string);
+	$str = mb_convert_encoding( $string, "UTF-8", mb_detect_encoding( $string));
 	//-- if the strings are the same no conversion is necessary
 	if ($str==$string) return $string;
 	//-- convert to string into quoted_printable format
@@ -272,10 +265,10 @@ function hex4email ($string,$charset) {
 
 function RFC2047Encode($string, $charset) {
 	if (preg_match('/[^a-z ]/i', $string)) {
-		$string = preg_replace('/([^a-z ])/ie', 'sprintf("=%02x", ord(StripSlashes("\\1")))', $string);
+		$string = preg_replace_callback('/([^a-z ])/i', 
+		                                function ($match) { return '='.sprintf('%02X', ord($match[1])); }, 
+		                                $string);
 		$string = str_replace(' ', '_', $string);
 		return "=?$charset?Q?$string?=";
 	}
 }
-
-?>

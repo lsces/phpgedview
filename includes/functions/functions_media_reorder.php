@@ -25,11 +25,7 @@
  * @author Brian Holland
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 
 /**
  * print a media row in a table
@@ -42,7 +38,7 @@ function media_reorder_row($rtype, $rowm, $pid) {
     global $PGV_IMAGE_DIR, $PGV_IMAGES, $view, $MEDIA_DIRECTORY, $TEXT_DIRECTION;
     global $SHOW_ID_NUMBERS, $GEDCOM, $factarray, $pgv_lang, $THUMBNAIL_WIDTH, $USE_MEDIA_VIEWER;
     global $SEARCH_SPIDER;
-    global $t, $n, $item, $items, $p, $edit, $SERVER_URL, $reorder, $LB_AL_THUMB_LINKS, $note, $rowm;
+    global $t, $n, $item, $items, $p, $edit, $SERVER_URL, $reorder, $LB_AL_THUMB_LINKS, $note, $row,$j;
 	global $LB_URL_WIDTH, $LB_URL_HEIGHT, $order1, $mediaType;
 
 	if (!isset($rowm)) {
@@ -62,7 +58,7 @@ function media_reorder_row($rtype, $rowm, $pid) {
 
     // NOTE Start printing the media details
 
-    $thumbnail = thumbnail_file($rowm["m_file"], true, false, $pid);
+    $thumbnail = thumbnail_file($rowm["m_file"], true, false);
     // $isExternal = stristr($thumbnail,"://");
 	$isExternal = isFileExternal($thumbnail);
 
@@ -88,7 +84,7 @@ function media_reorder_row($rtype, $rowm, $pid) {
 		//-- Thumbnail field
 		print "<img src=\"".$mediaInfo['thumb']."\" height=\"38\" border=\"0\" " ;
 
-		if ( eregi("1 SOUR",$rowm['m_gedrec'])) {
+		if ( strpos($rowm['m_gedrec'], "1 SOUR")!==false) {
 			print " alt=\"" . PrintReady($mediaTitle) . "\" title=\"" . PrintReady($mediaTitle) . "\nSource info available\" />";
 		}else{
 			print " alt=\"" . PrintReady($mediaTitle) . "\" title=\"" . PrintReady($mediaTitle) . "\" />";
@@ -121,17 +117,12 @@ function media_reorder_row($rtype, $rowm, $pid) {
 		print "</table>" . "\n";
 
     }
-	if (!isset($j)) {
-		$j=0;
-	}else{
-		$j=$j;
-	}
+	$j ??= 0;
 	$media_data = $rowm['m_media'];
-	print "<input type=\"hidden\" name=\"order1[$media_data]\" value=\"$j\" />";
+	echo "<input type=\"hidden\" name=\"order1[", $media_data, "]\" value=\"", $j, "\" />";
 
-    print "</li>";
-    print "\n\n";;
+    echo "</li>";
+    echo "\n\n";
     return true;
 
 }
-?>

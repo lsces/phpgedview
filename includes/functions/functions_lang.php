@@ -4,7 +4,7 @@
  * Language specific functions
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * @version $Id$
  * @package PhpGedView
  * @subpackage DB
+ * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_LANG_PHP', '');
 
@@ -37,9 +34,8 @@ define('PGV_FUNCTIONS_LANG_PHP', '');
  */
 function Character_Substitute($input)
 {
-	$stringsToReplace = array("/AE/", "/ae/", "/OE/", "/oe/", "/UE/", "/ue/", "/ss/");
-	$replacements =     array("Ä",   "Ä",   "Ö",   "ö",   "Ü",   "ü",   "ß");
+	$stringsToReplace = [ "/AE/", "/ae/", "/OE/", "/oe/", "/UE/", "/ue/", "/ss/" ];
+	$replacements =     [ "Ä",   "Ä",   "Ö",   "ö",   "Ü",   "ü",   "ß" ];
 
 	preg_replace($stringsToReplace, $replacements, $input);
 }
-?>

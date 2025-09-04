@@ -3,7 +3,7 @@
 * Various functions used to generate the PhpGedView RSS feed.
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2002 to 2009 PGV Development Team.  All rights reserved.
+* Copyright (C) 2002 to 2014 PGV Development Team.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -23,16 +23,11 @@
 * @package PhpGedView
 * @subpackage RSS
 */
-
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_FUNCTIONS_RSS_PHP', '');
 
-require_once 'includes/functions/functions_print_lists.php';
-require_once 'includes/classes/class_stats.php';
+require_once PGV_ROOT.'includes/functions/functions_print_lists.php';
 
 $time = client_time();
 $day = date("j", $time);
@@ -43,7 +38,7 @@ $year = date("Y", $time);
 * Returns an ISO8601 formatted date used for the RSS feed
 *
 * @param $time the time in the UNIX time format (milliseconds since Jan 1, 1970)
-* @return SO8601 formatted date in the format of 2005-07-06T20:52:16+00:00
+* @return string SO8601 formatted date in the format of 2005-07-06T20:52:16+00:00
 */
 function iso8601_date($time) {
 	$tzd = date('O',$time);
@@ -57,12 +52,12 @@ function iso8601_date($time) {
 * Uses configuration set for the blocks. If not configured, it will default to events in the
 * next 30 days, all events for living & and not living people
 *
-* @return the array with upcoming events data. the format is $dataArray[0] = title, $dataArray[1] = date,
+* @return array the array with upcoming events data. the format is $dataArray[0] = title, $dataArray[1] = date,
 * $dataArray[2] = data
 */
 function getUpcomingEvents() {
 	global $pgv_lang, $month, $year, $day, $HIDE_LIVE_PEOPLE, $SHOW_ID_NUMBERS, $ctype, $TEXT_DIRECTION;
-	global $PGV_IMAGE_DIR, $PGV_IMAGES, $GEDCOM, $PGV_BLOCKS;
+	global $PGV_IMAGE_DIR, $PGV_IMAGES, $PGV_BLOCKS;
 	global $DAYS_TO_SHOW_LIMIT, $SERVER_URL;
 
 	$dataArray[0] = $pgv_lang["upcoming_events"];
@@ -94,12 +89,12 @@ function getUpcomingEvents() {
 /**
 * Returns the today's events array used for the RSS feed
 *
-* @return the array with todays events data. the format is $dataArray[0] = title, $dataArray[1] = date,
+* @return array the array with todays events data. the format is $dataArray[0] = title, $dataArray[1] = date,
 * $dataArray[2] = data
 */
 function getTodaysEvents() {
 	global $pgv_lang, $month, $year, $day, $HIDE_LIVE_PEOPLE, $SHOW_ID_NUMBERS, $ctype, $TEXT_DIRECTION;
-	global $PGV_IMAGE_DIR, $PGV_IMAGES, $GEDCOM, $PGV_BLOCKS;
+	global $PGV_IMAGE_DIR, $PGV_IMAGES, $PGV_BLOCKS;
 	global $SERVER_URL;
 	global $DAYS_TO_SHOW_LIMIT;
 
@@ -122,20 +117,20 @@ function getTodaysEvents() {
 /**
 * Returns the GEDCOM stats.
 *
-* @return the array with GEDCOM stats data. the format is $dataArray[0] = title, $dataArray[1] = date,
+* @return array the array with GEDCOM stats data. the format is $dataArray[0] = title, $dataArray[1] = date,
 * $dataArray[2] = data
 * @TODO does not print the family with most children due to the embedded html in that function.
 */
 function getGedcomStats() {
-	global $pgv_lang, $day, $month, $year, $PGV_BLOCKS, $GEDCOM, $GEDCOMS, $ALLOW_CHANGE_GEDCOM, $ctype, $COMMON_NAMES_THRESHOLD, $SERVER_URL, $RTLOrd;
+	global $pgv_lang, $day, $month, $year, $PGV_BLOCKS, $ALLOW_CHANGE_GEDCOM, $ctype, $COMMON_NAMES_THRESHOLD, $SERVER_URL, $RTLOrd;
 
 	if (empty($config)) $config = $PGV_BLOCKS["print_gedcom_stats"]["config"];
 	if (!isset($config['stat_indi'])) $config = $PGV_BLOCKS["print_gedcom_stats"]["config"];
 
 	$data = "";
-	$dataArray[0] = $pgv_lang["gedcom_stats"] . " - " . $GEDCOMS[$GEDCOM]["title"];
+	$dataArray[0] = $pgv_lang["gedcom_stats"] . " - " . get_gedcom_setting(PGV_GED_ID, 'title');
 
-	$head = find_gedcom_record("HEAD");
+	$head = find_gedcom_record("HEAD", PGV_GED_ID);
 	$ct=preg_match("/1 SOUR (.*)/", $head, $match);
 	if ($ct>0) {
 		$softrec = get_sub_record(1, "1 SOUR", $head);
@@ -164,7 +159,7 @@ function getGedcomStats() {
 		}
 	}
 
-	$stats=new stats($GEDCOM, $SERVER_URL);
+	$stats=new stats(PGV_GEDCOM, $SERVER_URL);
 
 	$data .= " <br />";
 	if (!isset($config["stat_indi"]) || $config["stat_indi"]=="yes"){
@@ -214,9 +209,9 @@ function getGedcomStats() {
 * @TODO prepend relative URL's in news items with $SERVER_URL
 */
 function getGedcomNews() {
-	global $pgv_lang, $PGV_IMAGE_DIR, $PGV_IMAGES, $TEXT_DIRECTION, $GEDCOM, $ctype, $SERVER_URL;
+	global $pgv_lang, $PGV_IMAGE_DIR, $PGV_IMAGES, $TEXT_DIRECTION, $ctype, $SERVER_URL;
 
-	$usernews = getUserNews($GEDCOM);
+	$usernews = getUserNews(PGV_GEDCOM);
 
 	$dataArray = array();
 	foreach($usernews as $key=>$news) {
@@ -230,7 +225,7 @@ function getGedcomNews() {
 		$newsTitle = print_text($news["title"], 0, 2);
 		$ct = preg_match("/#(.+)#/", $newsTitle, $match);
 		if ($ct>0) {
-			if (isset($pgv_lang[$match[1]])) $newsTitle = preg_replace("/$match[0]/", $pgv_lang[$match[1]], $newsTitle);
+			if (isset($pgv_lang[$match[1]])) $newsTitle = str_replace($match[0], $pgv_lang[$match[1]], $newsTitle);
 		}
 		$itemArray[0] = $newsTitle;
 
@@ -240,23 +235,23 @@ function getGedcomNews() {
 		$newsText = print_text($news["text"], 0, 2);
 		$ct = preg_match("/#(.+)#/", $newsText, $match);
 		if ($ct>0) {
-			if (isset($pgv_lang[$match[1]])) $newsText = preg_replace("/$match[0]/", $pgv_lang[$match[1]], $newsText);
+			if (isset($pgv_lang[$match[1]])) $newsText = str_replace($match[0], $pgv_lang[$match[1]], $newsText);
 		}
 		$ct = preg_match("/#(.+)#/", $newsText, $match);
 		if ($ct>0) {
 			$varname = $match[1];
 			if (isset($pgv_lang[$varname])) {
-				$newsText = preg_replace("/{$match[0]}/", $pgv_lang[$varname], $newsText);
+				$newsText = str_replace($match[0], $pgv_lang[$varname], $newsText);
 			} else {
 				if (defined('PGV_'.$varname)) {
 					// e.g. global $VERSION is now constant PGV_VERSION
 					$varname='PGV_'.$varname;
 				}
 				if (defined($varname)) {
-					$newsText = preg_replace("/{$match[0]}/", constant($varname), $newsText);
+					$newsText = str_replace($match[0], constant($varname), $newsText);
 				} else {
 					if (isset($$varname)) {
-						$newsText = preg_replace("/{$match[0]}/", $$varname, $newsText);
+						$newsText = str_replace($match[0], $$varname, $newsText);
 					}
 				}
 			}
@@ -277,12 +272,12 @@ function getGedcomNews() {
 /**
 * Returns the top 10 surnames
 *
-* @return the array with the top 10 surname data. the format is $dataArray[0] = title, $dataArray[1] = date,
+* @return array the array with the top 10 surname data. the format is $dataArray[0] = title, $dataArray[1] = date,
 * $dataArray[2] = data
 * @TODO Possibly turn list into a <ul> list
 */
 function getTop10Surnames() {
-	global $pgv_lang, $GEDCOM,$SERVER_URL, $TEXT_DIRECTION;
+	global $pgv_lang, $SERVER_URL, $TEXT_DIRECTION;
 	global $COMMON_NAMES_ADD, $COMMON_NAMES_REMOVE, $COMMON_NAMES_THRESHOLD, $PGV_BLOCKS, $ctype, $PGV_IMAGES, $PGV_IMAGE_DIR;
 
 	$data = "";
@@ -301,32 +296,7 @@ function getTop10Surnames() {
 	$dataArray[0] = str_replace("10", $numName, $pgv_lang["block_top10_title"]);
 	$dataArray[1] = time();
 
-	$surnames = get_top_surnames($numName);
-
-	// Insert from the "Add Names" list if not already in there
-	if ($COMMON_NAMES_ADD != "") {
-		$addnames = preg_split("/[,;] /", $COMMON_NAMES_ADD);
-		if (count($addnames)==0) $addnames[] = $COMMON_NAMES_ADD;
-		foreach($addnames as $indexval => $name) {
-			//$surname = UTF8_strtoupper($name);
-			$surname = $name;
-			if (!isset($surnames[$surname])) {
-				$surnames[$surname]["name"] = $name;
-				$surnames[$surname]["match"] = $COMMON_NAMES_THRESHOLD;
-			}
-		}
-	}
-
-	// Remove names found in the "Remove Names" list
-	if ($COMMON_NAMES_REMOVE != "") {
-		$delnames = preg_split("/[,;] /", $COMMON_NAMES_REMOVE);
-		if (count($delnames)==0) $delnames[] = $COMMON_NAMES_REMOVE;
-		foreach($delnames as $indexval => $name) {
-			//$surname = UTF8_strtoupper($name);
-			$surname = $name;
-			unset($surnames[$surname]);
-		}
-	}
+	$surnames = get_common_surnames($numName);
 
 	// Sort the list and save for future reference
 	uasort($surnames, "top_surname_sort");
@@ -348,24 +318,22 @@ function getTop10Surnames() {
 /**
 * Returns the recent changes list for the RSS feed
 *
-* @return the array with recent changes data. the format is $dataArray[0] = title, $dataArray[1] = date,
+* @return array|bool the array with recent changes data. the format is $dataArray[0] = title, $dataArray[1] = date,
 * $dataArray[2] = data
 * @TODO merge many changes from recent changes block
 * @TODO use date of most recent change instead of curent time
 */
 function getRecentChanges() {
 	global $pgv_lang, $factarray, $month, $year, $day, $HIDE_LIVE_PEOPLE, $SHOW_ID_NUMBERS, $ctype, $TEXT_DIRECTION;
-	global $PGV_IMAGE_DIR, $PGV_IMAGES, $GEDCOM, $ASC, $IGNORE_FACTS, $IGNORE_YEAR, $LAST_QUERY, $PGV_BLOCKS, $SHOW_SOURCES;
+	global $PGV_IMAGE_DIR, $PGV_IMAGES, $ASC, $IGNORE_FACTS, $IGNORE_YEAR, $LAST_QUERY, $PGV_BLOCKS, $SHOW_SOURCES;
 	global $objectlist, $SERVER_URL;
 
-	if ($ctype=="user") $filter = "living";
-	else $filter = "all";
+	$filter = ( $ctype == "user" ) ? "living" : "all";
 
 	if (empty($config)) $config = $PGV_BLOCKS["print_recent_changes"]["config"];
 	$configDays = 30;
 	if(isset($config["days"]) && $config["days"] > 0) $configDays = $config["days"];
-	if (isset($config["hide_empty"])) $HideEmpty = $config["hide_empty"];
-	else $HideEmpty = "no";
+	$HideEmpty = ( isset( $config["hide_empty"] ) ) ? $config["hide_empty"] : "no";
 
 	$dataArray[0] = $pgv_lang["recent_changes"];
 	$dataArray[1] = time();//FIXME - get most recent change time
@@ -379,8 +347,8 @@ function getRecentChanges() {
 	if (count($changes)>0) {
 		$found_facts = array();
 		foreach($changes as $gid) {
-			$gedrec = find_gedcom_record($gid);
-			if (empty($gedrec)) $gedrec = find_updated_record($gid);
+			$gedrec = find_gedcom_record($gid, PGV_GED_ID);
+			if (empty($gedrec)) $gedrec = find_updated_record($gid, PGV_GED_ID);
 
 			if (!empty($gedrec)) {
 				$type = "INDI";
@@ -390,8 +358,11 @@ function getRecentChanges() {
 				$disp = true;
 				switch($type) {
 					case 'INDI':
-						if (($filter=="living")&&(is_dead($gedrec)==1)) $disp = false;
-						else if ($HIDE_LIVE_PEOPLE) $disp = displayDetailsById($gid);
+						if (($filter=="living")&&(is_dead($gedrec)==1)) {
+							$disp = false;
+						} elseif ($HIDE_LIVE_PEOPLE) {
+							$disp = displayDetailsById($gid);
+						}
 						break;
 					case 'FAM':
 						if ($filter=="living") {
@@ -453,21 +424,20 @@ function getRecentChanges() {
 }
 
 /**
-* Returns a random media for the RSS feed
-*
-* @return the array with random media data. the format is $dataArray[0] = title, $dataArray[1] = date,
-* $dataArray[2] = data, $dataArray[3] = file path, $dataArray[4] = mime type,
-* $dataArray[5] = file size, $dataArray[5] = media title
-*/
+ * Returns a random media for the RSS feed
+ *
+ * @return array|bool the array with random media data. the format is $dataArray[0] = title, $dataArray[1] = date,
+ * $dataArray[2] = data, $dataArray[3] = file path, $dataArray[4] = mime type,
+ * $dataArray[5] = file size, $dataArray[5] = media title
+**/
 function getRandomMedia() {
-	global $pgv_lang, $GEDCOM, $foundlist, $MULTI_MEDIA, $TEXT_DIRECTION, $PGV_IMAGE_DIR, $PGV_IMAGES;
+	global $pgv_lang, $foundlist, $MULTI_MEDIA, $TEXT_DIRECTION, $PGV_IMAGE_DIR, $PGV_IMAGES;
 	global $MEDIA_EXTERNAL, $MEDIA_DIRECTORY, $SHOW_SOURCES;
 	global $MEDIATYPE, $THUMBNAIL_WIDTH, $USE_MEDIA_VIEWER;
 	global $PGV_BLOCKS, $ctype, $action;
 	global $PGV_IMAGE_DIR, $PGV_IMAGES;
 	if (empty($config)) $config = $PGV_BLOCKS["print_random_media"]["config"];
-	if (isset($config["filter"])) $filter = $config["filter"];  // indi, event, or all
-	else $filter = "all";
+	$filter = isset( $config["filter"] ) ? $config["filter"] : "all";
 
 	$dataArray[0] = $pgv_lang["random_picture"];
 	$dataArray[1] = time();//FIXME - get most recent change time
@@ -475,9 +445,9 @@ function getRandomMedia() {
 	$randomMedia = "";
 
 
-	if (!$MULTI_MEDIA) return;
-	$medialist = array();
-	$foundlist = array();
+	if (!$MULTI_MEDIA) return false;
+	$medialist = [];
+	$foundlist = [];
 
 	$medialist = get_medialist(false, '', true, true);
 	$ct = count($medialist);
@@ -490,12 +460,12 @@ function getRandomMedia() {
 			$value = array_rand($medialist);
 			$links = $medialist[$value]["LINKS"];
 			$disp = ($medialist[$value]["EXISTS"]>0) && $medialist[$value]["LINKED"] && $medialist[$value]["CHANGE"]!="delete" ;
-			$disp &= displayDetailsById($value["XREF"], "OBJE");
-			$disp &= !FactViewRestricted($value["XREF"], $value["GEDCOM"]);
+			$disp &= displayDetailsById($medialist[$value]["XREF"], "OBJE");
+			$disp &= !FactViewRestricted($medialist[$value]["XREF"], $medialist[$value]["GEDCOM"]);
 
 			$isExternal = isFileExternal($medialist[$value]["FILE"]);
 
-			if (!$isExternal) $disp &= ($medialist[$value]["THUMBEXISTS"]>0);
+			if (!$isExternal) $disp &= $medialist[$value]["THUMBEXISTS"] > 0;
 
 			// Filter according to format and type  (Default: unless configured otherwise, don't filter)
 			if (!empty($medialist[$value]["FORM"]) && isset($config["filter_".$medialist[$value]["FORM"]]) && $config["filter_".$medialist[$value]["FORM"]]!="yes") $disp = false;
@@ -503,7 +473,7 @@ function getRandomMedia() {
 
 			if ($disp && count($links) != 0){
 				foreach($links as $key=>$type) {
-					$gedrec = find_gedcom_record($key);
+					$gedrec = find_gedcom_record($key, PGV_GED_ID);
 					$disp &= !empty($gedrec);
 					//-- source privacy is now available through the display details by id method
 					// $disp &= $type!="SOUR";
@@ -511,9 +481,9 @@ function getRandomMedia() {
 				}
 				if ($disp && $filter!="all") {
 					// Apply filter criteria
-					$ct = preg_match("/0\s(@.*@)\sOBJE/", $medialist[$value]["GEDCOM"], $match);
+					$ct = preg_match("/0 (@.*@) OBJE/", $medialist[$value]["GEDCOM"], $match);
 					$objectID = $match[1];
-					$ct2 = preg_match("/(\d)\sOBJE\s{$objectID}/", $gedrec, $match2);
+					$ct2 = preg_match("/(\d) OBJE {$objectID}/", $gedrec, $match2);
 					if ($ct2>0) {
 						$objectRefLevel = $match2[1];
 						if ($filter=="indi" && $objectRefLevel!="1") $disp = false;
@@ -543,11 +513,7 @@ function getRandomMedia() {
 		$mediaid = $medialist[$value]["XREF"];
 		$randomMedia .= "<a href=\"".encode_url("mediaviewer.php?mid={$mediaid}")."\">";
 		$mediaTitle = "";
-		if (!empty($medialist[$value]["TITL"])) {
-			$mediaTitle = PrintReady($medialist[$value]["TITL"]);
-		} else {
-			$mediaTitle = basename($medialist[$value]["FILE"]);
-		}
+		$mediaTitle = ( !empty( $medialist[$value]["TITL"] ) ) ? PrintReady( $medialist[$value]["TITL"] ) : basename( $medialist[$value]["FILE"] );
 		//if ($block) {
 			$randomMedia .= "<img src=\"".$medialist[$value]["THUMB"]."\" border=\"0\" class=\"thumbnail\"";
 			if ($isExternal) $randomMedia .=  " width=\"".$THUMBNAIL_WIDTH."\"";
@@ -570,11 +536,7 @@ function getRandomMedia() {
 		if ($dataArray[4] == false){
 			$dataArray[4] ="";
 			$parts = pathinfo($filename);
-			if (isset ($parts["extension"])) {
-				$ext = strtolower($parts["extension"]);
-			} else {
-				$ext="";
-			}
+			$ext = isset( $parts["extension"] ) ? strtolower( $parts["extension"] ) : "";
 			if($ext == "pdf"){
 				$dataArray[4] = "application/pdf";
 			}
@@ -585,6 +547,3 @@ function getRandomMedia() {
 	}
 	return $dataArray;
 }
-
-
-?>
