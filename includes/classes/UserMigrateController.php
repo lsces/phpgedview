@@ -1,0 +1,434 @@
+<?php
+/**
+ * Controller for backup and export
+ * Exports users and their data to either SQL queries (Index mode) or
+ * authenticate.php and xxxxxx.dat files (MySQL mode).
+ *
+ * phpGedView: Genealogy Viewer
+ * Copyright (C) 2002 to 2010 PGV Development Team.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * @author Boudewijn Sjouke	sjouke@users.sourceforge.net
+ * @package PhpGedView
+ * @subpackage Admin
+ * @version $Id$
+ */
+
+namespace Bitweaver\Phpgedview;
+
+define('PGV_USERMIGRATE_CTRL_PHP', '');
+
+require_once PGV_ROOT.'includes/functions/functions_export.php';
+
+loadLangFile("pgv_confighelp");
+
+//-- make sure that they have admin status before they can use this page
+//-- otherwise have them login again
+if (PGV_SCRIPT_NAME=='usermigrate_cli.php') {
+	if (PGV_USER_IS_ADMIN || !isset($argc)) {
+		header("Location: usermigrate.php");
+		exit;
+	}
+}
+else if (!PGV_USER_IS_ADMIN) {
+	header("Location: login.php?url=usermigrate.php");
+	exit;
+}
+
+
+class UserMigrateControllerRoot extends BaseController {
+	public $proceed;
+	public $flist;
+	public $v_list;
+	public $fname;
+	public $buname;
+	public $errorMsg;
+	public $fileExists = false;
+	public $impSuccess = false;
+	public $msgSuccess = false;
+	public $favSuccess = false;
+	public $newsSuccess = false;
+	public $blockSuccess = false;
+
+	/**
+	 * constructor
+	 */
+	public function __construct() {
+		parent::__construct();
+	}
+
+	/**
+	 * Initialize the controller and start the logic
+	 *
+	 */
+	public function init() {
+
+		$this->proceed = !isset( $_REQUEST['proceed'] ) ? "backup" : $_REQUEST['proceed'];
+
+		if ($this->proceed == "backup") $this->backup();
+		else if ($this->proceed == "export") {
+			$i = 0;
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) $i++;
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) $i++;
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) $i++;
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) $i++;
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) $i++;
+			if ($i > 0) {
+				$this->fileExists = true;
+			}
+			else $this->proceed = "exportovr";
+		}
+		if ($this->proceed == "exportovr") {
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat");
+			um_export($this->proceed);
+		}
+
+		if ($this->proceed == "import") {
+			$this->import();
+		}
+	}
+
+	/**
+	 * Return the page title
+	 *
+	 * @return string
+	 */
+	public function getPageTitle() {
+		global $pgv_lang;
+
+		if ($this->proceed == "backup") return $pgv_lang["um_backup"];
+		else return $pgv_lang["um_header"];
+	}
+
+	/**
+	 * generate the backup zip file
+	 *
+	 */
+	public function backup() {
+		global $MEDIA_DIRECTORY, $USE_MEDIA_FIREWALL, $MEDIA_FIREWALL_ROOTDIR;
+
+		$this->flist = array();
+
+		// Backup user information
+		if (isset($_POST["um_usinfo"])) {
+			// If in pure DB mode, we must first create new .dat files and authenticate.php
+			// First delete the old files
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat");
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat");
+
+			// Then make the new ones
+			um_export($this->proceed);
+
+			// Make filelist for files to ZIP
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php";
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH ."news.dat";
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat";
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat";
+			if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat";
+		}
+
+		// Backup config.php
+		if (isset($_POST["um_config"])) {
+			$this->flist[] = "config.php";
+		}
+
+		// Backup gedcoms and media
+		if (isset($_POST["um_gedcoms"]) || isset($_POST["um_media"])) {
+
+			$exportOptions = array();
+			$exportOptions['privatize'] = 'none';
+			$exportOptions['toANSI'] = 'no';
+			$exportOptions['noCustomTags'] = 'no';
+			$exportOptions['slashes'] = 'forward';
+
+			foreach (get_all_gedcoms() as $ged_id=>$ged_name) {
+				//-- load the gedcom configuration settings
+				require get_config_file($ged_id);
+
+				if (isset($_POST["um_gedcoms"])) {
+					//-- backup the original gedcom file
+					$path=get_gedcom_setting($ged_id, 'path');
+					if (file_exists($path)) {
+						$this->flist[]=$path;
+					}
+
+					//-- recreate the GEDCOM file from the DB
+					//-- backup the DB in case of GEDCOM corruption
+					$ged_name_bak = PHPGEDVIEW_PKG_INDEX_PATH .$ged_name.".bak";
+					$gedout = fopen(filename_decode($ged_name_bak), "wb");
+
+					$exportOptions['path'] = $MEDIA_DIRECTORY;
+
+					export_gedcom($ged_name, $gedout, $exportOptions);
+					fclose($gedout);
+					$this->flist[] = $ged_name_bak;
+				}
+
+				if (isset($_POST["um_media"])) {
+					// backup media files
+					$dir = dir($MEDIA_DIRECTORY);
+					while(false !== ($entry = $dir->read())) {
+						if ($entry[0] != ".") {
+							if ($entry != "thumbs") $this->flist[] = $MEDIA_DIRECTORY.$entry;
+						}
+					}
+					if ($USE_MEDIA_FIREWALL) {
+						$dir = dir($MEDIA_FIREWALL_ROOTDIR.$MEDIA_DIRECTORY);
+						while(false !== ($entry = $dir->read())) {
+							if ($entry[0] != ".") {
+								if ($entry != "thumbs" && $entry != "watermark") $this->flist[] = $MEDIA_FIREWALL_ROOTDIR.$MEDIA_DIRECTORY.$entry;
+							}
+						}
+					}
+				}
+			}
+
+			//-- restore the old configuration file
+			require get_config_file(PGV_GED_ID);
+			$this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH ."pgv_changes.php";
+		}
+
+		// Backup gedcom settings
+		if (isset($_POST["um_gedsets"])) {
+
+			foreach (get_all_gedcoms() as $ged_id=>$ged_name) {
+				// Non-default config files
+				$conf=get_config_file($ged_id);
+				if ($conf!='config_gedcom.php') {
+					$this->flist[]=$conf;
+				}
+
+				// Non-default privacy file
+				$privacy=get_privacy_file($ged_id);
+				if ($privacy!='privacy.php') {
+					$this->flist[]=$privacy;
+				}
+			}
+		}
+
+		// Backup logfiles
+		if (isset($_POST["um_logs"])) {
+			foreach (get_all_gedcoms() as $ged_id=>$ged_name) {
+
+				// Gedcom searchlogs and changelogs
+				$dir_var = opendir (PHPGEDVIEW_PKG_INDEX_PATH );
+				while ($file = readdir ($dir_var)) {
+					if (strpos($file, ".log") > 0 && (strstr($file, "srch-".$ged_name) !== false || strstr($file, "ged-".$ged_name) !== false)) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH .$file;
+				}
+				closedir($dir_var);
+			}
+
+			// PhpGedView logfiles
+			$dir_var = opendir (PHPGEDVIEW_PKG_INDEX_PATH );
+			while ($file = readdir ($dir_var)) {
+				if (strpos($file, ".log") > 0 && strstr($file, "pgv-") !== false) $this->flist[] = PHPGEDVIEW_PKG_INDEX_PATH .$file;
+			}
+			closedir($dir_var);
+		}
+
+		// Make the zip
+		if (count($this->flist) > 0) {
+			require_once PGV_ROOT.'includes/pclzip.lib.php';
+			$this->buname = date("YmdHis").".zip";
+			$this->fname = PHPGEDVIEW_PKG_INDEX_PATH .$this->buname;
+			$comment = "Created by ".PGV_PHPGEDVIEW." ".PGV_VERSION_TEXT." on ".date("r").".";
+			$archive = new PclZip($this->fname);
+			//-- remove ../ from file paths when creating zip
+			$ct = preg_match("~((\.\./)+)~", PHPGEDVIEW_PKG_INDEX_PATH , $match);
+			$rmpath = "";
+			if ($ct>0) $rmpath = $match[1];
+				$this->v_list = $archive->create($this->flist, PCLZIP_OPT_COMMENT, $comment, PCLZIP_OPT_REMOVE_PATH, $rmpath);
+			if ($this->v_list==0) $this->errorMsg = "Error : ".$archive->errorInfo(true);
+			if (isset($_POST["um_usinfo"])) {
+				// Remove temporary files again
+				if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php");
+				if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat");
+				if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat");
+				if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat");
+				if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) unlink(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat");
+			}
+		}
+	}
+
+	/**
+	 * Import users etc. from index files
+	 *
+	 */
+	public function import() {
+		global $TBLPREFIX, $pgv_lang, $gBitDb;
+
+		if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) == false) {
+			$this->impSuccess = false;
+			return;
+		} else {
+			require PHPGEDVIEW_PKG_INDEX_PATH .'authenticate.php';
+			$countold = count($users);
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}users");
+			foreach($users as $username=>$user) {
+				$user["editaccount"] = $user["editaccount"] == "1" ? "Y" : "N";
+				//-- make sure fields are set for v4.0 DB
+				if (!isset($user["firstname"])) {
+					if (isset($user["fullname"])) {
+						$parts = explode(' ', trim($user["fullname"]));
+						$user["lastname"] = array_pop($parts);
+						$user["firstname"] = implode(" ", $parts);
+					}
+					else {
+						$user["firstname"] = '';
+						$user["lastname"] = '';
+					}
+				}
+				if (!isset($user["comment"])) $user["comment"] = '';
+				if (!isset($user["comment_exp"])) $user["comment_exp"] = '';
+				if (!isset($user["sync_gedcom"])) $user["sync_gedcom"] = 'N';
+				if (!isset($user["relationship_privacy"])) $user["relationship_privacy"] = 'N';
+				if (!isset($user["max_relation_path"])) $user["max_relation_path"] = '2';
+				if (!isset($user["auto_accept"])) $user["auto_accept"] = 'N';
+
+				if ($user_id=create_user($user['username'], $user['password'])) {
+					set_user_setting($user_id, 'firstname',            $user["firstname"]);
+					set_user_setting($user_id, 'lastname',             $user["lastname"]);
+					set_user_setting($user_id, 'email',                $user["email"]);
+					set_user_setting($user_id, 'theme',                $user["theme"]);
+					set_user_setting($user_id, 'language',             $user["language"]);
+					set_user_setting($user_id, 'contactmethod',        $user["contactmethod"]);
+					set_user_setting($user_id, 'defaulttab',           $user["defaulttab"]);
+					set_user_setting($user_id, 'comment',              $user["comment"]);
+					set_user_setting($user_id, 'comment_exp',          $user["comment_exp"]);
+					set_user_setting($user_id, 'pwrequested',          $user["pwrequested"]);
+					set_user_setting($user_id, 'reg_timestamp',        $user["reg_timestamp"]);
+					set_user_setting($user_id, 'reg_hashcode',         $user["reg_hashcode"]);
+					set_user_setting($user_id, 'loggedin'    ,         $user["loggedin"]);
+					set_user_setting($user_id, 'sessiontime'    ,      $user["sessiontime"]);
+					set_user_setting($user_id, 'max_relation_path',    $user["max_relation_path"]);
+					set_user_setting($user_id, 'sync_gedcom',          $user["sync_gedcom"] ? 'Y' : 'N');
+					set_user_setting($user_id, 'relationship_privacy', $user["relationship_privacy"] ? 'Y' : 'N');
+					set_user_setting($user_id, 'auto_accept',          $user["auto_accept"] ? 'Y' : 'N');
+					set_user_setting($user_id, 'canadmin',             $user["canadmin"] ? 'Y' : 'N');
+					set_user_setting($user_id, 'visibleonline',        $user["visibleonline"] ? 'Y' : 'N');
+					set_user_setting($user_id, 'editaccount',          $user["editaccount"] ? 'Y' : 'N');
+					set_user_setting($user_id, 'verified',             $user["verified"] ? 'yes' : 'no');
+					set_user_setting($user_id, 'verified_by_admin',    $user["verified_by_admin"] ? 'yes' : 'no');
+					foreach (array('gedcomid', 'rootid', 'canedit') as $var) {
+						if ($user[$var]) {
+							foreach (unserialize($user[$var]) as $gedcom=>$id) {
+								set_user_gedcom_setting($user_id, $gedcom, $var, $id);
+							}
+						}
+					}
+					AddToLog("added user -> {$user['username']} <-");
+				}
+			}
+			$this->impSuccess = $countold == get_user_count() ? true : false;
+		}
+
+		if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) == false) {
+			$this->msgSuccess = false;
+		}
+		else {
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}messages");
+			$messages = array();
+			$fp = fopen(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat", "rb");
+			$mstring = fread($fp, filesize(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat"));
+			fclose($fp);
+			$messages = unserialize($mstring);
+			foreach($messages as $newid => $message) {
+				$gBitDb->query("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)"
+					, array($newid, $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"]));
+			}
+			$this->msgSuccess = true;
+		}
+
+		if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) == false) {
+			$this->favSuccess = false;
+			print $pgv_lang["um_nofav"]."<br /><br />";
+		}
+		else {
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites");
+			$favorites = array();
+			$fp = fopen(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat", "rb");
+			$mstring = fread($fp, filesize(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat"));
+			fclose($fp);
+			$favorites = unserialize($mstring);
+
+			foreach($favorites as $newid => $favorite) {
+				$res = addFavorite($favorite);
+				if (!$res) {
+					$this->errorMsg = "<span class=\"error\">Unable to update <i>Favorites</i> table.</span><br />\n";
+					return;
+				}
+			}
+			$this->favSuccess = true;
+		}
+
+		if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) == false) {
+			$this->newsSuccess = false;
+		}
+		else {
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}news");
+			$allnews = array();
+			$fp = fopen(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat", "rb");
+			$mstring = fread($fp, filesize(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat"));
+			fclose($fp);
+			$allnews = unserialize($mstring);
+			foreach($allnews as $newid => $news) {
+				$res = addNews($news);
+				if (!$res) {
+					$this->errorMsg = "<span class=\"error\">Unable to update <i>News</i> table.</span><br />\n";
+					return;
+				}
+			}
+			$this->newsSuccess = true;
+		}
+
+		if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) == false) {
+			$this->blockSuccess = false;
+		}
+		else {
+			$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks");
+			$allblocks = array();
+			$fp = fopen(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat", "rb");
+			$mstring = fread($fp, filesize(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat"));
+			fclose($fp);
+			$allblocks = unserialize($mstring);
+			foreach($allblocks as $bid => $blocks) {
+				$username = $blocks["username"];
+				$gBitDb->query("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ? ,? , ?, ?, ?)"
+					, array($bid, $blocks["username"], $blocks["location"], $blocks["order"], $blocks["name"], serialize($blocks["config"])));
+			}
+			$this->blockSuccess = true;
+		}
+	}
+}
+// -- end of class
+//-- load a user extended class if one exists
+if (file_exists(PGV_ROOT.'includes/controllers/usermigrate_ctrl_user.php'))
+{
+	require_once PGV_ROOT.'includes/controllers/usermigrate_ctrl_user.php';
+}
+else
+{
+	class UserMigrateController extends UserMigrateControllerRoot
+	{
+	}
+}
