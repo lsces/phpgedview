@@ -16,11 +16,12 @@
  *		IOM		Isle of Man				Chapman lists this as part of the UK -- it's not!!
  *		NFK		Norfolk Island
  *		PRI		Puerto Rico				Chapman lists this as a state of the USA
+ *		RSS		South Sudan				Newly (Jul 2011) independent from Sudan
  *		SCG		Serbia and Montenegro	Chapman lists these separately
  *		TLS		Timor-Leste
  *		UMI		US Minor Outlying Islands
  *		VIR		US Virgin Islands		Chapman lists this as a state of the USA
- *		
+ *
  * These Chapman country codes do not appear in the list following:
  *		UEL		United Empire Loyalist		This is NOT a country or region, it's
  *											a group of people
@@ -36,17 +37,13 @@
  *		TMP		East Timor					Official name is TLS "Timor-Leste"
  *		HOL		Holland						Official name is NLD "Netherlands"
  *		ESM		Western Samoa				Official name is WSM "Samoa"
- *											
+ *
  * @package PhpGedView
  * @subpackage Languages
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 $countries["ABW"]="Aruba";
 $countries["ACA"]="Acadia";
 $countries["AFG"]="Afghanistan";
@@ -65,8 +62,8 @@ $countries["ATF"]="French Southern Territories";
 $countries["ATG"]="Antigua and Barbuda";
 $countries["AUS"]="Australia";
 $countries["AUT"]="Austria";
-$countries["AZR"]="Azores";
 $countries["AZE"]="Azerbaijan";
+$countries["AZR"]="Azores";
 $countries["BDI"]="Burundi";
 $countries["BEL"]="Belgium";
 $countries["BEN"]="Benin";
@@ -243,6 +240,7 @@ $countries["PYF"]="French Polynesia";
 $countries["QAT"]="Qatar";
 $countries["REU"]="Réunion";
 $countries["ROM"]="Romania";
+$countries["RSS"]="South Sudan";
 $countries["RUS"]="Russia";
 $countries["RWA"]="Rwanda";
 $countries["SAU"]="Saudi Arabia";
@@ -319,20 +317,20 @@ $countries["???"]="Unknown";
  * You do not have to list all the possibilities in all page languages.  This
  * will be done automatically by the country-to-Chapman conversion routine.
  *
- * Because the list, and its contents, are specific to each language, the 
+ * Because the list, and its contents, are specific to each language, the
  * Translator Tool won't let you work on the list directly.  The list will
  * have to be updated and amended manually.
  *
- * Suppose Chapman code "XYZ" represents the same country, and that country 
+ * Suppose Chapman code "XYZ" represents the same country, and that country
  * had the names "Name1", "Name2", "Name3" in its history.  It is now known
  * as "Current name".  You can list the various names like this:
  *
  * $countries["XYZ"]="Current name";
- * $altCountryName["XYZ"]="Name1; Name2; Name3";
+ * $altCountryNames["XYZ"]="Name1; Name2; Name3";
  *
  * The Chapman-to-country conversion will always use the $countries list of
  * the current page language, no matter what the original country name was.
- * 
+ *
  */
 $altCountryNames["COD"]="Zaire";
 $altCountryNames["DEU"]="East Germany; West Germany; GDR; FRG";
@@ -345,6 +343,7 @@ $altCountryNames["NLD"]="Holland";
 $altCountryNames["PLW"]="Belau";
 $altCountryNames["SUN"]="Soviet Union";
 $altCountryNames["TLS"]="East Timor";
+$altCountryNames["USA"]="United States; United States of America";
 $altCountryNames["VAT"]="Holy See";
 $altCountryNames["WSM"]="Western Samoa";
 

@@ -3,7 +3,7 @@
  * English texts
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2011  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,19 +26,16 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
-$pgv_lang["gedcomid"]			= "GEDCOM INDI record ID";
-$pgv_lang["sortby"]				= "Sequence";
-$pgv_lang["exact"]				= "Exact";
-$pgv_lang["begins_with"]		= "Begins with";
-$pgv_lang["contains"]			= "Contains";
-$pgv_lang["sounds_like"]		= "Sounds like";
-$pgv_lang["advanced_search"] 	= "Advanced Search";
-$pgv_lang["more_fields"]		= "Add More Fields";
+namespace Bitweaver\Phpgedview;
+$pgv_lang["clustrmaps_locations"]	= "Locations of visitors to this page";
+$pgv_lang["gedcomid"]				= "GEDCOM INDI record ID";
+$pgv_lang["sortby"]					= "Sequence";
+$pgv_lang["exact"]					= "Exact";
+$pgv_lang["begins_with"]			= "Begins with";
+$pgv_lang["contains"]				= "Contains";
+$pgv_lang["sounds_like"]			= "Sounds like";
+$pgv_lang["advanced_search"] 		= "Advanced Search";
+$pgv_lang["more_fields"]			= "Add More Fields";
 $pgv_lang["install_step_8"] 		= "Get Started";
 $pgv_lang["parent_family"]			= "Parents Family";
 $pgv_lang["step_parent_family"]		= "Step-Parent Family";
@@ -175,9 +172,9 @@ $pgv_lang["stat_media"]				= "Media objects";
 $pgv_lang["stat_surnames"]			= "Total surnames";
 $pgv_lang["stat_users"]				= "Total users";
 $pgv_lang["no_family_facts"]		= "No facts for this family.";
-$pgv_lang["stat_males"]				= "males";
-$pgv_lang["stat_females"]			= "females";
-$pgv_lang["stat_unknown"]			= "unknown";
+$pgv_lang["stat_males"]				= "Males";
+$pgv_lang["stat_females"]			= "Females";
+$pgv_lang["stat_unknown"]			= "Unknown";
 $pgv_lang["stat_link"]				= "View statistics as graphs";
 $pgv_lang["print_stat_link"]		= "Show link to Statistics charts?";
 
@@ -274,13 +271,11 @@ $pgv_lang["ancestors"]				= "Direct line ancestors and their families";
 $pgv_lang["descendants"]			= "Descendants";
 $pgv_lang["choose_relatives"]		= "Choose relatives";
 $pgv_lang["relatives_report"]		= "Relatives Report";
-$pgv_lang["total_unknown"]			= "unknown";
-$pgv_lang["total_living"]			= "living";
-$pgv_lang["total_dead"]				= "dead";
-$pgv_lang["total_not_born"]			= "stillborn";
+$pgv_lang["total_unknown"]			= "Unknown";
+$pgv_lang["total_living"]			= "Living";
+$pgv_lang["total_dead"]				= "Dead";
+$pgv_lang["total_not_born"]			= "Stillborn";
 $pgv_lang["remove_custom_tags"]		= "Remove custom PGV tags? (eg. _PGVU, _THUM)";
-$pgv_lang["cookie_login_help"]		= "This site remembered you from a previous login.  This allows you to access private information and other user-based features, but in order to edit or administer the site, you must login again for increased security.";
-$pgv_lang["remember_me"]			= "Remember me from this computer?";
 $pgv_lang["fams_with_surname"]		= "Families with surname #surname#";
 $pgv_lang["support_contact"]		= "Technical help contact";
 $pgv_lang["genealogy_contact"]		= "Genealogy contact";
@@ -475,6 +470,7 @@ $pgv_lang["sex"]					= "Gender";
 $pgv_lang["personal_facts"] 		= "Personal Facts and Details";
 $pgv_lang["type"]					= "Type";
 $pgv_lang["parents"]				= "Parents";
+$pgv_lang["gparents"]				= "Grandparents";
 $pgv_lang["siblings"]				= "Siblings";
 $pgv_lang["father"] 				= "Father";
 $pgv_lang["mother"] 				= "Mother";
@@ -516,7 +512,9 @@ $pgv_lang["wife"]					= "Wife";
 $pgv_lang["marriage"]				= "Marriage:";
 $pgv_lang["lds_sealing"]			= "LDS Sealing:";
 $pgv_lang["marriage_license"]		= "Marriage License:";
-$pgv_lang["no_children"]			= "No recorded children";
+$pgv_lang["no_children"]			= "No children";
+$pgv_lang["known_child"]			= "1 child";
+$pgv_lang["known_children"]			= "children";
 $pgv_lang["childless_family"]		= "This family remained childless";
 $pgv_lang["parents_timeline"]		= "Show couple on timeline chart";
 
@@ -544,6 +542,7 @@ $pgv_lang["media_private"] 			= "Details about this media are private. Media det
 $pgv_lang["download"]				= "Right click (control-click on a Macintosh) on the links below and select &quot;Save target as&quot; to download the files.";
 $pgv_lang["cart_is_empty"]			= "Your Clippings Cart is empty.";
 $pgv_lang["id"] 					= "ID";
+$pgv_lang["ID"] 					= "ID";
 $pgv_lang["name_description"]		= "Name / Description";
 $pgv_lang["remove"] 				= "Remove";
 $pgv_lang["empty_cart"] 			= "Empty Cart";
@@ -647,7 +646,7 @@ $pgv_lang["total_shared_notes"]			= "Total Shared Notes";
 $pgv_lang["invalid_gedformat"]		= "Invalid GEDCOM format";
 $pgv_lang["exec_time"]				= "Execution time:";
 $pgv_lang["unable_to_create_index"] = "Unable to create Index files.  Make sure Write permissions are set on the PhpGedView directory.  Permissions may be restored once Index files are written.";
-$pgv_lang["changes_present"]		= "The current GEDCOM has changes pending review.  If you continue this Import, these pending changes will be posted to the database immediately.  You should review the pending changes before continuing the Import.";
+$pgv_lang["changes_present"]		= "The current GEDCOM has changes pending review.  If you continue this Import, these pending changes will be discarded.  You should review the pending changes before continuing the Import.";
 $pgv_lang["sec"]					= "sec.";
 
 //-- INDIVIDUAL AND FAMILYLIST FILE MESSAGES
@@ -863,6 +862,7 @@ $pgv_lang["view_fam_nav_research"]	= "View Research for ...";
 $pgv_lang["view_fam_nav_map"]		= "View Map for ...";
 $pgv_lang["view_fam_nav_spare"]		= "View Spare-info for ...";
 $pgv_lang["navigator"]				= "Navigator";
+$pgv_lang["fam_navigator"]			= "Family Navigator";
 
 $pgv_lang["relationship_great"]		= "Great";
 $pgv_lang["relationship_chart"] 	= "Relationship Chart";
@@ -1162,6 +1162,9 @@ $pgv_lang["edit_name"]				= "Edit Name";
 $pgv_lang["delete_name"]			= "Delete Name";
 $pgv_lang["select_date"]			= "Select a date";
 $pgv_lang["user_cannot_edit"]		= "This user name cannot edit this GEDCOM.";
+$pgv_lang["gedcom_editing_disabled"]	= "Editing this GEDCOM has been disabled by the administrator.";
+$pgv_lang["privacy_not_granted"]	= "You have no access to";
+$pgv_lang["privacy_prevented_editing"]	= "Privacy settings prevent you from editing this record.";
 $pgv_lang["ged_noshow"]				= "This page has been disabled by the site administrator.";
 
 //-- calendar.php messages
@@ -1337,11 +1340,11 @@ $pgv_lang["gedcom_stats"]			= "GEDCOM Statistics";
 $pgv_lang["stat_individuals"]		= "Individuals";
 $pgv_lang["stat_families"]			= "Families";
 $pgv_lang["stat_sources"]			= "Sources";
-$pgv_lang["stat_other"] 			= "Other Records";
-$pgv_lang["stat_earliest_birth"] 	= "Earliest Birth Year";
-$pgv_lang["stat_latest_birth"] 	= "Latest Birth Year";
-$pgv_lang["stat_earliest_death"] 	= "Earliest Death Year";
-$pgv_lang["stat_latest_death"] 	= "Latest Death Year";
+$pgv_lang["stat_other"] 			= "Other records";
+$pgv_lang["stat_earliest_birth"] 	= "Earliest birth year";
+$pgv_lang["stat_latest_birth"] 	= "Latest birth year";
+$pgv_lang["stat_earliest_death"] 	= "Earliest death year";
+$pgv_lang["stat_latest_death"] 	= "Latest death year";
 $pgv_lang["customize_page"] 		= "Customize MyGedView Portal";
 $pgv_lang["customize_gedcom_page"]	= "Customize this GEDCOM Welcome page";
 $pgv_lang["upcoming_events_block"]	= "Upcoming Events";
@@ -1467,6 +1470,8 @@ $pgv_lang["ahnentafel_married_f"]	= "married";			// female
 $pgv_lang["ahnentafel_married_post"]= "&nbsp;";
 $pgv_lang["ahnentafel_died_m"]		= "died";				// male
 $pgv_lang["ahnentafel_died_f"]		= "died";				// female
+$pgv_lang["ahnentafel_cremated_m"]	= "was cremated";		// male
+$pgv_lang["ahnentafel_cremated_f"]	= "was cremated";		// female
 $pgv_lang["ahnentafel_buried_m"]	= "was buried";			// male
 $pgv_lang["ahnentafel_buried_f"]	= "was buried";			// female
 $pgv_lang["ahnentafel_place"]		= " in ";				// place name follows this
@@ -1485,6 +1490,8 @@ $pgv_lang["son_of"]					= "son of";
 $pgv_lang["daughter_of"]			= "daughter of";
 $pgv_lang["child_of"]				= "Child of ";
 $pgv_lang["children_of"]			= "Children of ";
+$pgv_lang["descendancy_pronoun_m"]	= "He ";
+$pgv_lang["descendancy_pronoun_f"]	= "She ";
 
 $pgv_lang["family_group_report"]	= "Family Group Report";
 $pgv_lang["page"]					= "Page";
@@ -1492,7 +1499,6 @@ $pgv_lang["of"] 					= "of";
 $pgv_lang["enter_famid"]			= "Enter Family ID";
 $pgv_lang["show_sources"]			= "Show sources?";
 $pgv_lang["show_notes"] 			= "Show notes?";
-$pgv_lang["show_basic"] 			= "Print basic events when blank?";
 $pgv_lang["show_photos"]			= "Show photos?";
 $pgv_lang["relatives_report_ext"]	= "Expanded Relatives Report";
 $pgv_lang["with"]					= "with";
@@ -1518,6 +1524,9 @@ $pgv_lang["marrdate2"]				= "Marriage Date range end";
 $pgv_lang["sort_by"]				= "Sort by";
 $pgv_lang["cemetery_report"]		= "Cemetery Report";
 $pgv_lang["burialplace"]			= "Burial Place contains";
+$pgv_lang["fact_sources_report"]	= "Fact Sources";
+$pgv_lang["missing_facts_report"]	= "Missing relatives facts";
+$pgv_lang["sources_to_events"]		= "Sources to the events";
 
 $pgv_lang["cleanup"]				= "Cleanup";
 
@@ -1545,13 +1554,14 @@ $pgv_lang["adding"] 				= "Adding";
 $pgv_lang["updating_linked"]		= "Updating linked record";
 $pgv_lang["merge_more"] 			= "Merge more records.";
 $pgv_lang["same_ids"]				= "You entered the same IDs.  You cannot merge the same records.";
+$pgv_lang["updated_favorites"] 			= "favorites updated.";
 
 //-- ANCESTRY FILE MESSAGES
 $pgv_lang["ancestry_chart"] 		= "Ancestry Chart";
 $pgv_lang["gen_ancestry_chart"]		= "#PEDIGREE_GENERATIONS# Generation Ancestry Chart";
 $pgv_lang["chart_style"]			= "Chart style";
-$pgv_lang["chart_list"]			= "List";
-$pgv_lang["chart_booklet"]   	= "Booklet";
+$pgv_lang["chart_list"]				= "List";
+$pgv_lang["chart_booklet"]   		= "Booklet";
 $pgv_lang["show_cousins"]			= "Show cousins";
 // 1st generation
 $pgv_lang["sosa_2"] 				= "Father";
@@ -1724,6 +1734,59 @@ $pgv_lang["statreset"]			= "reset";
 $pgv_lang["statsubmit"]			= "show the plot";
 $pgv_lang["stat_largest_families"] = "Largest families";
 
+$pgv_lang["stat_own_charts"]		= "Own charts";
+$pgv_lang["statnliving"]			= "Total living";
+$pgv_lang["statndead"]				= "Total dead";
+$pgv_lang["stat_births"]			= "Total births";
+$pgv_lang["stat_marriages"]			= "Total marriages";
+$pgv_lang["stat_divorces"]			= "Total divorces";
+$pgv_lang["stat_deaths"]			= "Total deaths";
+$pgv_lang["stat_first_birth"]		= "Earliest birth";
+$pgv_lang["stat_first_marriage"]	= "Earliest marriage";
+$pgv_lang["stat_first_divorce"]		= "Earliest divorce";
+$pgv_lang["stat_first_death"]		= "Earliest death";
+$pgv_lang["stat_last_birth"]		= "Latest birth";
+$pgv_lang["stat_last_marriage"]		= "Latest marriage";
+$pgv_lang["stat_last_divorce"]		= "Latest divorce";
+$pgv_lang["stat_last_death"]		= "Latest death";
+$pgv_lang["stat_lifespan"]			= "Lifespan";
+$pgv_lang["stat_lived_longest"]		= "Top age at death";
+$pgv_lang["stat_live_longest"]		= "Oldest living people";
+$pgv_lang["stat_marr_age"]			= "Length of marriage";
+$pgv_lang["stat_long_marr_age"]		= "Longest marriage";
+$pgv_lang["stat_short_marr_age"]	= "Shortest marriage";
+$pgv_lang["stat_youngest_male"]		= "Youngest male";
+$pgv_lang["stat_youngest_female"]	= "Youngest female";
+$pgv_lang["stat_oldest_male"]		= "Oldest male";
+$pgv_lang["stat_oldest_female"]		= "Oldest female";
+$pgv_lang["stat_childbirth_age"]	= "Age at birth of child";
+$pgv_lang["stat_youngest_father"]	= "Youngest father";
+$pgv_lang["stat_youngest_mother"]	= "Youngest mother";
+$pgv_lang["stat_oldest_father"]		= "Oldest father";
+$pgv_lang["stat_oldest_mother"]		= "Oldest mother";
+$pgv_lang["stat_children_in_fam"]	= "Children in family";
+$pgv_lang["stat_largest_gfamilies"]	= "Largest grandfamilies";
+$pgv_lang["stat_age_difference"]	= "Age difference";
+$pgv_lang["stat_age_siblings"]		= "Age between siblings";
+$pgv_lang["stat_top_age_siblings"]	= "Top age between siblings";
+$pgv_lang["stat_age_mf_spouse"]		= "Age between husband and wife";
+$pgv_lang["stat_age_fm_spouse"]		= "Age between wife and husband";
+$pgv_lang["stat_names"]				= "Names";
+$pgv_lang["statnsurnames"]			= "Total surnames";
+$pgv_lang["statngivennames"]		= "Total given names";
+$pgv_lang["top_surnames"]			= "Top surnames";
+$pgv_lang["top_givennames"]			= "Top given names";
+$pgv_lang["events"]					= "Events";
+$pgv_lang["stat_records"]			= "Records";
+$pgv_lang["stat_notes"]				= "Notes";
+$pgv_lang["stat_first_event"]		= "First event";
+$pgv_lang["stat_last_event"]		= "Last event";
+$pgv_lang["stat_places"]			= "Places";
+$pgv_lang["stat_birth_places"]		= "Birth places";
+$pgv_lang["stat_marriage_places"]	= "Marriage places";
+$pgv_lang["stat_death_places"]		= "Death places";
+$pgv_lang["stat_countries"]			= "Events in countries";
+
 //-- statisticsplot utility
 $pgv_lang["statistiek_list"]	= "Statistics Plot";
 $pgv_lang["stpl"]				= "...";
@@ -1741,8 +1804,8 @@ $pgv_lang["stplnumof"]			= "Counts ";
 $pgv_lang["stplmarrbirth"]		= "Months between marriage and birth of first child";
 $pgv_lang["indi_distribution_chart"]	= "Individual distribution chart";
 $pgv_lang["surname_distribution_chart"]	= "Surname distribution chart";
-$pgv_lang["g_chart_high"]		= "Highest Population";
-$pgv_lang["g_chart_low"]		= "Lowest Population";
+$pgv_lang["g_chart_high"]		= "Highest population";
+$pgv_lang["g_chart_low"]		= "Lowest population";
 $pgv_lang["g_chart_nobody"]		= "Nobody at all";
 $pgv_lang["area_chart"]			= "Geographical area";
 $pgv_lang["europe_chart"]		= "Europe";
@@ -1779,37 +1842,6 @@ $pgv_lang["repo_contains"]			= "Repository contains:";
 $pgv_lang["shared_note_contains"]	= "Shared Note contains:";
 $pgv_lang["source_contains"]		= "Source contains:";
 $pgv_lang["display_all"]			= "Display all";
-
-//-- accesskey navigation
-$pgv_lang["accesskeys"]				= "Keyboard Shortcuts";
-$pgv_lang["accesskey_skip_to_content"]	= "C";
-$pgv_lang["accesskey_search"]	= "S";
-$pgv_lang["accesskey_skip_to_content_desc"]	= "Skip to Content";
-$pgv_lang["accesskey_viewing_advice"]	= "0";
-$pgv_lang["accesskey_viewing_advice_desc"]	= "Viewing advice";
-$pgv_lang["accesskey_home_page"]	= "1";
-$pgv_lang["accesskey_help_content"]	= "2";
-$pgv_lang["accesskey_help_current_page"]	= "3";
-$pgv_lang["accesskey_contact"]	= "4";
-
-$pgv_lang["accesskey_individual_details"]	= "I";
-$pgv_lang["accesskey_individual_relatives"]	= "R";
-$pgv_lang["accesskey_individual_notes"]	= "N";
-$pgv_lang["accesskey_individual_sources"]	= "O";
-//clash with IE addBookmark but not a likely problem
-$pgv_lang["accesskey_individual_media"]	= "A";
-$pgv_lang["accesskey_individual_research_log"]	= "L";
-$pgv_lang["accesskey_individual_pedigree"]	= "P";
-$pgv_lang["accesskey_individual_descendancy"]	= "D";
-$pgv_lang["accesskey_individual_timeline"]	= "T";
-$pgv_lang["accesskey_individual_relation_to_me"]	= "M";
-//clash with rarely used English Netscape/Mozilla Go menu
-$pgv_lang["accesskey_individual_gedcom"]	= "G";
-$pgv_lang["accesskey_family_parents_timeline"]	= "P";
-$pgv_lang["accesskey_family_children_timeline"]	= "D";
-$pgv_lang["accesskey_family_timeline"]	= "T";
-//clash with rarely used English Netscape/Mozilla English Go menu
-$pgv_lang["accesskey_family_gedcom"]	= "G";
 
 // FAQ Page
 $pgv_lang["add_faq_header"] = "FAQ Header";
