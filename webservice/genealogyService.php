@@ -24,7 +24,7 @@
  * done in PhpGedView.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2005  PGV Development Team
+ * Copyright (C) 2002 to 2011  PGV Development Team
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -47,10 +47,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_GENEALOGYSERVICE_PHP', '');
 
@@ -59,15 +56,16 @@ require_once 'SOAP/Server.php';
 // Genealogy class
 class GenealogyService
 {
-	var $__varValues = array();
-	var $__dispatch_map = array();
-	var $__typeref = array();
-	var $__namespace = 'Genealogy';
-	var $service_version = '1.1';
-	var $varNames = array();
-	var $logging = false;
+	public $__varValues = [];
+	public $__dispatch_map = [];
+	public $__typeref = [];
+	public $__namespace = 'Genealogy';
+	public $service_version = '1.1';
+	public $varNames = [];
+	public $logging = false;
+	protected $__typedef = [];
 
-	function GenealogyService()
+	public function GenealogyService()
 	{
 		/*
 		 * SOAP Method declarations
@@ -79,375 +77,375 @@ class GenealogyService
 		* serviceInfo
 		*/
 		$this->__dispatch_map['serviceInfo'] =
-		array(
-			'in' => array(),//takes no params
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}serviceInfoResult'
-			)
-		);
+			[
+				'in'  => [],//takes no params
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}serviceInfoResult"
+				],
+			];
 
 		/**
 		* Authenticate
 		*/
 		$this->__dispatch_map['Authenticate'] =
-		array(
-			'in' => array(
-				'username' => 'string',
-				'password' => 'string',
-				'gedcom' => 'string',
-				'compression' => 'string', //not implemented
-				'data_type' => 'string'
-			),
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}authResult'//declared below
-			)
-		);
+			[
+				'in'  => [
+					'username'    => 'string',
+					'password'    => 'string',
+					'gedcom'      => 'string',
+					'compression' => 'string', //not implemented
+					'data_type'   => 'string',
+				],
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}authResult"//declared below
+				],
+			];
 
 		/**
 		* Authenticate
 		*/
 		$this->__dispatch_map['changeGedcom'] =
-		array(
-			'in' => array(
-				'gedcom' => 'string'
-			),
-			'out' => array(
-				'result' => 'string'
-			)
-		);
+			[
+				'in'  => [
+					'gedcom' => 'string',
+				],
+				'out' => [
+					'result' => 'string',
+				],
+			];
 
 		/**
 		* Gets requested variable's value
 		*/
 		$this->__dispatch_map['getVar'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //session
-				'var' => 'string', //variable name
-			),
-			'out' => array(
-				'value'=>'string'
-			)
-		);
+			[
+				'in'  => [
+					'SID' => 'string', //session
+					'var' => 'string', //variable name
+				],
+				'out' => [
+					'value' => 'string',
+				],
+			];
 
 		/**
 		* Appends a record
 		*/
 		$this->__dispatch_map['appendRecord'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //session
-				'gedrec' => 'string' //record to append
-			),
-			'out' => array(
-				'message'=>'string'
-			)
-		);
+			[
+				'in'  => [
+					'SID'    => 'string', //session
+					'gedrec' => 'string' //record to append
+				],
+				'out' => [
+					'message' => 'string',
+				],
+			];
 
 		/**
 		* Deletes a record
 		*/
 		$this->__dispatch_map['deleteRecord'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //session
-				'RID' => 'string', //record id of record to delete
-			),
-			'out' => array(
-				'message'=>'string'
-			)
-		);
+			[
+				'in'  => [
+					'SID' => 'string', //session
+					'RID' => 'string', //record id of record to delete
+				],
+				'out' => [
+					'message' => 'string',
+				],
+			];
 
 		/**
 		* Updates a record
 		*/
 		$this->__dispatch_map['updateRecord'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //session
-				'RID' => 'string', //record id
-				'gedcom' => 'string' //return gedcom (bool)
-			),
-			'out' => array(
-				'message'=>'string'
-			)
-		);
+			[
+				'in'  => [
+					'SID'    => 'string', //session
+					'RID'    => 'string', //record id
+					'gedcom' => 'string' //return gedcom (bool)
+				],
+				'out' => [
+					'message' => 'string',
+				],
+			];
 
 		/**
  		 * Check updates
  		 */
 		$this->__dispatch_map['checkUpdates'] =
-		array(
-			'in' => array(
-				'SID' => 'string',//session id
-				'lastUpdate' => 'string' //last update date
-			),
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}ArrayOfIds'
-			)
-		);
+			[
+				'in'  => [
+					'SID'        => 'string',//session id
+					'lastUpdate' => 'string' //last update date
+				],
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}ArrayOfIds"
+				],
+			];
 		/**
 		* check updates by id
 		*/
 		$this->__dispatch_map['checkUpdatesByID'] =
-		array(
-			'in' => array(
-				'SID' => 'string',//session id
-				'RID' => 'string', //record ID
-				'lastUpdate' => 'string'//last update date
-			),
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}Person'
-			)
-		);
+			[
+				'in'  => [
+					'SID'        => 'string',//session id
+					'RID'        => 'string', //record ID
+					'lastUpdate' => 'string'//last update date
+				],
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}Person",
+				],
+			];
 
 		/**
 		 * get known servers
 		*/
 		$this->__dispatch_map['getKnownServers'] =
-		array(
-			'in' => array(
-				'SID' => 'string',//session id
-				'limit' => 'int' //limit results 0 = all
-			),
-			'out' => array(
-				'servers' => '{urn:' . $this->__namespace . '}ArrayOfServer'
-			)
-		);
+			[
+				'in'  => [
+					'SID'   => 'string',//session id
+					'limit' => 'int' //limit results 0 = all
+				],
+				'out' => [
+					'servers' => "{urn:{$this->__namespace}}ArrayOfServer"
+				],
+			];
 
 		/**
 		* doSearch
 		*/
 		$this->__dispatch_map['search'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //session ID
-				'query' => 'string', //query string
-				'start' => 'int', //index to start at
-				'maxResults' => 'int' //max results to return
-			),
-			'out' => array(
-				'Results' => '{urn:' . $this->__namespace . '}SearchResult'
-			)
-		);
+			[
+				'in'  => [
+					'SID'        => 'string', //session ID
+					'query'      => 'string', //query string
+					'start'      => 'int', //index to start at
+					'maxResults' => 'int' //max results to return
+				],
+				'out' => [
+					'Results' => "{urn:{$this->__namespace}}SearchResult"
+				],
+			];
 		/**
 		* getpersonbyid
 		*/
 		$this->__dispatch_map['getPersonByID'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //Session ID
-				'PID' => 'string', //person ID
-			),
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}Person'
-			)
-		);
+			[
+				'in'  => [
+					'SID' => 'string', //Session ID
+					'PID' => 'string', //person ID
+				],
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}Person"
+				],
+			];
 		/**
 		* getfamilybyid
 		*/
 		$this->__dispatch_map['getFamilyByID'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //Session ID
-				'FID' => 'string', //Family ID
-			),
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}Family'
-			)
-		);
+			[
+				'in'  => [
+					'SID' => 'string', //Session ID
+					'FID' => 'string', //Family ID
+				],
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}Family"
+				],
+			];
 		/**
 		 * getsourcebyid
 		 */
 		 $this->__dispatch_map['getSourceByID'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //Session ID
-				'SCID' => 'string', //Source ID
-			),
-			'out' => array(
-				'result' => '{urn:' . $this->__namespace . '}Source'
-			)
-		);
+			[
+				'in'  => [
+					'SID'  => 'string', //Session ID
+					'SCID' => 'string', //Source ID
+				],
+				'out' => [
+					'result' => "{urn:{$this->__namespace}}Source"
+				],
+			];
 
 		/*
 		* getgedcomrecord
 		*/
 		$this->__dispatch_map['getGedcomRecord'] =
-		array(
-			'in' => array(
-				'SID' => 'string', //Session ID
-				'PID' => 'string', //person ID
-			),
-			'out' => array(
-				'result' => 'string'
-			)
-		);
+			[
+				'in'  => [
+					'SID' => 'string', //Session ID
+					'PID' => 'string', //person ID
+				],
+				'out' => [
+					'result' => 'string',
+				],
+			];
 		/*
 		* getAncestry
 		*/
 		$this->__dispatch_map['getAncestry'] =
-		array(
-			'in'	=>	array(
-				'SID' => 'string', //session ID
-				'rootID' => 'string', //id to start at
-				'generations' => 'int', //# of gens. to go
-				'returnGedcom' => 'boolean'//return gedcom with result
-			),
-			'out' => array(
-				'results' => '{urn:' . $this->__namespace . '}ArrayOfPerson'
-			)
-		);
+			[
+				'in'  => [
+					'SID'          => 'string', //session ID
+					'rootID'       => 'string', //id to start at
+					'generations'  => 'int', //# of gens. to go
+					'returnGedcom' => 'boolean'//return gedcom with result
+				],
+				'out' => [
+					'results' => "{urn:{$this->__namespace}}ArrayOfPerson"
+				],
+			];
 
 		/*
 		* getDescendants
 		*/
 		$this->__dispatch_map['getDescendants'] =
-		array(
-			'in'	=>	array(
-				'SID' => 'string', //session ID
-				'rootID' => 'string', //id to start at
-				'generations' => 'int', //# of gens. to go
-				'returnGedcom' => 'boolean' //return gedcom with result
-			),
-			'out' => array(
-				'results' => '{urn:' . $this->__namespace . '}ArrayOfPerson'
-			)
-		);
+			[
+				'in'  => [
+					'SID'          => 'string', //session ID
+					'rootID'       => 'string', //id to start at
+					'generations'  => 'int', //# of gens. to go
+					'returnGedcom' => 'boolean' //return gedcom with result
+				],
+				'out' => [
+					'results' => "{urn:{$this->__namespace}}ArrayOfPerson"
+				],
+			];
 
 		/*
 		* getXref
 		*/
 		$this->__dispatch_map['getXref'] =
-		array(
-			'in'	=>	array(
-				'SID' => 'string', //session ID
-				'position' => 'string', // first, last, next, prev, new
-				'type' => 'string' // type of record
-			),
-			'out' => array(
-				'results' => '{urn:' . $this->__namespace . '}ArrayOfIds'
-			)
-		);
+			[
+				'in'  => [
+					'SID'      => 'string', //session ID
+					'position' => 'string', // first, last, next, prev, new
+					'type'     => 'string' // type of record
+				],
+				'out' => [
+					'results' => "{urn:{$this->__namespace}}ArrayOfIds"
+				],
+			];
 
 		/*
 		 * Type declarations (Complex types)
 		 */
 
 		$this->__typedef['updateResult'] =
-		array(
-			'gedcom' => 'string'
-		);
+			[
+				'gedcom' => 'string',
+			];
 
 		$this->__typedef['authResult'] =
-		array(
-			'SID' => 'string',
-			'message' => 'string',
-			'gedcom_id' => 'string',
-			'compressionMethod' => 'string',
-			'data_type' => 'string'
-		);
+			[
+				'SID'               => 'string',
+				'message'           => 'string',
+				'gedcom_id'         => 'string',
+				'compressionMethod' => 'string',
+				'data_type'         => 'string',
+			];
 
 		$this->__typedef['serviceInfoResult'] =
-		array(
-			'compression' => 'string', //none, zlib, etc
-			'apiVersion' => 'string',
-			'server' => 'string',
-			'gedcoms' => '{urn:' . $this->__namespace . '}ArrayOfGedcomList'
-		);
+			[
+				'compression' => 'string', //none, zlib, etc
+				'apiVersion'  => 'string',
+				'server'      => 'string',
+				'gedcoms'     => "{urn:{$this->__namespace}}ArrayOfGedcomList"
+			];
 
 		$this->__typedef['GedcomInfo'] =
-		array(
-			'title'		=>	'string',
-			'ID'		=>	'string'
-		);
+			[
+				'title' => 'string',
+				'ID'    => 'string',
+			];
 
 		$this->__typedef['ArrayOfGedcomList'] =
-		array(
-			array(
-				'item' => '{urn:' . $this->__namespace . '}GedcomInfo'
-			)
-		);
+			[
+				[
+					'item' => "{urn:{$this->__namespace}}GedcomInfo"
+				],
+			];
 
 		// Person complex type
 		$this->__typedef['Person'] =
-		array(
-			'PID'			=>	 'string',
-			'gedcomName'	=>	 'string',
-			'birthDate'		=>	 'string',
-			'birthPlace'	=>	 'string',
-			'deathPlace'	=>	 'string',
-			'deathDate'		=>	 'string',
-			'gender'		=>	 'string',
-			'gedcom'		=>	 'string',
-			'spouseFamilies'=>	 '{urn:' . $this->__namespace . '}ArrayOfIds',
-			'childFamilies'	=>	 '{urn:' . $this->__namespace . '}ArrayOfIds'
-		);
+			[
+				'PID'            => 'string',
+				'gedcomName'     => 'string',
+				'birthDate'      => 'string',
+				'birthPlace'     => 'string',
+				'deathPlace'     => 'string',
+				'deathDate'      => 'string',
+				'gender'         => 'string',
+				'gedcom'         => 'string',
+				'spouseFamilies' => "{urn:{$this->__namespace}}ArrayOfIds",
+				'childFamilies'  => "{urn:{$this->__namespace}}ArrayOfIds"
+			];
 
 		//Source complex type
 		$this->__typedef['Source'] =
-		array(
-			'SCID'          =>	'string',
-			'title'         =>	'string',
-			'published'     =>	'string',
-			'author'        =>	'string',
-			'gedcom'        =>	'string'
+			[
+				'SCID'      => 'string',
+				'title'     => 'string',
+				'published' => 'string',
+				'author'    => 'string',
+				'gedcom'    => 'string',
 
-		);
+			];
 
 		// Family complex type
 		$this->__typedef['Family'] =
-		array(
-			'FID'			=>   'string',
-			'HUSBID'        =>   'string',
-	  		'WIFEID'        =>   'string',
-	  		'CHILDREN'		=>   '{urn:' . $this->__namespace . '}ArrayOfIds',
-	  		'gedcom'		=>	 'string'
-		);
+			[
+				'FID'      => 'string',
+				'HUSBID'   => 'string',
+				'WIFEID'   => 'string',
+				'CHILDREN' => "{urn:{$this->__namespace}}ArrayOfIds",
+				'gedcom'   => 'string',
+			];
 
 		$this->__typedef['SearchResult'] =
-		array(
-			'totalResults'	=>	'int',
-			'persons'		=>	'{urn:' . $this->__namespace . '}ArrayOfPerson'
-		);
+			[
+				'totalResults' => 'int',
+				'persons'      => "{urn:{$this->__namespace}}ArrayOfPerson"
+			];
 
 		$this->__typedef['Server'] =
-		array(
-			'name' => 'string',
-			'address' => 'string' //address to server URL/IP
-		);
+			[
+				'name'    => 'string',
+				'address' => 'string' //address to server URL/IP
+			];
 
 		$this->__typedef['{urn:' . $this->__namespace . '}ArrayOfServer'] =
-		array(
-			array(
-				'server' => '{urn:' . $this->__namespace . '}Server'
-			)
-		);
+			[
+				[
+					'server' => "{urn:{$this->__namespace}}Server"
+				],
+			];
 		//Creates the Person array type
 		$this->__typedef['{urn:' . $this->__namespace . '}ArrayOfPerson'] =
-		array(
-			array(
-				'item' => '{urn:' . $this->__namespace . '}Person'
-			)
-		);
+			[
+				[
+					'item' => "{urn:{$this->__namespace}}Person"
+				],
+			];
 		//Creates the Family array type
 		$this->__typedef['{urn:' . $this->__namespace . '}ArrayOfFamily'] =
-		array(
-			array(
-				'item' => '{urn:' . $this->__namespace . '}Family'
-			)
-		);
+			[
+				[
+					'item' => "{urn:{$this->__namespace}}Family"
+				],
+			];
 		//Creates the array of strings
 		$this->__typedef['{urn:' . $this->__namespace . '}ArrayOfIds'] =
-		array(
-			array(
-				'id' => 'string'
-			)
-		);
+			[
+				[
+					'id' => 'string',
+				],
+			];
 	}
 
 	// Required function by SOAP_Server
-	function __dispatch($methodname)
+	public function __dispatch($methodname)
 	{
 		if (isset($this->__dispatch_map[$methodname]))
 			return $this->__dispatch_map[$methodname];
@@ -462,7 +460,7 @@ class GenealogyService
 	/***
 	* Returns information about the service
 	*/
-	function serviceInfo()
+	public function serviceInfo()
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") ServiceInfo");
 		$result = $this->postServiceInfo();
@@ -472,7 +470,7 @@ class GenealogyService
 			return $result;
 		}
 
-		return new SOAP_Fault('Unable to retrieve service info',
+		return new \SOAP_Fault('Unable to retrieve service info',
 							  'Server',
 							  '',
 							  null);
@@ -481,7 +479,7 @@ class GenealogyService
 	/***
 	* Method to override
 	*/
-	function postServiceInfo()
+	public function postServiceInfo()
 	{
 		return false;
 	}
@@ -494,7 +492,7 @@ class GenealogyService
 	* @param string compression compression lib to use (not implemented)
 	* @param string $type specifies a raw data type with current valid values of GEDCOM, or GRAMPS
 	*/
-	function Authenticate($username, $password, $gedcom, $compression, $data_type="GEDCOM")
+	public function Authenticate($username, $password, $gedcom, $compression, $data_type="GEDCOM")
 	{
 		if (empty($data_type)) $data_type='GEDCOM';
 
@@ -503,12 +501,12 @@ class GenealogyService
 		if($result !== false)
 		{
 			//if everything worked set the session value to true
-			if (!PEAR::isError($result))
+			if (!\PEAR::isError($result))
 				$_SESSION["SOAP_CONNECTED"] = true;
 			return $result;
 		}
 
-		return new SOAP_Fault('Unable to login',
+		return new \SOAP_Fault('Unable to login',
 							'Server',
 							'',
 							null);
@@ -517,7 +515,7 @@ class GenealogyService
 	/**
 	* Method to override
 	*/
-	function postAuthenticate($username, $password, $gedcom_id, $compression, $data_type="GEDCOM")
+	public function postAuthenticate($username, $password, $gedcom_id, $compression, $data_type="GEDCOM")
 	{
 		return false;
 	}
@@ -527,19 +525,19 @@ class GenealogyService
 	* @param string gedcom id of the gedcom to use
 	* @return string	returns the id of the currently active gedcom
 	*/
-	function changeGedcom($gedcom)
+	public function changeGedcom($gedcom)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") changeGedcom($gedcom)");
 		$result = $this->postChangeGedcom($gedcom);
 		if($result !== false)
 		{
 			//if everything worked set the session value to true
-			if (!PEAR::isError($result))
+			if (!\PEAR::isError($result))
 				$_SESSION["SOAP_CONNECTED"] = true;
 			return $result;
 		}
 
-		return new SOAP_Fault('Unable to change gedcom',
+		return new \SOAP_Fault('Unable to change gedcom',
 							'Server',
 							'',
 							null);
@@ -548,7 +546,7 @@ class GenealogyService
 	/**
 	* Method to override
 	*/
-	function postChangeGedcom($gedcom)
+	public function postChangeGedcom($gedcom)
 	{
 		return false;
 	}
@@ -558,7 +556,7 @@ class GenealogyService
 	* @param string SID session id
 	* @param string PID person id
 	*/
-	function getPersonByID($SID, $PID)
+	public function getPersonByID($SID, $PID)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getPersonByID($SID, $PID)");
 		//check the session
@@ -572,7 +570,7 @@ class GenealogyService
 			return $result;
 		}
 		//method was not overriden
-		return new SOAP_Fault('Unable to get person by id '.$PID,'Server','',null);
+		return new \SOAP_Fault('Unable to get person by id '.$PID,'Server','',null);
 	}
 
 	/***
@@ -580,7 +578,7 @@ class GenealogyService
 	 * @param string FID family id
 	 * @param string SID session id
 	 ***/
-	function getFamilyByID($SID,$FID)
+	public function getFamilyByID($SID,$FID)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getFamilyByID($SID, $FID)");
 		//check the session
@@ -594,7 +592,7 @@ class GenealogyService
 			return $result;
 		}
 		//method was not overriden
-		return new SOAP_Fault('Unable to get family by id '.$FID,'Server','',null);
+		return new \SOAP_Fault('Unable to get family by id '.$FID,'Server','',null);
 	}
 
 	/***
@@ -602,7 +600,7 @@ class GenealogyService
 	 * @param string SID session id
 	 * @param string SCID Source id
 	 */
-	function getSourceByID($SID,$SCID)
+	public function getSourceByID($SID,$SCID)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getSourceByID($SID, $SCID)");
 		//check the session
@@ -616,7 +614,7 @@ class GenealogyService
 			return $result;
 		}
 		//method was not overriden
-		return new SOAP_Fault('Unable to get source by id '.$SCID,'Server','',null);
+		return new \SOAP_Fault('Unable to get source by id '.$SCID,'Server','',null);
 	}
 
 	/***
@@ -624,7 +622,7 @@ class GenealogyService
 	* @param string SID session id
 	* @param string PID person id
 	***/
-	function postGetPersonByID($SID, $PID)
+	public function postGetPersonByID($SID, $PID)
 	{
 		return false;
 	}
@@ -634,7 +632,7 @@ class GenealogyService
 	* @param string FID Family id
 	* @param string SID session id
 	***/
-	function postGetFamilyByID($SID,$FID)
+	public function postGetFamilyByID($SID,$FID)
 	{
 		return false;
 	}
@@ -644,7 +642,7 @@ class GenealogyService
 	 * @param string SID session id
 	 * @param string SCID Source id
 	 */
-	function postGetSourceByID($SID, $SCID)
+	public function postGetSourceByID($SID, $SCID)
 	{
 		return false;
 	}
@@ -654,7 +652,7 @@ class GenealogyService
 	* @param string $SID session id
 	* @param string PID person id
 	*/
-	function getGedcomRecord($SID, $PID)
+	public function getGedcomRecord($SID, $PID)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getGedcomRecord($SID, $PID)");
 		$result = $this->start_session($SID);
@@ -666,13 +664,13 @@ class GenealogyService
 		{
 			return $result;
 		}
-		return new SOAP_Fault('Unable to get gedcom record with id '.$PID,'Server','',null);
+		return new \SOAP_Fault('Unable to get gedcom record with id '.$PID,'Server','',null);
 	}
 
 	/**
 	* Method to override
 	**/
-	function postGetGedcomRecord($SID, $PID)
+	public function postGetGedcomRecord($SID, $PID)
 	{
 		return false;
 	}
@@ -682,7 +680,7 @@ class GenealogyService
 	* @param string $SID session id
 	* @param string $var variable name
 	*/
-	function getVar($SID, $var)
+	public function getVar($SID, $var)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getVar($SID, $var)");
 		//check the session
@@ -695,12 +693,12 @@ class GenealogyService
 		{
 			return $result;
 		}
-		return new SOAP_Fault('Unable to get variable: '.$var,'Server','',null);
+		return new \SOAP_Fault('Unable to get variable: '.$var,'Server','',null);
 	}
 	/**
 	* Method to override
 	**/
-	function postGetVar($SID, $var)
+	public function postGetVar($SID, $var)
 	{
 		return false;
 	}
@@ -712,7 +710,7 @@ class GenealogyService
 	* @param string generations number of generations to traverse
 	* @param bool returnGedcom return a gedcom with the results
 	*/
-	function getAncestry($SID, $rootID, $generations, $returnGedcom)
+	public function getAncestry($SID, $rootID, $generations, $returnGedcom)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getGedcomRecord($SID, $rootID, $generations, $returnGedcom)");
 		$result = $this->start_session($SID);
@@ -725,13 +723,13 @@ class GenealogyService
 		if($result !== false)
 			return $result;
 
-		return new SOAP_Fault('Unable to retrieve ancestry','Server','',null);
+		return new \SOAP_Fault('Unable to retrieve ancestry','Server','',null);
 	}
 
 	/**
 	* Method to override
 	*/
-	function postGetAncestry($SID, $rootID, $generations, $returnGedcom)
+	public function postGetAncestry($SID, $rootID, $generations, $returnGedcom)
 	{
 		return false;
 	}
@@ -743,7 +741,7 @@ class GenealogyService
 	* @param string generations number of generations to traverse
 	* @param boolean returnGedcom return a with the results
 	*/
-	function getDescendants($SID, $rootID, $generations, $returnGedcom)
+	public function getDescendants($SID, $rootID, $generations, $returnGedcom)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getDescendants($SID, $rootID, $generations, $returnGedcom)");
 		$result = $this->start_session($SID);
@@ -757,13 +755,13 @@ class GenealogyService
 		if($result !== false)
 			return $result;
 
-		return new SOAP_Fault('Unable to retrieve descendants','Server','',null);
+		return new \SOAP_Fault('Unable to retrieve descendants','Server','',null);
 	}
 
 	/*
 	* method to override
 	*/
-	function postGetDescendants($SID, $rootID, $generations, $returnGedcom)
+	public function postGetDescendants($SID, $rootID, $generations, $returnGedcom)
 	{
 		return false;
 	}
@@ -776,7 +774,7 @@ class GenealogyService
 	*
 	* @return mixed SOAP_Fault or array of result from the postAppendRecord method
 	*/
-	function appendRecord($SID, $gedrec)
+	public function appendRecord($SID, $gedrec)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") appendRecord($SID, $gedrec)");
 		$result = $this->start_session($SID);
@@ -791,12 +789,12 @@ class GenealogyService
 			return $result;
 		}
 
-		return new SOAP_Fault('Unable to append record!', 'Server', '', null);
+		return new \SOAP_Fault('Unable to append record!', 'Server', '', null);
 	}
 	/**
 	* method to override
 	*/
-	function postAppendRecord($SID, $gedrec)
+	public function postAppendRecord($SID, $gedrec)
 	{
 		return false;
 	}
@@ -809,7 +807,7 @@ class GenealogyService
 	*
 	* @return mixed SOAP_Fault or array of result from the postAppendRecord method
 	*/
-	function deleteRecord($SID, $RID)
+	public function deleteRecord($SID, $RID)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") deleteRecord($SID, $RID)");
 		$result = $this->start_session($SID);
@@ -824,12 +822,12 @@ class GenealogyService
 			return $result;
 		}
 
-		return new SOAP_Fault('Unable to delete record!', 'Server', '', null);
+		return new \SOAP_Fault('Unable to delete record!', 'Server', '', null);
 	}
 	/**
 	* method to override
 	*/
-	function postDeleteRecord($SID, $RID)
+	public function postDeleteRecord($SID, $RID)
 	{
 		return false;
 	}
@@ -840,7 +838,7 @@ class GenealogyService
 	* @param string RID record id to update
 	* @param string gedcom Updated gedcom to replace result
 	*/
-	function updateRecord($SID, $RID, $gedcom)
+	public function updateRecord($SID, $RID, $gedcom)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") updateRecord($SID, $RID, $gedcom)");
 		$result = $this->start_session($SID);
@@ -855,7 +853,7 @@ class GenealogyService
 			return $result;
 		}
 
-		return new SOAP_Fault('Unable to update record!',
+		return new \SOAP_Fault('Unable to update record!',
 							'Server',
 							'',
 							null);
@@ -863,7 +861,7 @@ class GenealogyService
 	/**
 	* method to override
 	*/
-	function postUpdateRecord($SID, $RID, $gedcom)
+	public function postUpdateRecord($SID, $RID, $gedcom)
 	{
 		return false;
 	}
@@ -874,7 +872,7 @@ class GenealogyService
 	* @param string RID record id
 	* @param string lastUpdate last date since update
 	*/
-	function checkUpdatesByID($SID,$RID,$lastUpdate)
+	public function checkUpdatesByID($SID,$RID,$lastUpdate)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") checkUpdatesByID($SID,$RID,$lastUpdate)");
 		$result = $this->start_session($SID);
@@ -886,12 +884,12 @@ class GenealogyService
 		if($result !== false)
 			return $result;
 		//AddToLog('Unable to complete update check');
-		return new SOAP_Fault('Unable to complete update check','Server','',null);
+		return new \SOAP_Fault('Unable to complete update check','Server','',null);
 	}
 	/**
 	* Method to override
 	*/
-	function postCheckUpdatesByID($SID,$RID,$lastUpdate)
+	public function postCheckUpdatesByID($SID,$RID,$lastUpdate)
 	{
 		return false;
 	}
@@ -901,7 +899,7 @@ class GenealogyService
 	* @param string SID
 	* @param string lastUpdate last date since update
 	*/
-	function checkUpdates($SID,$lastUpdate)
+	public function checkUpdates($SID,$lastUpdate)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") checkUpdates($SID,$lastUpdate)");
 		$result = $this->start_session($SID);
@@ -913,12 +911,12 @@ class GenealogyService
 		if($result !== false)
 			return $result;
 		//AddToLog('Unable to complete update check');
-		return new SOAP_Fault('Unable to complete update check','Server','',null);
+		return new \SOAP_Fault('Unable to complete update check','Server','',null);
 	}
 	/**
 	* Method to override
 	*/
-	function postCheckUpdates($SID,$lastUpdate)
+	public function postCheckUpdates($SID,$lastUpdate)
 	{
 		return false;
 	}
@@ -928,7 +926,7 @@ class GenealogyService
 	* @param string SID
 	* @param int limit limit the number of servers coming back
 	*/
-	function getKnownServers($SID,$limit)
+	public function getKnownServers($SID,$limit)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getKnownServers($SID,$limit)");
 		$result = $this->start_session($SID);
@@ -939,12 +937,12 @@ class GenealogyService
 
 		if($result !== false)
 			return $result;
-		new SOAP_Fault('Unable to complete get known servers','Server','',null);
+		new \SOAP_Fault('Unable to complete get known servers','Server','',null);
 	}
 	/*
 	* method to override
 	*/
-	function postGetKnownServers($SID,$limit)
+	public function postGetKnownServers($SID,$limit)
 	{
 		return false;
 	}
@@ -956,7 +954,7 @@ class GenealogyService
 	* @param string start index to start the search at
 	* @param string maxResults maximum results to return
 	*/
-	function search($SID, $query, $start, $maxResults)
+	public function search($SID, $query, $start, $maxResults)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") search($SID, $query, $start, $maxResults)");
 		$result = $this->start_session($SID);
@@ -967,12 +965,12 @@ class GenealogyService
 
 		if($result !== false)
 			return $result;
-		return new SOAP_Fault('Unable to complete search','Server','',null);
+		return new \SOAP_Fault('Unable to complete search','Server','',null);
 	}
 	/**
 	* Method to override
 	*/
-	function postSearch($SID, $query, $start, $maxResults)
+	public function postSearch($SID, $query, $start, $maxResults)
 	{
 		return false;
 	}
@@ -983,7 +981,7 @@ class GenealogyService
 	* @param string position
 	* @param string type
 	*/
-	function getXref($SID, $position, $type)
+	public function getXref($SID, $position, $type)
 	{
 		if ($this->logging) AddToLog(basename(__FILE__)." (".__LINE__.") getXref($SID, $position, $type)");
 		$result = $this->start_session($SID);
@@ -994,12 +992,12 @@ class GenealogyService
 
 		if($result !== false)
 			return $result;
-		return new SOAP_Fault('Unable to get XREF','Server','',null);
+		return new \SOAP_Fault('Unable to get XREF','Server','',null);
 	}
 	/**
 	* Method to override
 	*/
-	function postGetXref($SID, $position, $type)
+	public function postGetXref($SID, $position, $type)
 	{
 		return false;
 	}
@@ -1011,32 +1009,32 @@ class GenealogyService
 	* @param $SID php session id
 	* @returns SOAP_Fault invalid session id
 	***/
-	function start_session($SID)
+	public function start_session($SID)
 	{
-		/*if (!isset($_SESSION["SOAP_CONNECTED"]) || $_SESSION["SOAP_CONNECTED"]!==true)
+		if (!isset($_SESSION["SOAP_CONNECTED"]) || $_SESSION["SOAP_CONNECTED"]!==true)
 		{
-			return new SOAP_Fault('Invalid session id '.$SID.'. Please authenticate',
+			return new \SOAP_Fault('Invalid session id '.$SID.'. Please authenticate',
 								'Client',
 								'',
 								null);
-		}*/
+		}
 		return true;
 	}
 	/**
 	* Depricated
 	*/
-	function cleanSID($sid)
+	public function cleanSID($sid)
 	{
 		$sid = str_replace('PHPSESSID=','',$sid);
 		return strip_tags($sid);
 	}
 	/* Process this file.  Handles soap requests and wsdl requests
 	*/
-	function &process() {
+	public function &process() {
 		global $HTTP_RAW_POST_DATA;
 
 		// Fire up PEAR::SOAP_Server
-		$server = new SOAP_Server();
+		$server = new \SOAP_Server();
 
 		// Add your object to SOAP server (note namespace)
 		$server->addObjectMap($this,'urn:' . $this->__namespace);
@@ -1055,7 +1053,7 @@ class GenealogyService
 			require_once 'SOAP/Disco.php';
 
 			// Create the Disco server
-			$disco = new SOAP_DISCO_Server($server,$this->__namespace);
+			$disco = new \SOAP_DISCO_Server($server,$this->__namespace);
 
 			header("Content-type: text/xml");
 
