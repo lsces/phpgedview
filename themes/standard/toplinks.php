@@ -3,7 +3,7 @@
  * Top-of-page menu for Standard theme
  *
  * PhpGedView: Genealogy Viewer
- * Copyright (c) 2002 to 2008  John Finlay and others.  All rights resserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+use Bitweaver\Phpgedview\MenuBar;
 
 $menubar = new MenuBar();
 ?>
@@ -66,12 +63,14 @@ $menubar = new MenuBar();
 				$menu->printMenu();
 				print "\t</td>\n";
 			}
-			$menu = $menubar->getReportsMenu();
-			if($menu->link != "") {
+//			$menu = $menubar->getReportsMenu();
+//			if($menu->link != "") {
 				print "\t<td width=\"7%\" valign=\"top\">\n";
-				$menu->printMenu();
+//				$menu->printMenu();
+				print "<div class=\"menuitem\"><p>Reports are<br/>off line</p></div>";
 				print "\t</td>\n";
-			}
+//			}
+
 			$menu = $menubar->getClippingsMenu();
 			if ((!is_null($menu)) && ($menu->link != "")) { ?>
 				<td width="7%" valign="top"><?php $menu->printMenu(); ?></td>
@@ -112,6 +111,5 @@ $menubar = new MenuBar();
 	</table>
 	<img align="middle" src="<?php print $PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]; ?>" width="99%" height="3" alt="" />
 </div>
-<?php require './includes/accesskeyHeaders.php'; ?>
 </div>
 <div id="content">

@@ -3,7 +3,7 @@
  * Footer for Standard theme
  *
  * PhpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  John Finlay and others.  All rights resserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 echo "</div> <!-- closing div id=\"content\" -->";
 ?>
@@ -37,20 +34,20 @@ echo "</div> <!-- closing div id=\"content\" -->";
 <br /><div align="center" style="width:99%;">
 <br />
 <a href="<?php echo PGV_PHPGEDVIEW_URL; ?>" target="_blank">
-	<img src="<?php echo $PGV_IMAGE_DIR.'/'.$PGV_IMAGES['gedview']['other'];?>" width="100" height="45" border="0" alt="<?php echo PGV_PHPGEDVIEW . (PGV_USER_IS_ADMIN? (" - " .PGV_VERSION_TEXT): ""); ?>"
-		title="<?php echo PGV_PHPGEDVIEW . (PGV_USER_IS_ADMIN? (" - " .PGV_VERSION_TEXT): "");?>" /></a><br />
+	<img src="<?php echo $PGV_IMAGE_DIR, '/', $PGV_IMAGES['gedview']['other']; ?>" width="100" height="45" border="0" alt="<?php echo PGV_PHPGEDVIEW, PGV_USER_IS_ADMIN? (" - " .PGV_VERSION_TEXT): ""; ?>"
+		title="<?php echo PGV_PHPGEDVIEW, PGV_USER_IS_ADMIN? (" - " .PGV_VERSION_TEXT): "" ;?>" /></a><br />
 <br />
 <?php print_help_link("preview_help", "qm"); ?>
-<a href="<?php echo $SCRIPT_NAME."?view=preview&amp;".get_query_string(); ?>"><?php echo $pgv_lang["print_preview"];?></a>
+<a href="<?php echo PGV_SCRIPT_NAME, '?view=preview&amp;', get_query_string(); ?>"><?php echo $pgv_lang['print_preview']; ?></a>
 <br />
 <?php
 if ($SHOW_STATS || PGV_DEBUG) {
-	print_execution_stats();
+	echo execution_stats();
 }
 if (exists_pending_change()) {?>
 	<br />
 	<?php echo $pgv_lang["changes_exist"]; ?>
-	<a href="javascript:;" onclick="window.open('edit_changes.php','_blank','width=600,height=500,resizable=1,scrollbars=1'); return false;">
+	<a href="javascript:;" onclick="window.open('edit_changes.php', '_blank', 'width=600, height=500, resizable=1, scrollbars=1'); return false;">
 	<?php echo $pgv_lang["accept_changes"]; ?></a>
 <?php } ?>
 </div>

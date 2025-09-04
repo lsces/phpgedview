@@ -3,7 +3,7 @@
  * Standard theme
  *
  * PhpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,21 +24,17 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 $theme_name = "Standard";		//-- the name of this theme
 
-$stylesheet = $THEME_DIR."style.css";	//-- CSS level 2 stylesheet to use
-$rtl_stylesheet = $THEME_DIR."style_rtl.css";           //-- CSS level 2 stylesheet to use
-$print_stylesheet = $THEME_DIR."print.css";	//-- CSS level 2 print stylesheet to use
-$toplinks = $THEME_DIR."toplinks.php";	//-- File to display the icons and links to different sections
-$headerfile = $THEME_DIR."header.php";	//-- Header information for the site
-$footerfile = $THEME_DIR."footer.php";	//-- Footer information for the site
-$print_footerfile = $THEME_DIR."print_footer.php";	//-- Print Preview Footer information for the site
-$print_headerfile = $THEME_DIR."print_header.php";	//-- Print Preview Header information for the site
+$stylesheet = PGV_THEME_DIR."style.css";	//-- CSS level 2 stylesheet to use
+$rtl_stylesheet = PGV_THEME_DIR."style_rtl.css";           //-- CSS level 2 stylesheet to use
+$print_stylesheet = PGV_THEME_DIR."print.css";	//-- CSS level 2 print stylesheet to use
+$toplinks = PGV_THEME_DIR."toplinks.php";	//-- File to display the icons and links to different sections
+$headerfile = PGV_THEME_DIR."header.php";	//-- Header information for the site
+$footerfile = PGV_THEME_DIR."footer.php";	//-- Footer information for the site
+$print_footerfile = PGV_THEME_DIR."print_footer.php";	//-- Print Preview Footer information for the site
+$print_headerfile = PGV_THEME_DIR."print_header.php";	//-- Print Preview Header information for the site
 
 $PGV_USE_HELPIMG = true;		// set to true to use image for help questionmark, set to false to use $pgv_lang["qm"]
 $PGV_IMAGE_DIR = "images";		//-- directory to look for images
@@ -108,6 +104,7 @@ $PGV_IMAGES["statistic"]["small"] = "small/statistic.gif";
 $PGV_IMAGES["timeline"]["small"] = "small/timeline.gif";
 
 //- PGV buttons for data entry pages
+$PGV_IMAGES["addmedia"]["button"] = "buttons/addmedia.gif";
 $PGV_IMAGES["addrepository"]["button"] = "buttons/addrepository.gif";
 $PGV_IMAGES["addsource"]["button"] = "buttons/addsource.gif";
 $PGV_IMAGES["addnote"]["button"] = "buttons/addnote.gif";
@@ -164,12 +161,25 @@ $PGV_IMAGES["vline"]["other"] = "vline.gif";
 $PGV_IMAGES["zoomin"]["other"] = "zoomin.gif";
 $PGV_IMAGES["zoomout"]["other"] = "zoomout.gif";
 $PGV_IMAGES["stop"]["other"] = "stop.gif";
+$PGV_IMAGES["default_image_M"]["other"] = "silhouette_male.gif";
+$PGV_IMAGES["default_image_F"]["other"] = "silhouette_female.gif";
+$PGV_IMAGES["default_image_U"]["other"] = "silhouette_unknown.gif";
 
 // - lifespan chart arrows
 $PGV_IMAGES["lsltarrow"]["other"] = "lsltarrow.gif";
 $PGV_IMAGES["lsrtarrow"]["other"] = "lsrtarrow.gif";
 $PGV_IMAGES["lsdnarrow"]["other"] = "lsdnarrow.gif";
 $PGV_IMAGES["lsuparrow"]["other"] = "lsuparrow.gif";
+
+//-- Variables for the Fan chart
+$fanChart = array(
+	'font'		=> './includes/fonts/DejaVuSans.ttf',
+	'size'		=> '7px',
+	'color'		=> '#000000',
+	'bgColor'	=> '#eeeeee',
+	'bgMColor'	=> '#b1cff0',
+	'bgFColor'	=> '#e9daf1'
+);
 
 //-- This section defines variables for the pedigree chart
 $bwidth = 225;		// -- width of boxes on pedigree chart
@@ -194,7 +204,7 @@ $CHARTS_CLOSE_HTML = true;		//-- should the charts, pedigree, descendacy, etc cl
 $PGV_DXHTMLTAB_COLORS = "#d6e0ea,white";
 
 // --  The largest possible area for charts is 300,000 pixels. As the maximum height or width is 1000 pixels
-$PGV_STATS_S_CHART_X = "440"; 
+$PGV_STATS_S_CHART_X = "440";
 $PGV_STATS_S_CHART_Y = "125";
 $PGV_STATS_L_CHART_X = "900";
 // --  For map charts, the maximum size is 440 pixels wide by 220 pixels high
