@@ -31,7 +31,7 @@
 * be valid. You can remove the extra comments but, for copyright reasons, the first comment
 * block at the top of this file should be retained.
 *
-* Use the code in "includes/classes/class_menubar.php" as a guide to how valid menus and sub-menus
+* Use the code in "includes/classes/MenuBar.php" as a guide to how valid menus and sub-menus
 * should be constructed.
 */
 /*
@@ -68,11 +68,7 @@
 * with a backslash or enclose the entire URL in apostrophes instead of quotation marks.
 */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 // Menu separator line
 $menu->addSeparator();
 

@@ -22,11 +22,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_FUNCTIONS_EL_PHP', '');
 
 ////////////////////////////////////////////////////////////////////////////////

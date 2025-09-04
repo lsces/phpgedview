@@ -34,9 +34,9 @@
  *
  * Please note:
  * This menu is NEVER visible when a Search robot is accessing the site.  This is controlled by
- * "includes/classes/class_menubar.php".
+ * "includes/classes/MenuBar.php".
  *
- * Use the code in "includes/classes/class_menubar.php" as a guide to how valid menus and sub-menus 
+ * Use the code in "includes/classes/MenuBar.php" as a guide to how valid menus and sub-menus 
  * should be constructed.
  */
  /*
@@ -74,11 +74,7 @@
  *		with a backslash or enclose the entire URL in apostrophes instead of quotation marks.
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 	//-- main Optional menu item
 	$menu = new Menu("Optional Menu name", "custom link #1", "down");
 	if (!empty($PGV_IMAGES["gedcom"]["large"]))
