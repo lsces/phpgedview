@@ -2,7 +2,7 @@
  * Common javascript functions
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2012  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *
  * @package PhpGedView
  * @subpackage Display
- * @version $Id: phpgedview.js,v 1.4 2009/09/15 20:06:03 lsces Exp $
+ * @version $Id$
  */
 if (!document.getElementById)	// Check if browser supports the getElementByID function
 {
@@ -247,20 +247,32 @@ var show = false;
 		var sbox_style = sbox.style;
 		if (show===true) {
 			sbox_style.display='block';
-			if (sbox_img) sbox_img.src = plusminus[1].src;
+			if (sbox_img) {
+				sbox_img.src = plusminus[1].src;
+				sbox_img.title = plusminus[1].title;
+			}
 		}
 		else if (show===false) {
 			sbox_style.display='none';
-			if (sbox_img) sbox_img.src = plusminus[0].src;
+			if (sbox_img) {
+				sbox_img.src = plusminus[0].src;
+				sbox_img.title = plusminus[0].title;
+			}
 		}
 		else {
 			if ((sbox_style.display=='none')||(sbox_style.display=='')) {
 				sbox_style.display='block';
-				if (sbox_img) sbox_img.src = plusminus[1].src;
+				if (sbox_img) {
+					sbox_img.src = plusminus[1].src;
+					sbox_img.title = plusminus[1].title;
+				}
 			}
 			else {
 				sbox_style.display='none';
-				if (sbox_img) sbox_img.src = plusminus[0].src;
+				if (sbox_img) {
+					sbox_img.src = plusminus[0].src;
+					sbox_img.title = plusminus[0].title;
+				}
 			}
 		}
 		//if (!lasttab) lasttab=0;
@@ -284,14 +296,10 @@ var show = false;
 
 // Main function to retrieve mouse x-y pos.s
 function getMouseXY(e) {
-  if (IE) { // grab the x-y pos.s if browser is IE
-    msX = event.clientX + document.documentElement.scrollLeft;
-    msY = event.clientY + document.documentElement.scrollTop;
-  } else {  // grab the x-y pos.s if browser is NS
+	// grab the x-y pos.s if browser is NS
     msX = e.pageX;
     msY = e.pageY;
-  }
-  return true;
+	return true;
 }
 
 function edit_record(pid, linenum) {
@@ -477,72 +485,115 @@ function addmedia_links(field, iid, iname) {
 function valid_date(datefield) {
 	var months = new Array("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC");
 
-	//-- don't try to validate empty dates for Safari/opera
-	if (datefield.value=="") return;
-
-	// year only no validation for Safari/opera
-	var qsearch = /^(\d\d\d\d)$/i;
- 	var found = qsearch.exec(datefield.value);
- 	if (found) {
-	 	return;
- 	}
-
-	// quarter format [ 1509083 ]
-	// e.g. Q1 1900
-	var qsearch = /^Q(\d) (\d\d\d\d)$/i;
- 	var found = qsearch.exec(datefield.value);
- 	if (found) {
-	 	q = RegExp.$1;
-	 	y = RegExp.$2;
-	 	m = (q-1)*3;
-		if (0<q && q<5) datefield.value = "BET "+months[m]+" "+y+" AND "+months[(m+2)]+" "+y;
+	var datestr=datefield.value;
+	// if a date has a date phrase marked by () this has to be excluded from altering
+	var datearr=datestr.split("(");
+	var datephrase="";
+	if (datearr.length > 1) {
+		datestr=datearr[0];
+		datephrase=datearr[1];
 	}
-	// e.g. 17.11.1860 or 1999-12-31.  Use locale settings where DMY order is ambiguous.
-	var qsearch = /^(\d+)[^\d](\d+)[^\d](\d+)$/i;
- 	if (qsearch.exec(datefield.value)) {
-		var f1=parseInt(RegExp.$1, 10);
-		var f2=parseInt(RegExp.$2, 10);
-		var f3=parseInt(RegExp.$3, 10);
-		var dmy='DMY';
-		if (typeof(locale_date_format)!='undefined')
-			if (locale_date_format=='MDY' || locale_date_format=='YMD')
-				dmy=locale_date_format;
-		var yyyy=new Date().getFullYear();
-		var yy=yyyy % 100;
-		var cc=yyyy - yy;
-	 	if (dmy=='DMY' && f1<=31 && f2<=12 || f1>13 && f1<=31 && f2<=12 && f3>31)
-			datefield.value=f1+" "+months[f2-1]+" "+(f3>=100?f3:(f3<=yy?f3+cc:f3+cc-100));
-		else if (dmy=='MDY' && f1<=12 && f2<=31 || f2>13 && f2<=31 && f1<=12 && f3>31)
-			datefield.value=f2+" "+months[f1-1]+" "+(f3>=100?f3:(f3<=yy?f3+cc:f3+cc-100));
-		else if (dmy=='YMD' && f2<=12 && f3<=31 || f3>13 && f3<=31 && f2<=12 && f1>31)
-			datefield.value=f3+" "+months[f2-1]+" "+(f1>=100?f1:(f1<=yy?f1+cc:f1+cc-100));
+	var srch = "";
+	var mth = 0;
+	var day = 0;
+
+	// Gedcom dates are upper case
+	datestr=datestr.toUpperCase();
+	// Gedcom dates have no leading/trailing/repeated whitespace
+	datestr=datestr.replace(/\s+/, " ");
+	datestr=datestr.replace(/(^\s)|(\s$)/, "");
+	// Gedcom dates have spaces between letters and digits, e.g. "01JAN2000" => "01 JAN 2000"
+	datestr=datestr.replace(/(\d)([A-Z])/, "$1 $2");
+	datestr=datestr.replace(/([A-Z])(\d)/, "$1 $2");
+
+	// Shortcut for quarter format, "Q1 1900" => "BET JAN 1900 AND MAR 1900".  See [ 1509083 ]
+ 	if (datestr.match(/^Q ([1-4]) (\d\d\d\d)$/)) {
+		datestr = "BET "+months[RegExp.$1*3-3]+" "+RegExp.$2+" AND "+months[RegExp.$1*3-1]+" "+RegExp.$2;
+	}
+
+	// 2 passes, to catch things like "FROM 1860.11.17 TO 1860.11.25"
+	for (var pass=1; pass<=2; pass++) {	
+		// e.g. 1860 NOV 17  (i.e., year and day switched, optional text before and after date)
+		if (datestr.match(/(.*) (\d{4}) (\w+) (\d{1,2}) (.*)/)) {
+		 	day = parseInt(RegExp.$4, 10);
+		 	if (day > 0 && day < 32) {
+			 	datestr = RegExp.$1+" "+RegExp.$4+" "+RegExp.$3+" "+RegExp.$2+" "+RegExp.$5;
+		 	}
+	 	}
+	
+	 	// e.g. 1860.11.17  (1 or 2-digit month and day permitted, optional text before and after date)
+	 	if (datestr.match(/(.*) (\d{4})[^\d](\d{1,2})[^\d](\d{1,2}) (.*)/)) {
+	 	 	day = parseInt(RegExp.$4, 10);
+		 	mth = parseInt(RegExp.$3, 10);
+		 	if ((day > 0 && day < 32) && (mth > 0 && mth < 13)) {
+			 	datestr = RegExp.$1+" "+RegExp.$4+" "+months[mth-1]+" "+RegExp.$2+" "+RegExp.$5;
+		 	}
+		}
+	
+	 	// e.g. 18601117  (2-digit month and day required, optional text before and after date)
+	 	if (datestr.match(/(.*) (\d{4})(\d\d)(\d\d) (.*)/)) {
+	 	 	day = parseInt(RegExp.$4, 10);
+		 	mth = parseInt(RegExp.$3, 10);
+		 	if ((day > 0 && day < 32) && (mth > 0 && mth < 13)) {
+			 	datestr = RegExp.$1+" "+RegExp.$4+" "+months[mth-1]+" "+RegExp.$2+" "+RegExp.$5;
+		 	}
+		}
+	
+		// e.g. 17.11.1860, 03/04/2005 or 1999-12-31.  Use locale settings where DMY order is ambiguous.
+		srch = /(.*) (\d+)[^\d](\d+)[^\d](\d+) (.*)/i;
+	 	if (srch.exec(datestr)) {
+	 		var f0=RegExp.$1;
+			var f1=parseInt(RegExp.$2, 10);
+			var f2=parseInt(RegExp.$3, 10);
+			var f3=parseInt(RegExp.$4, 10);
+	 		var f4=RegExp.$5;
+			var dmy='DMY';
+			if (typeof(locale_date_format)!='undefined')
+				if (locale_date_format=='MDY' || locale_date_format=='YMD')
+					dmy=locale_date_format;
+			var yyyy=new Date().getFullYear();
+			var yy=yyyy % 100;
+			var cc=yyyy - yy;
+		 	if (dmy=='DMY' && f1<=31 && f2<=12 || f1>13 && f1<=31 && f2<=12 && f3>31)
+				datestr=f0+" "+f1+" "+months[f2-1]+" "+(f3>=100?f3:(f3<=yy?f3+cc:f3+cc-100))+" "+f4;
+			else if (dmy=='MDY' && f1<=12 && f2<=31 || f2>13 && f2<=31 && f1<=12 && f3>31)
+				datestr=f0+" "+f2+" "+months[f1-1]+" "+(f3>=100?f3:(f3<=yy?f3+cc:f3+cc-100))+" "+f4;
+			else if (dmy=='YMD' && f2<=12 && f3<=31 || f3>13 && f3<=31 && f2<=12 && f1>31)
+				datestr=f0+" "+f3+" "+months[f2-1]+" "+(f1>=100?f1:(f1<=yy?f1+cc:f1+cc-100))+" "+f4;
+		}
 	}
 
 	// Shortcuts for date ranges
-	datefield.value=datefield.value.replace(/^[~*]([\w ]+)$/, "ABT $1");
-	datefield.value=datefield.value.replace(/^[>+]([\w ]+)$/, "AFT $1");
-	datefield.value=datefield.value.replace(/^([\w ]+)[-/]$/, "AFT $1");
-	datefield.value=datefield.value.replace(/^[</-]([\w ]+)$/, "BEF $1");
-	datefield.value=datefield.value.replace(/^([\w ]+) ?- ?([\w ]+)$/, "BET $1 AND $2");
-	if (datefield.value.match(/^=([\d ()/+*-]+)$/)) datefield.value=eval(RegExp.$1);
+	datestr=datestr.replace(/^[~*]([\w ]+)$/, "ABT $1");
+	datestr=datestr.replace(/^[>+]([\w ]+)$/, "AFT $1");
+	datestr=datestr.replace(/^([\w ]+)[-/]$/, "AFT $1");
+	datestr=datestr.replace(/^[</-]([\w ]+)$/, "BEF $1");
+	datestr=datestr.replace(/^([\w ]+) ?- ?([\w ]+)$/, "BET $1 AND $2");
+	if (datestr.match(/^=([\d ()/+*-]+)$/)) datestr=eval(RegExp.$1);
 
-	// other format
-	datestr = datefield.value;
-	datestr = datestr.replace(/-/g, "/");
+	// Americans frequently enter dates as SEPTEMBER 20, 1999
+	// No need to internationalise this, as this is an english-language issue
+	datestr=datestr.replace(/(JAN)(?:UARY)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(FEB)(?:RUARY)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(MAR)(?:CH)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(APR)(?:IL)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(MAY) (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(JUN)(?:E)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(JUL)(?:Y)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(AUG)(?:UST)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(SEP)(?:TEMBER)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(OCT)(?:OBER)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(NOV)(?:EMBER)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
+	datestr=datestr.replace(/(DEC)(?:EMBER)? (\d\d?)[, ]+(\d\d\d\d)/, "$2 $1 $3");
 
-	// Use Javascript's Date() function to interpret a range of dates
+	// Apply leading zero to day numbers
+	datestr=datestr.replace(/(^| )(\d [A-Z]{3,5} \d{4})/, "$10$2");
 
-	date = new Date('1');  // Detect Opera bug
-	if (date && date.toString()!="NaN" && date.getDate().toString()!="NaN")
-		return;
-
-	date = new Date(datestr);
-	if (date && date.toString()!="NaN" && date.getDate().toString()!="NaN") {
-		day = date.getDate();
-		if (day<10) day = "0"+day;
-		datefield.value = day+" "+months[date.getMonth()]+" "+date.getFullYear();
+	if (datephrase != "") {
+		datestr=datestr+" ("+datephrase;
 	}
-}
+	datefield.value=datestr;
+} 
 
 var oldheight = 0;
 var oldwidth = 0;
@@ -630,9 +681,12 @@ function expandbox(boxid, bstyle) {
 				oXmlHttp.open("get", "expand_view.php?pid=" + pid, true);
 				oXmlHttp.onreadystatechange=function()
 				{
-		  			if (oXmlHttp.readyState==4)
+		  			if (oXmlHttp.readyState==4 && xhr.status === 200)
 		  			{
 		   				inbox.innerHTML = oXmlHttp.responseText;
+					}
+					else if (oXmlHttp.readyState==4 ) {
+						console.error('Error loading data');
 		   			}
 		  		};
 		  		oXmlHttp.send(null);
@@ -961,13 +1015,12 @@ if (menutimeouts[elementid] != null) {
  */
 function timeout_submenu(elementid) {
 	if (menutimeouts[elementid] == null) {
-		tout = setTimeout("hide_submenu('"+elementid+"')", 100);
+		tout = setTimeout("hide_submenu('"+elementid+"')", 1000);
 		menutimeouts[elementid] = tout;
 	}
 }
 function checkKeyPressed(e) {
-	if (IE) key = window.event.keyCode;
-	else key = e.which;
+	key = e.which;
 	if (key==118) {
 		if (pastefield) findSpecialChar(pastefield);
 	}
@@ -995,10 +1048,25 @@ function loadHandler() {
 			}
 		}
 }
-var IE = document.all?true:false;
-if (!IE) document.captureEvents(Event.MOUSEMOVE|Event.KEYDOWN|Event.KEYUP);
-document.onmousemove = getMouseXY;
-document.onkeyup = checkKeyPressed;
+// Add event listeners for mousemove, keydown, and keyup events
+document.addEventListener('mousemove', getMouseXY);
+document.addEventListener('keydown', checkKeyPressed);
+document.addEventListener('keyup', checkKeyPressed);
+
+// Define the event handling functions
+function getMouseXY(event) {
+    // Your event handling code for mousemove here
+    console.log('Mouse move event captured');
+    // Example: Log the mouse coordinates
+    console.log('Mouse X: ' + event.clientX, 'Mouse Y: ' + event.clientY);
+}
+
+function checkKeyPressed(event) {
+    // Your event handling code for keydown and keyup here
+    console.log('Key event captured');
+    // Example: Log the key code
+    console.log('Key Code: ' + event.keyCode);
+}
 
 //Highlight image script - START
 //Highlight image script- By Dynamic Drive
@@ -1309,7 +1377,7 @@ function toggleByClassName(tagName, className) {
 			if (disp == "none") {
 				if (tagName == "TR") {
 					disp = "table-row";
-					if (document.all && !window.opera) disp = "inline"; // IE
+					if (!window.opera) disp = "inline";
 				}
 				else disp = "block";
 				if (tagName == "SPAN") disp = "inline";
@@ -1384,3 +1452,20 @@ function include_js(file) {
         curtop += obj.y;
     return curtop;
   }
+
+	function hidePrint() {
+		var printlink = document.getElementById("printlink");
+		var printlinktwo = document.getElementById("printlinktwo");
+		if (printlink) {
+			printlink.style.display="none";
+			printlinktwo.style.display="none";
+		}
+	}
+	function showBack() {
+		var printlink = document.getElementById("printlink");
+		var printlinktwo = document.getElementById("printlinktwo");
+		if (printlink) {
+			printlink.style.display="inline";
+			printlinktwo.style.display="inline";
+		}
+	}

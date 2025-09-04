@@ -1,4 +1,4 @@
-<!-- @version $Id: treenav.js,v 1.1 2009/04/30 17:50:27 lsces Exp $ -->
+<!-- @version $Id$ -->
 var loadingMessage = "<p style=\"margin: 20px 20px 20px 20px\"><img src=\"images/loading.gif\" alt=\"\" title=\"\" /></p>";
 
 function tempNavObj(target, oXmlHttp, callback) {

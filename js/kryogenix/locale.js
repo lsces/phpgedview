@@ -8,7 +8,7 @@
  *
  * @package PhpGedView
  * @subpackage Display
- * @version $Id: locale.js,v 1.3 2009/09/15 20:06:03 lsces Exp $
+ * @version $Id$
  */
 
 

@@ -1,12 +1,13 @@
-<!-- @version $Id: dhtmlXTabbar.js.htm,v 1.2 2009/04/30 17:50:27 lsces Exp $ -->
+<!-- @version $Id$ -->
 <?php
 global $THEME_DIR;
 if (file_exists($THEME_DIR.'dhtmlXTabbar.css')) {
 	echo '<link type="text/css" rel="stylesheet" href="', $THEME_DIR, 'dhtmlXTabbar.css" />';
 } else {
-	echo '<link type="text/css" rel="stylesheet" href="js/scbr/dhtmlXTabbar/css/dhtmlXTabbar.css" />';
+	echo '<link type="text/css" rel="stylesheet" href="js/dhtmlXTabbar/dhtmlxtabbar.css" />';
 }
 ?>
-<script type="text/javascript" src="js/scbr/dhtmlXTabbar/js/dhtmlXCommon.js"></script>
-<script type="text/javascript" src="js/scbr/dhtmlXTabbar/js/dhtmlXTabbar.js"></script>
-<script type="text/javascript" src="js/scbr/dhtmlXTabbar/js/dhtmlXTabbar_start.js"></script>
+<script src="js/dhtmlXTabbar/dhtmlxcommon.js"></script>
+<script src="js/dhtmlXTabbar/dhtmlxtabbar.js"></script>
+<script src="js/dhtmlXTabbar/dhtmlxtabbar_start.js"></script>
+<script>dhtmlx.skin="default";</script>

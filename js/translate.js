@@ -1,4 +1,4 @@
-<!-- @version $Id: translate.js,v 1.1 2009/04/30 17:50:27 lsces Exp $ -->
+<!-- @version $Id$ -->
 // initialize google translate API to version 1.0
 google.load('language', '1');
 
