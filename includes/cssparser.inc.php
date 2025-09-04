@@ -11,31 +11,27 @@
  * @subpackage Charts
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_CSS_PARSER_PHP', '');
 
 class cssparser {
-  var $css;
-  var $html;
+  public $css;
+  public $html;
 
-  function cssparser($html = true) {
+  public function __construct($html = true) {
     // Register "destructor"
-    register_shutdown_function(array(&$this, "finalize"));
-    $this->html = ($html != false);
+    register_shutdown_function( [&$this, "finalize" ]);
+    $this->html = $html != false;
     $this->Clear();
   }
 
-  function finalize() {
+  public function finalize() {
     unset($this->css);
   }
 
-  function Clear() {
+  public function Clear() {
     unset($this->css);
-    $this->css = array();
+    $this->css = [];
     if($this->html) {
       $this->Add("ADDRESS", "");
       $this->Add("APPLET", "");
@@ -108,21 +104,21 @@ class cssparser {
     }
   }
 
-  function SetHTML($html) {
-    $this->html = ($html != false);
+  public function SetHTML($html) {
+    $this->html = $html != false;
   }
 
-  function Add($key, $codestr) {
+  public function Add($key, $codestr) {
     $key = strtolower($key);
 //    $codestr = strtolower($codestr);
     if(!isset($this->css[$key])) {
-      $this->css[$key] = array();
+      $this->css[$key] = [];
     }
     $codes = explode(";",$codestr);
     if(count($codes) > 0) {
       foreach($codes as $indexval => $code) {
         $code = trim($code);
-        @list($codekey, $codevalue) = explode(":",$code);
+        @[ $codekey, $codevalue ] = explode(":",$code);
         if(strlen($codekey) > 0) {
           $this->css[$key][trim($codekey)] = trim($codevalue);
         }
@@ -130,34 +126,34 @@ class cssparser {
     }
   }
 
-  function Get($key, $property) {
+  public function Get($key, $property) {
     $key = strtolower($key);
 //    $property = strtolower($property);
-    @list($tag, $subtag) = explode(":",$key);
-    @list($tag, $class) = explode(".",$tag);
-    @list($tag, $id) = explode("#",$tag);
+    @[ $tag, $subtag ] = explode(":",$key);
+    @[ $tag, $class ] = explode(".",$tag);
+    @[ $tag, $id ] = explode("#",$tag);
     $result = "";
     foreach($this->css as $_tag => $value) {
-      @list($_tag, $_subtag) = explode(":",$_tag);
-      @list($_tag, $_class) = explode(".",$_tag);
-      @list($_tag, $_id) = explode("#",$_tag);
+      @[ $_tag, $_subtag ] = explode(":",$_tag);
+      @[ $_tag, $_class ] = explode(".",$_tag);
+      @[ $_tag, $_id ] = explode("#",$_tag);
 
       $tagmatch = (strcmp($tag, $_tag) == 0) | (strlen($_tag) == 0);
       $subtagmatch = (strcmp($subtag, $_subtag) == 0) | (strlen($_subtag) == 0);
-      $classmatch = (strcmp($class, $_class) == 0) | (strlen($_class) == 0);
-      $idmatch = (strcmp($id, $_id) == 0);
+      $classmatch = (strcmp($class ?? '', $_class) == 0) | (strlen($_class) == 0);
+      $idmatch = strcmp( $id, $_id ?? '' ) == 0;
 
       if($tagmatch & $subtagmatch & $classmatch & $idmatch) {
         $temp = $_tag;
         if((strlen($temp) > 0) & (strlen($_class) > 0)) {
-          $temp .= ".".$_class;
+          $temp .= ".$_class";
         } elseif(strlen($temp) == 0) {
-          $temp = ".".$_class;
+          $temp = ".$_class";
         }
         if((strlen($temp) > 0) & (strlen($_subtag) > 0)) {
-          $temp .= ":".$_subtag;
+          $temp .= ":$_subtag";
         } elseif(strlen($temp) == 0) {
-          $temp = ":".$_subtag;
+          $temp = ":$_subtag";
         }
         if(isset($this->css[$temp][$property])) {
           $result = $this->css[$temp][$property];
@@ -167,29 +163,29 @@ class cssparser {
     return $result;
   }
 
-  function GetSection($key) {
+  public function GetSection($key) {
     $key = strtolower($key);
 
-    @list($tag, $subtag) = explode(":",$key);
-    @list($tag, $class) = explode(".",$tag);
-    @list($tag, $id) = explode("#",$tag);
-    $result = array();
+    @[ $tag, $subtag ] = explode(":",$key);
+    @[ $tag, $class ] = explode(".",$tag);
+    @[ $tag, $id ] = explode("#",$tag);
+    $result = [];
     foreach($this->css as $_tag => $value) {
-      @list($_tag, $_subtag) = explode(":",$_tag);
-      @list($_tag, $_class) = explode(".",$_tag);
-      @list($_tag, $_id) = explode("#",$_tag);
+      @[ $_tag, $_subtag ] = explode(":",$_tag);
+      @[ $_tag, $_class ] = explode(".",$_tag);
+      @[ $_tag, $_id ] = explode("#",$_tag);
 
       $tagmatch = (strcmp($tag, $_tag) == 0) | (strlen($_tag) == 0);
       $subtagmatch = (strcmp($subtag, $_subtag) == 0) | (strlen($_subtag) == 0);
-      $classmatch = (strcmp($class, $_class) == 0) | (strlen($_class) == 0);
-      $idmatch = (strcmp($id, $_id) == 0);
+      $classmatch = (strcmp($class ?? '', $_class) == 0) | (strlen($_class) == 0);
+      $idmatch = strcmp( $id, $_id ) == 0;
 
       if($tagmatch & $subtagmatch & $classmatch & $idmatch) {
         $temp = $_tag;
         if((strlen($temp) > 0) & (strlen($_class) > 0)) {
-          $temp .= ".".$_class;
+          $temp .= ".$_class";
         } elseif(strlen($temp) == 0) {
-          $temp = ".".$_class;
+          $temp = ".$_class";
         }
         if((strlen($temp) > 0) & (strlen($_subtag) > 0)) {
           $temp .= ":".$_subtag;
@@ -204,7 +200,7 @@ class cssparser {
     return $result;
   }
 
-  function ParseStr($str) {
+  public function ParseStr($str) {
     $this->Clear();
     // Remove comments
     $str = preg_replace("/\/\*(.*)?\*\//Usi", "", $str);
@@ -212,7 +208,7 @@ class cssparser {
     $parts = explode("}",$str);
     if(count($parts) > 0) {
       foreach($parts as $indexval => $part) {
-        @list($keystr,$codestr) = explode("{",$part);
+        @[ $keystr, $codestr ] = explode("{",$part);
         $keys = explode(",",trim($keystr));
         if(count($keys) > 0) {
           foreach($keys as $indexval => $key) {
@@ -226,10 +222,10 @@ class cssparser {
       }
     }
     //
-    return (count($this->css) > 0);
+    return count( $this->css ) > 0;
   }
 
-  function Parse($filename) {
+  public function Parse($filename) {
     $this->Clear();
     if(file_exists($filename)) {
       return $this->ParseStr(file_get_contents($filename));
@@ -238,10 +234,10 @@ class cssparser {
     }
   }
 
-  function GetCSS() {
+  public function GetCSS() {
     $result = "";
     foreach($this->css as $key => $values) {
-      $result .= $key." {\n";
+      $result .= "$key {\n";
       foreach($values as $key => $value) {
         $result .= "  $key: $value;\n";
       }
@@ -250,4 +246,3 @@ class cssparser {
     return $result;
   }
 }
-?>

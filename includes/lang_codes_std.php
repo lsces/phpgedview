@@ -34,11 +34,7 @@
  *
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_LANG_CODES_STD_PHP', '');
 
 $lng_codes["aa"]    = array("Afar", "Ethiopia");
@@ -80,6 +76,8 @@ $lng_codes["dv"]    = array("Divehi", "Maldives");
 $lng_codes["nl"]    = array("Dutch", "Netherlands");
 $lng_codes["dz"]    = array("Dzongkha", "Bhutan");
 $lng_codes["en"]    = array("English", "USA");
+$lng_codes["en-gb"] = array("English (UK)", "United Kingdom");
+$lng_codes["en-us"] = array("English (US)", "USA");
 $lng_codes["eo"]    = array("Esperanto", "United Nations");
 $lng_codes["et"]    = array("Estonian", "Estonia");
 $lng_codes["ee"]    = array("Ewe", "Ghana");
@@ -259,5 +257,3 @@ $lng_synonyms["he"]	= "iw;";
 $lng_synonyms["id"]	= "in;";
 $lng_synonyms["jv"]	= "jw;";
 $lng_synonyms["hr"]	= "sh;";
-
-?>

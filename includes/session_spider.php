@@ -3,7 +3,7 @@
  * Startup and session logic for handling Bots and Spiders
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2008 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2008 to 2015  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,7 @@
  * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_SESSION_SPIDER_PHP', '');
 
 /**
@@ -43,71 +39,63 @@ define('PGV_SESSION_SPIDER_PHP', '');
  * @return string
  */
 function gen_spider_session_name($bot_name, $bot_language) {
+	global $gBitDb;
 	$outname = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 	$bot_limit = strlen($bot_name);
-	if($bot_limit > 27)
-	$bot_limit = 27;
+	if($bot_limit > 27) {
+		$bot_limit = 27;
+	}
 	for($x=0; $x < $bot_limit; $x++) {
-		if(preg_match('/^[a-zA-Z0-9]+$/', $bot_name{$x}))
-		$outname{$x+2} = strtoupper($bot_name{$x});
-		else if ($bot_name{$x} == '.')
-		$outname{$x+2} = 'd';
-		else if ($bot_name{$x} == ':')
-		$outname{$x+2} = 'c';
-		else if ($bot_name{$x} == '/')
-		$outname{$x+2} = 'f';
-		else if ($bot_name{$x} == ' ')
-		$outname{$x+2} = 's';
-		else if ($bot_name{$x} == '-')
-		$outname{$x+2} = 't';
-		else if ($bot_name{$x} == '_')
-		$outname{$x+2} = 'u';
-		else
-		$outname{$x+2} = 'o';
-	}
-	return($outname);
-}
-
-
-/**
-  * Remote IP Address Banning
-  */
-if (file_exists($INDEX_DIRECTORY."banned.php")) {
-	require($INDEX_DIRECTORY."banned.php");
-	//loops through each ip in banned.php
-	foreach($banned as $value) {
-		//creates a regex foreach ip
-		$ipRegEx = '';
-		if (is_array($value)) {
-			// New style: aa.bb.cc.dd,comment
-			$arrayIP = explode('*', $value[0]);
-			$comment = $value[1];
+		if(preg_match('/^[a-zA-Z0-9]+$/', $bot_name[ $x ])) {
+			$outname[ $x+2 ] = strtoupper($bot_name[ $x ]);
+		} elseif ($bot_name[ $x ] == '.') {
+			$outname[ $x+2 ] = 'd';
+		} elseif ($bot_name[ $x ] == ':') {
+			$outname[ $x+2 ] = 'c';
+		} elseif ($bot_name[ $x ] == '/') {
+			$outname[ $x+2 ] = 'f';
+		} elseif ($bot_name[ $x ] == ' ') {
+			$outname[ $x+2 ] = 's';
+		} elseif ($bot_name[ $x ] == '-') {
+			$outname[ $x+2 ] = 't';
+		} elseif ($bot_name[ $x ] == '_') {
+			$outname[ $x+2 ] = 'u';
 		} else {
-			// Old style: aa.bb.cc.dd
-			$arrayIP = explode('*', $value);
-			$comment = '';
-		}
-		$ipRegEx .= $arrayIP[0];
-		if (count($arrayIP) > 1) {
-			for($i=1; $i < count($arrayIP); $i++) {
-				if($i == (count($arrayIP))) $ipRegEx .= "\d{0,3}";
-	 			else $ipRegEx .= "\d{0,3}".$arrayIP[$i];
-			}
-		}
-		//checks the remote ip address against each ip regex
-		if (preg_match('/^'.$ipRegEx.'/', $_SERVER['REMOTE_ADDR'])) {
-			//adds a message to the log and exits with an Access Denied header
-			if (empty($comment)) {
-				AddToLog("genservice.php blocked IP Address: ".$_SERVER['REMOTE_ADDR']." by regex: ".$ipRegEx);
-			} else {
-				AddToLog("genservice.php blocked IP Address: ".$_SERVER['REMOTE_ADDR']." by regex: ".$ipRegEx.' ('.$comment.')');
-			}
-			header("HTTP/1.1 403 Access Denied");
-			exit;
+			$outname[ $x+2 ] = 'o';
 		}
 	}
+	return $outname;
 }
+
+// Clean up list of blocked IP addresses with expired timers
+	$currentTime = date('Y.m.d@H:i');
+	$sql="SELECT ip_address FROM {$TBLPREFIX}ip_address WHERE category='timedban' AND comment < '{$currentTime}'";
+	$expiredBan = $gBitDb->getCol($sql);
+
+	foreach ($expiredBan as $address) {
+		$gBitDb->query(
+			"DELETE FROM {$TBLPREFIX}ip_address WHERE category='timedban' AND ip_address=?"
+		, array($address) );
+	}
+
+// Block sites by IP address, either permanently or until a specified date & time.
+// Convert user-friendly such as '123.45.*.*' into SQL '%' wildcards.
+// Note: you may need to block IPv6 addresses as well as IPv4 ones.
+	$banned_ip=$gBitDb->getRow(
+		"SELECT ip_address, comment FROM {$TBLPREFIX}ip_address".
+		" WHERE (category='banned' OR category='timedban') AND ? LIKE REPLACE(ip_address, '*', '%')"
+		, [ $_SERVER['REMOTE_ADDR'] ] );
+
+	if ($banned_ip) {
+		$log_msg='session_spider.php blocked IP Address: '.$_SERVER['REMOTE_ADDR'].' by regex: '.$banned_ip['ip_address'];
+		if ($banned_ip['comment']) {
+			$log_msg.=' ('.$banned_ip['comment'].')';
+		}
+		AddToLog($log_msg);
+		header('HTTP/1.1 403 Access Denied');
+		exit;
+	}
 
 // Search Engines are treated special, and receive only core data, without the
 // pretty bells and whistles.  Recursion is also going to be kept to a minimum.
@@ -120,10 +108,45 @@ $SEARCH_SPIDER = false;		// set empty at start
 $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : "";
 
 $worms = array(
+	'PageBot',
+	'PictureBot',
+	'ContextAd',
+	'ADmantX',
+	'XoviBot',
+	'Cliqzbot',
+	'TinEye',
+	'meanpath',
+	'OffByOne',
+	'Genieo',
+	'MorMor',
+	'ca-crawler',
+	'LSSRocketCrawler',
+	'DBot',
+	'Add Catalog',
+	'SearchmetricsBot',
+	'spbot',
+	'Synapse',
+	'Baidu',
+	'rarely used',
+	'curl',
+	'Mail.RU',
+	'Linguee',
+	'Aboundex',
+	'news bot',
+	'sosospider',
+	'Powermarks',
+	'Blog Search',
+	'SISTRIX',
+	'DomainCrawler',
+	'DLE_Spider',
+	'Python',
+	'MaMa',
+	'CaSpEr',
+	'Casper',
 	'oBot',
 	'Indy Library',
 	'XXX',
-//	'robotgenius',
+	'robotgenius',
 	'Super_Ale',
 	'Wget',
 	'DataCha',
@@ -150,43 +173,86 @@ $worms = array(
 
 $quitReason = "";
 
-// check for attempt to redirect
-if (preg_match("/=.*:\/\//i", rawurldecode($_SERVER["REQUEST_URI"]))) {
-	$quitReason = "Embedded URL detected";
-}
+while (true) {
+	$requestURI = rawurldecode($_SERVER["REQUEST_URI"]);
+	// check for attempt to redirect
+	if (preg_match("~=.*://~", $requestURI)) {
+		$quitReason = 'Embedded URL detected';
+		break;
+	}
 
-// check for worms and bad bots
-if ($quitReason == "") {
+	// check for attempt to escape from the PGV directory
+	if (preg_match("~\.\.(/|\\\)~", $requestURI)) {
+		$quitReason = 'Attempt escape from PGV directory';
+		break;
+	}
+
+	// check for improperly formed URI
+	if (strpos($requestURI, '//') !== false/* || strpos($requestURI, '&amp;) !== false*/) {
+		$quitReason = 'Improperly formed URI';
+		break;
+	}
+
+	// check for improperly formed UA string
+	if (strlen($ua) > 511) {
+		$quitReason = 'UA too long';
+		break;
+	}
+	if (strlen($ua) < 5) {
+		$quitReason = 'UA too short';
+		break;
+	}
+
+	// check for conflicting OS in UA string (e.g.: Linux, Windows, etc. in same UA string)
+	// -- still to be implemented --
+
+	// check for conflicting browsers in UA string (e.g.: MSIE, Firefox, Opera, Safari, Chrome, etc. in same UA string)
+	// -- still to be implemented --
+
+	// check for conflicting rendering engines in UA string (e.g.: Mozilla, AppleWebKit, Presto, etc. in same UA string)
+	// -- still to be implemented --
+
+	// check for worms and bad bots
 	foreach ($worms as $worm) {
 		if (preg_match('/'.$worm.'/i', $ua)) {
-			$quitReason = "Blocked crawler detected";
+			$quitReason = 'Blocked crawler detected';
 			break;
 		}
 	}
+
+	break;
 }
 
 // Do we have a reason to quit now?
 if ($quitReason != "") {
 	if ((!ini_get('register_globals'))||(strtolower(ini_get('register_globals'))=="off")) {
 		//-- load common functions
-		require_once("includes/functions/functions.php");
+		require_once PGV_ROOT.'includes/functions/functions.php';
 		//-- load db specific functions
-		require_once("includes/functions/functions_db.php");
-		require_once("includes/authentication.php");      // -- load the authentication system
-		AddToLog("MSG>{$quitReason}; script terminated.");
+		require_once PGV_ROOT.'includes/functions/functions_db.php';
+		require_once PGV_ROOT.'includes/authentication.php';      // -- load the authentication system
+		AddToLog("MSG>{$quitReason}; script terminated; IP address blocked for 1 hour.");
 		AddToLog("UA>{$ua}<");
 		AddToLog("URI>{$_SERVER["REQUEST_URI"]}<");
+		//-- Block further access from this IP address for the next hour
+		$address = $_SERVER['REMOTE_ADDR'];
+		$comment = date('Y.m.d@H:i', time()+60*60);
+		$gBitDb->query(
+			"DELETE FROM {$TBLPREFIX}ip_address WHERE ip_address=? AND category='timedban'"
+		, [ $address ] );
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}ip_address (ip_address, category, comment) VALUES (?, ?, ?)"
+		, [ $address, 'timedban', $comment ] );
 	}
 	header("HTTP/1.0 403 Forbidden");
 	print "Hackers are not welcome here.";
 	exit;
 }
 
-
 // The search list has been reversed.  Whitelist all browsers, and
 // mark everything else as a spider/bot.
 // Java/ Axis/ and PEAR required for GDBI and our own cross site communication.
-$real_browsers = array(
+$real_browsers = [
 	'PHP-SOAP',
 	'PGVAgent',
 	'MSIE ',
@@ -195,6 +261,10 @@ $real_browsers = array(
 	'Konqueror',
 	'Gecko',
 	'Safari',
+	'Chrome',
+	'K-Meleon',
+	'Nutch',
+	'Trident',
 	'http://www.avantbrowser.com',
 	'BlackBerry',
 	'Lynx',
@@ -204,20 +274,27 @@ $real_browsers = array(
 	'MSFrontPage',
 	'RssReader',
 	'Liferea/',
-	'W3C_Validator'
-	);
+	'W3C_Validator',
+];
 
 // Here we list the search engines whose accesses we don't need to log.
 // This avoids cluttering the log files with useless entries
-$known_spiders = array(
+$known_spiders = [
+	'Vagabondo',
+	'UP.Browser',
+	'Seznam',
+	'NetcraftSurveyAgent',
+	'Ezooms',
 	'Googlebot',
 	'Yahoo Slurp',
 	'msnbot',
+	'bingbot',
 	'Ask Jeeves',
 	'Mediapartners-Google',
 	'Feedfetcher-Google',
-	'Twiceler'
-);
+	'Twiceler',
+	'archive.org_bot',
+];
 
 // We overlay the following name with carefully selected characters.
 // This is to avoid XSS problems.  Alpha : . / - _ only.  Yes, the following string is 72 chars.
@@ -228,18 +305,18 @@ $real = false;
 
 if($ua != "") {
 	foreach($real_browsers as $browser_check) {
-		if (eregi($browser_check, $ua)!==false) {
+		if (strpos($ua, $browser_check)!==false) {
 			$real = true;
 			break;
 		}
 	}
 	// check for old Netscapes.
-	if (eregi("Mozilla/", $ua)) {
-		if (eregi("compatible", $ua)===false) {
-			if (eregi("\[..\]", $ua)!==false) {
+	if (strpos($ua, "Mozilla")!==false) {
+		if (strpos($ua, "compatible")===false) {
+			if (preg_match("/\[..\]/i", $ua)!==false) {
 				$real = true;
 			}
-			if (eregi("Macintosh", $ua)!==false) {
+			if (strpos($ua, "Macintosh")!==false) {
 				$real = true;
 			}
 		}
@@ -255,66 +332,66 @@ else {
 if(!$real) {
 	$bot_name = $ua;
 	// strip out several common strings that clutter the User Agent.
-	$bot_name = eregi_replace("Mozilla\/... \(compatible;", "", $bot_name);
-	$bot_name = eregi_replace("Mozilla\/... ", "", $bot_name);
-	$bot_name = eregi_replace("Windows NT", "", $bot_name);
-	$bot_name = eregi_replace("Windows; U;", "", $bot_name);
-	$bot_name = eregi_replace("Windows", "", $bot_name);
+	$bot_name = preg_replace("/Mozilla\/... \(compatible;/i", "", $bot_name);
+	$bot_name = preg_replace("/Mozilla\/... /i", "", $bot_name);
+	$bot_name = preg_replace("/Windows NT/i", "", $bot_name);
+	$bot_name = preg_replace("/Windows; U;/i", "", $bot_name);
+	$bot_name = preg_replace("/Windows/i", "", $bot_name);
 
 	// Copy in characters, stripping out unwanteds until we are full, stopping at 70.
 	$y = 0;
 	$valid_char = false;
 	$bot_limit = strlen($bot_name);
 	for($x=0; $x < $bot_limit; $x++) {
-		if(preg_match('/^[a-zA-Z]+$/', $bot_name{$x})) {
-			$spider_name{$y} = $bot_name{$x};
+		if(preg_match('/^[a-zA-Z]+$/', $bot_name[ $x ])) {
+			$spider_name[ $y ] = $bot_name[ $x ];
 			$valid_char = true;
 			$y++;
 			if ($y > 70) break;
 		}
-		else if ($bot_name{$x} == ' ')	{
+		else if ($bot_name[ $x ] == ' ')	{
 			if($valid_char) {
-				$spider_name{$y} = ' ';
+				$spider_name[ $y ] = ' ';
 				$valid_char = false;
 				$y++;
 				if ($y > 70) break;
 			}
 		}
-		else if ($bot_name{$x} == '.')	{
+		else if ($bot_name[ $x ] == '.')	{
 			if($valid_char) {
-				$spider_name{$y} = '.';
+				$spider_name[ $y ] = '.';
 				$valid_char = true;
 				$y++;
 				if ($y > 70) break;
 			}
 		}
-		else if ($bot_name{$x} == ':')	{
-			$spider_name{$y} = ':';
+		else if ($bot_name[ $x ] == ':')	{
+			$spider_name[ $y ] = ':';
 			$valid_char = true;
 			$y++;
 			if ($y > 70) break;
 		}
-		else if ($bot_name{$x} == '/')	{
-			$spider_name{$y} = '/';
+		else if ($bot_name[ $x ] == '/')	{
+			$spider_name[ $y ] = '/';
 			$valid_char = true;
 			$y++;
 			if ($y > 70) break;
 		}
-		else if ($bot_name{$x} == '-')	{
-			$spider_name{$y} = '-';
+		else if ($bot_name[ $x ] == '-')	{
+			$spider_name[ $y ] = '-';
 			$valid_char = true;
 			$y++;
 			if ($y > 70) break;
 		}
-		else if ($bot_name{$x} == '_')	{
-			$spider_name{$y} = '_';
+		else if ($bot_name[ $x ] == '_')	{
+			$spider_name[ $y ] = '_';
 			$valid_char = true;
 			$y++;
 			if ($y > 70) break;
 		}
 		else { // Compress consecutive invalids down to one space char.
 			if($valid_char) {
-				$spider_name{$y} = ' ';
+				$spider_name[ $y ] = ' ';
 				$valid_char = false;
 				$y++;
 				if ($y > 70) break;
@@ -328,21 +405,18 @@ if(!$real) {
 }
 
 // stop spiders from accessing certain parts of the site
-$bots_not_allowed = array(
-'/reports/',
-'/includes/',
-'config',
-'clippings',
-'gedrecord.php'
-);
-if (!empty($SEARCH_SPIDER)) {
-	foreach($bots_not_allowed as $place) {
-		if (eregi($place, $_SERVER['PHP_SELF'])) {
-			header("HTTP/1.0 403 Forbidden");
-			print "Sorry, this page is not available for search engine bots.";
-			exit;
-		}
-	}
+$bots_not_allowed = [
+	'/reports/',
+	'/includes/',
+	'config',
+	'clippings',
+	'gedrecord.php',
+];
+
+if ($SEARCH_SPIDER && in_array(PGV_SCRIPT_NAME, $bots_not_allowed)) {
+	header("HTTP/1.0 403 Forbidden");
+	print "Sorry, this page is not available for search engine bots.";
+	exit;
 }
 
 /**
@@ -353,41 +427,18 @@ if (!empty($SEARCH_SPIDER)) {
  *   To return to normal, the admin MUST use a different IP to get to admin
  *   mode or edit search_engines.php by hand.
  */
-if (file_exists($INDEX_DIRECTORY."search_engines.php")) {
-	require($INDEX_DIRECTORY."search_engines.php");
-	//loops through each ip in search_engines.php
-	foreach($search_engines as $value) {
-		//creates a regex foreach ip
-		$ipRegEx = '';
-		if (is_array($value)) {
-			// New style: aa.bb.cc.dd,comment
-			$arrayIP = explode('*', $value[0]);
-			$comment = $value[1];
-		} else {
-			// Old style: aa.bb.cc.dd
-			$arrayIP = explode('*', $value);
-			$comment = '';
+$search_engine = isset( $addr ) ? $gBitDb->getOne(
+		"SELECT ip_address, comment FROM {$TBLPREFIX}ip_address" .
+		" WHERE category='search-engine' AND ? LIKE REPLACE(ip_address, '*', '%')"
+		, [ $addr ] ) : false;
+	if ($search_engine) {
+		if (empty($SEARCH_SPIDER)) {
+		$SEARCH_SPIDER = $search_engine->comment ? 'Manual Search Engine entry of ' . $_SERVER['REMOTE_ADDR'] . ' (' . $search_engine->comment . ')' : 'Manual Search Engine entry of ' . $_SERVER['REMOTE_ADDR'];
 		}
-		$ipRegEx .= $arrayIP[0];
-		if (count($arrayIP) > 1) {
-			for($i=1; $i < count($arrayIP); $i++) {
-				if ($i == (count($arrayIP))) $ipRegEx .= "\d{0,3}";
- 				else $ipRegEx .= "\d{0,3}".$arrayIP[$i];
-			}
-		}
-		//checks the remote ip address against each ip regex
-		if (preg_match('/^'.$ipRegEx.'/', $_SERVER['REMOTE_ADDR'])) {
-			if (empty($SEARCH_SPIDER)) {
-				if (empty($comment)) $SEARCH_SPIDER = "Manual Search Engine entry of ".$_SERVER['REMOTE_ADDR'];
-				else $SEARCH_SPIDER = "Manual Search Engine entry of ".$_SERVER['REMOTE_ADDR'].' ('.$comment.')';
-			}
-			$bot_name = "MAN".$_SERVER['REMOTE_ADDR'];
-			$bot_session = gen_spider_session_name($bot_name, "");
-			session_id($bot_session);
-			break;
-		}
+		$bot_name = 'MAN'.$_SERVER['REMOTE_ADDR'];
+		$bot_session = gen_spider_session_name($bot_name, '');
+		session_id($bot_session);
 	}
-}
 
 if((empty($SEARCH_SPIDER)) && (!empty($_SESSION['last_spider_name']))) // user following a search engine listing in,
 session_regenerate_id();
@@ -396,8 +447,8 @@ if(!empty($SEARCH_SPIDER)) {
 	$spidertime = time();
 	$spiderdate = date("d.m.Y", $spidertime);
 	// Do we need to log this spider access?
-	$outstr = preg_replace('/\s+/', ' ', $SEARCH_SPIDER); 	// convert tabs etc. to blanks; trim extra blanks
-	$outstr = str_replace(' - ', ' ', $outstr);				// Don't allow ' - ' because that is the log separator
+	$outstr = preg_replace('/\s+/', ' ', $SEARCH_SPIDER);  // convert tabs etc. to blanks; trim extra blanks
+	$outstr = str_replace(' - ', ' ', $outstr);            // Don't allow ' - ' because that is the log separator
 	$logSpider = true;
 	foreach ($known_spiders as $spider) {
 		if (strpos($outstr, $spider) !== false) {
@@ -411,7 +462,7 @@ if(!empty($SEARCH_SPIDER)) {
 		$spidercount = 1;
 		if ($logSpider) {
 			//adds a message to the log that a new spider session is starting
-			require_once("includes/authentication.php");      // -- Loaded early so AddToLog works
+			require_once PGV_ROOT.'includes/authentication.php';      // -- Loaded early so AddToLog works
 			AddToLog("New search engine encountered: ->".$outstr."<-");
 			AddToLog("UA>{$ua}<");
 			AddToLog("URI>{$_SERVER["REQUEST_URI"]}<");
@@ -421,7 +472,7 @@ if(!empty($SEARCH_SPIDER)) {
 		if($spiderdate != $_SESSION['last_spider_date']) {
 			//adds a message to the log that a new spider session is starting
 			if ($logSpider) {
-				require_once("includes/authentication.php");      // -- Loaded early so AddToLog works
+				require_once PGV_ROOT.'includes/authentication.php';      // -- Loaded early so AddToLog works
 				AddToLog("Returning search engine last seen ".$_SESSION['spider_count']." times on ".$_SESSION['last_spider_date']." from ".$_SESSION['last_spider_ip']." ->".$outstr."<-");
 			}
 			$_SESSION['last_spider_date'] = $spiderdate;
@@ -439,5 +490,3 @@ if(!empty($SEARCH_SPIDER)) {
 	$_SESSION['pgv_user'] = "";	// Don't allow search engine into user/admin mode.
 	$_SESSION['CLANGUAGE'] = "";	// Force language to gedcom default language.
 }
-
-?>

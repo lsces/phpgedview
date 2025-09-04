@@ -3,7 +3,7 @@
  * Provides media count for reorder media Items using drag and drop
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PHPGedView Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009  PHPGedView Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,16 +25,12 @@
  * @author Brian Holland
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_MEDIA_REORDER_COUNT_PHP', '');
 
 // Find if indi and family associated media exists and then count them ( $tot_med_ct)  ===================================================
 // Check indi gedcom items
-$gedrec = find_gedcom_record($pid);
+$gedrec = find_gedcom_record($pid, PGV_GED_ID);
 $level=0;
 $regexp = "/OBJE @(.*)@/";
 $ct_indi = preg_match_all($regexp, $gedrec, $match, PREG_SET_ORDER);
@@ -58,7 +54,7 @@ if ($ct>0) {
 	$sqlmm = "SELECT DISTINCT ";
 	$sqlmm .= "m_media, m_ext, m_file, m_titl, m_gedfile, m_gedrec, mm_gid, mm_gedrec FROM ".$TBLPREFIX."media, ".$TBLPREFIX."media_mapping where ";
 	$sqlmm .= "mm_gid IN (";
-	$vars=array();
+	$vars= [];
 	$i=0;
 	foreach($ids as $key=>$id) {
 		if ($i>0) $sqlmm .= ",";
@@ -82,11 +78,6 @@ if ($ct>0) {
 }
 
 // Gedcom media count --------------------------------
-if (isset($current_objes)) {
-	$ct_objs = count($current_objes);
-}else{
-	$ct_objs = 0;
-}
+$ct_objs = isset( $current_objes ) ? count( $current_objes ) : 0;
 //Total Media count
-$tot_med_ct = ($ct_db + $ct_objs);
-?>
+$tot_med_ct = $ct_db + $ct_objs;

@@ -1,18 +1,16 @@
 <?php
 /**
- * MySQL User and Authentication functions
+ * User and Authentication functions
  *
- * This file contains the MySQL specific functions for working with users and authenticating them.
+ * This file contains functions for working with users and authenticating them.
  * It also handles the internal mail messages, favorites, news/journal, and storage of MyGedView
  * customizations.  Assumes that a database connection has already been established.
  *
  * You can extend PhpGedView to work with other systems by implementing the functions in this file.
  * Other possible options are to use LDAP for authentication.
  *
- * $Id$
- *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2013  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +25,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  * @package PhpGedView
  * @subpackage DB
+ * @version $Id$
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+ namespace Bitweaver\Phpgedview;
+ 
 define('PGV_AUTHENTICATION_PHP', '');
 
 /**
@@ -47,12 +44,12 @@ define('PGV_AUTHENTICATION_PHP', '');
  * @param string $user_name the username for the user attempting to login
  * @param string $password the plain text password to test
  * @param boolean $basic true if the userName and password were retrived via Basic HTTP authentication. Defaults to false. At this point, this is only used for logging
- * @return the user_id if sucessful, false otherwise
+ * @return integer the user_id if sucessful, false otherwise
  */
 function authenticateUser($user_name, $password, $basic=false) {
 	// If we were already logged in, log out first
-	if (PGV_USER_ID) {
-		userLogout(PGV_USER_ID);
+	if (getUserId()) {
+		userLogout(getUserId());
 	}
 
 	if ($user_id=get_user_id($user_name)) {
@@ -61,16 +58,14 @@ function authenticateUser($user_name, $password, $basic=false) {
 			if (get_user_setting($user_id, 'verified')=='yes' && get_user_setting($user_id, 'verified_by_admin')=='yes' || get_user_setting($user_id, 'canadmin')=='Y') {
 				set_user_setting($user_id, 'loggedin', 'Y');
 				//-- reset the user's session
-				$_SESSION = array();
+				$_SESSION = [];
 				$_SESSION['pgv_user'] = $user_id;
-				// show that they have logged in with their password
-				$_SESSION['cookie_login'] = false;
-				AddToLog(($basic ? "Basic HTTP Authentication" :"Login"). " Successful");
+				AddToLog(($basic ? 'Basic HTTP Authentication' :'Login'). ' Successful');
 				return $user_id;
 			}
 		}
 	}
-	AddToLog(($basic ? "Basic HTTP Authentication" : "Login") . " Failed ->" . $user_name ."<-");
+	AddToLog(($basic ? 'Basic HTTP Authentication' : 'Login').' Failed ->'.$user_name.'<-');
 	return false;
 }
 
@@ -95,9 +90,8 @@ function basicHTTPAuthenticateUser() {
 			echo $pgv_lang["basic_auth_failure"] ;
 			exit;
 		}
-	} else { //already logged in or successful basic authentication
-		return true; //probably not needed
 	}
+	return true; //probably not needed
 }
 
 /**
@@ -105,29 +99,13 @@ function basicHTTPAuthenticateUser() {
  * @param string $user_id	logout a specific user
  */
 function userLogout($user_id) {
-	global $GEDCOM;
+	set_user_setting($user_id, 'loggedin', 'N');
 
-	if ($user_id) {
-		set_user_setting($user_id, 'loggedin', 'N');
+	AddToLog('Logout '.getUserName());
 
-		AddToLog("Logout ".getUserName($user_id));
-
-		if ((isset($_SESSION['pgv_user']) && ($_SESSION['pgv_user']==$user_id)) || (isset($_COOKIE['pgv_rem'])&&$_COOKIE['pgv_rem']==$user_id)) {
-			if ($_SESSION['pgv_user']==$user_id) {
-				$_SESSION['pgv_user'] = "";
-				unset($_SESSION['pgv_user']);
-				if (isset($_SESSION["pgv_counter"]))
-					$tmphits = $_SESSION["pgv_counter"];
-				else
-					$tmphits = -1;
-				@session_destroy();
-				$_SESSION["gedcom"]=$GEDCOM;
-				$_SESSION["show_context_help"]="yes";
-				@setcookie("pgv_rem", "", -1000);
-				if ($tmphits>=0)
-					$_SESSION["pgv_counter"]=$tmphits; //set since it was set before so don't get double hits
-			}
-		}
+	// If we are logging ourself out, then end our session too.
+	if (getUserId()==$user_id) {
+		session_destroy();
 	}
 }
 
@@ -142,120 +120,90 @@ function userUpdateLogin($user_id) {
 }
 
 /**
- * get the current username
+ * get the current user's ID and Name
  *
- * gets the username for the currently active user
- * 1. first checks the session
- * 2. then checks the remember cookie
- * @return string 	the username of the user or an empty string if the user is not logged in
+ * Returns 0 and NULL if we are not logged in.
+ *
+ * If you want to embed PGV within a content management system, you would probably
+ * rewrite these functions to extract the data from the parent system, and then
+ * populate PGV's user/user_setting/user_gedcom_setting tables as appropriate.
+ *
  */
 
-// Currently, a User ID is the same as a User Name.  In the future, User IDs will
-// be numeric.  This function is part of the migration process.
-function getUserName() {
-	return get_user_name(getUserId());
+function getUserId() {
+	if (empty($_SESSION['pgv_user'])) {
+		return 0;
+	} else {
+		return $_SESSION['pgv_user'];
+	}
 }
 
-function getUserId() {
-	global $ALLOW_REMEMBER_ME, $logout, $SERVER_URL, $gBitDb;
-	//-- this section checks if the session exists and uses it to get the username
-	if (isset($_SESSION) && !empty($_SESSION['pgv_user'])) {
-		return $_SESSION['pgv_user'];
-	} elseif ($ALLOW_REMEMBER_ME) {
-		$tSERVER_URL = preg_replace(array("'https?://'", "'www.'", "'/$'"), array("","",""), $SERVER_URL);
-		if (empty($tSERVER_URL))
-			$tSERVER_URL = $SERVER_URL; 	// cannot assume we had a match.
-		if ((isset($_SERVER['HTTP_REFERER'])) && !empty($tSERVER_URL) && (stristr($_SERVER['HTTP_REFERER'],$tSERVER_URL)!==false))
-			$referrer_found=true;
-		if (!empty($_COOKIE["pgv_rem"])&& (empty($referrer_found)) && empty($logout)) {
-			if ( empty( $gBitDb->mDb ) ) {
-				return $_COOKIE["pgv_rem"];
-			} else {
-				$session_time=get_user_setting($_COOKIE['pgv_rem'], 'sessiontime');
-				if (is_null($session_time))
-					$session_time=0;
-				if (time() - $session_time < 60*60*24*7) {
-					$_SESSION['pgv_user'] = $_COOKIE['pgv_rem'];
-					$_SESSION['cookie_login'] = true;
-					return $_COOKIE['pgv_rem'];
-				} else {
-					return "";
-				}
-			}
-		} else {
-			return "";
-		}
+function getUserName() {
+	if ( getUserID() ) {
+		return get_user_name(getUserID());
 	} else {
-		return "";
+		return null;
 	}
 }
 
 /**
  * check if given username is an admin
- *
- * takes a username and checks if the
- * user has administrative privileges
- * to change the configuration files
  */
-function userIsAdmin( $user_id = PGV_USER_ID ) {
-	global $gGedcom;
-
-	return $gGedcom->canAdmin();
+function userIsAdmin($user_id=PGV_USER_ID) {
+	if ($user_id) {
+		return get_user_setting($user_id, 'canadmin')=='Y';
+	} else {
+		return false;
 	}
+}
 
 /**
- * check if given username is an admin for the current gedcom
- *
- * takes a username and checks if the
- * user has administrative privileges
- * to change the configuration files for the currently active gedcom
+ * check if given username is an admin for the given gedcom
  */
-function userGedcomAdmin( $user_id=PGV_USER_ID, $ged_id=PGV_GED_ID ) {
-	global $gBitUser, $gGedcom;
-
-	return $gBitUser->isAdmin() || $gGedcom->canEdit();
+function userGedcomAdmin($user_id=PGV_USER_ID, $ged_id=PGV_GED_ID) {
+	if ($user_id) {
+		return get_user_gedcom_setting($user_id, $ged_id, 'canedit')=='admin' || userIsAdmin($user_id);
+	} else {
+		return false;
+	}
 }
 
 /**
  * check if the given user has access privileges on this gedcom
- *
- * takes a username and checks if the user has access privileges to view the private
- * gedcom data.
- * @param string $user_id the id of the user to check
- * @param string $ged_id the id of the gedcom to check
- * @return boolean true if user can access false if they cannot
  */
 function userCanAccess($user_id=PGV_USER_ID, $ged_id=PGV_GED_ID) {
-	if (get_user_setting($user_id, 'canadmin')=='Y')
-		return true;
-
-	$tmp=get_user_gedcom_setting($user_id, $ged_id, 'canedit');
-	return $tmp=='admin' || $tmp=='accept' || $tmp=='edit' || $tmp=='access';
+	if ($user_id) {
+		if (userIsAdmin($user_id)) {
+			return true;
+		} else {
+			$tmp=get_user_gedcom_setting($user_id, $ged_id, 'canedit');
+			return $tmp=='admin' || $tmp=='accept' || $tmp=='edit' || $tmp=='access';
+		}
+	} else {
+		return false;
+	}
 }
 
 /**
- * check if the given user has write privileges on this gedcom
- *
- * takes a username and checks if the user has write privileges to change
- * the gedcom data. First check if the administrator has turned on editing privileges for this gedcom
- * @param string $username the username of the user to check
- * @return boolean true if user can edit false if they cannot
+ * check if the given user has write privileges for the given gedcom
  */
 function userCanEdit($user_id=PGV_USER_ID, $ged_id=PGV_GED_ID) {
 	global $ALLOW_EDIT_GEDCOM;
 
-	if (!$ALLOW_EDIT_GEDCOM)
+	if ($ALLOW_EDIT_GEDCOM && $user_id) {
+		if (userIsAdmin($user_id)) {
+			return true;
+		} else {
+			$tmp=get_user_gedcom_setting($user_id, $ged_id, 'canedit');
+			return $tmp=='admin' || $tmp=='accept' || $tmp=='edit';
+		}
+	} else {
 		return false;
-
-	if (get_user_setting($user_id, 'canadmin')=='Y')
-		return true;
-
-	$tmp=get_user_gedcom_setting($user_id, $ged_id, 'canedit');
-	return $tmp=='admin' || $tmp=='accept' || $tmp=='edit';
+	}
 }
 
 /**
- * Can user accept changes
+ * check if the given user can accept changes for the given gedcom
  *
  * takes a username and checks if the user has write privileges to
  * change the gedcom data and accept changes
@@ -265,60 +213,65 @@ function userCanEdit($user_id=PGV_USER_ID, $ged_id=PGV_GED_ID) {
 function userCanAccept($user_id=PGV_USER_ID, $ged_id=PGV_GED_ID) {
 	global $ALLOW_EDIT_GEDCOM;
 
-	if (isset($_SESSION['cookie_login']) && ($_SESSION['cookie_login']==true))
+	if ($user_id) {
+		if ($ALLOW_EDIT_GEDCOM) {
+			$tmp=get_user_gedcom_setting($user_id, $ged_id, 'canedit');
+			return $tmp=='admin' || $tmp=='accept';
+		} else {
+			// If we've disabled editing, an admin can still accept pending edits.
+			return userGedcomAdmin($user_id, $ged_id);
+		}
+	} else {
 		return false;
-
-	// If we've disabled editing, an admin can still accept pending edits.
-	if (get_user_setting($user_id, 'canadmin')=='Y')
-		return true;
-
-	if (!$ALLOW_EDIT_GEDCOM)
-		return false;
-
-	$tmp=get_user_gedcom_setting($user_id, $ged_id, 'canedit');
-	return $tmp=='admin' || $tmp=='accept';
+	}
 }
 
 /**
- * Should user's changed automatically be accepted
- * @param string $username	the user name of the user to check
- * @return boolean 		true if the changes should automatically be accepted
+ * Should user's changes automatically be accepted
  */
 function userAutoAccept($user_id=PGV_USER_ID) {
-	return get_user_setting($user_id, 'auto_accept')=='Y';
+	if ($user_id) {
+		return get_user_setting($user_id, 'auto_accept')=='Y';
+	} else {
+		return false;
+	}
 }
 
 /**
- * does an admin user exits
- *
- * Checks to see if an admin user has been created
- * @return boolean true if an admin user has been defined
+ * Does an admin user exist?  Used to redirect to install/config page
+ * during initial setup.
  */
 function adminUserExists() {
 	return admin_user_exists();
 }
 
-/**
- * check if the user database tables exist
- *
- * This is called after PGV creates/updates the user/message settings.
- * This allows a custom authentication module to alter/replace them,
- * create views, etc.
- */
-function checkTableExists() {
+// Get the full name for a user
+function getUserFullName($user_id) {
+	global $TBLPREFIX, $gBitDb, $NAME_REVERSE;
+
+	$sql=
+		"SELECT setting_value FROM {$TBLPREFIX}user_setting".
+		"	WHERE user_id=? AND setting_name IN (?,?)".
+		" ORDER BY setting_name ".($NAME_REVERSE ? 'DESC' : 'ASC');
+
+	return implode(' ', $gBitDb->getCol($sql, [ $user_id, 'firstname', 'lastname' ] ) );
 }
 
-// Get the full name for a user
-function getUserFullName($user) {
-	global $NAME_REVERSE;
-
-	$first_name=get_user_setting($user, 'firstname');
-	$last_name =get_user_setting($user, 'lastname' );
-
-	if ($NAME_REVERSE) {
-		return $last_name.' '.$first_name;
+// Get the root person for this gedcom
+function getUserRootId($user_id, $ged_id) {
+	if ($user_id) {
+		return get_user_gedcom_setting(PGV_USER_ID, PGV_GED_ID, 'rootid');
 	} else {
-		return $first_name.' '.$last_name;
+		return getUserGedcomId($user_id, $ged_id);
+	}
+}
+
+// Get the user's ID in the given gedcom
+function getUserGedcomId($user_id, $ged_id) {
+	if ($user_id) {
+		return get_user_gedcom_setting(PGV_USER_ID, PGV_GED_ID, 'gedcomid');
+	} else {
+		return null;
 	}
 }
 
@@ -329,36 +282,33 @@ function getUserFullName($user) {
  * @return string returns the log line if successfully inserted into the log (used for CVS/SVN commit messages)
  */
 function AddToLog($LogString, $savelangerror=false) {
-	global $INDEX_DIRECTORY, $LOGFILE_CREATE, $argc;
+	global $LOGFILE_CREATE, $argc;
 
 	$wroteLogString = false;
 
-	if ($LOGFILE_CREATE=="none")
-		return;
+	if ($LOGFILE_CREATE=='none') {
+		return '';
+	}
 
-	if (isset($_SERVER['REMOTE_ADDR']))
+	if (isset($_SERVER['REMOTE_ADDR'])) {
 		$REMOTE_ADDR = $_SERVER['REMOTE_ADDR'];
-	else
-		if ($argc>1)
-			$REMOTE_ADDR = "cli";
-	if ($LOGFILE_CREATE !== "none" && $savelangerror === false) {
+	} elseif ($argc>1) {
+		$REMOTE_ADDR = 'cli';
+	}
+	if ($LOGFILE_CREATE !== 'none' && $savelangerror === false) {
 		if (empty($LOGFILE_CREATE))
-			$LOGFILE_CREATE="daily";
-		if ($LOGFILE_CREATE=="daily")
-			$logfile = $INDEX_DIRECTORY."pgv-" . date("Ymd") . ".log";
-		if ($LOGFILE_CREATE=="weekly")
-			$logfile = $INDEX_DIRECTORY."pgv-" . date("Ym") . "-week" . date("W") . ".log";
-		if ($LOGFILE_CREATE=="monthly")
-			$logfile = $INDEX_DIRECTORY."pgv-" . date("Ym") . ".log";
-		if ($LOGFILE_CREATE=="yearly")
-			$logfile = $INDEX_DIRECTORY."pgv-" . date("Y") . ".log";
-		if (is_writable($INDEX_DIRECTORY)) {
-			$logline=
-				date("d.m.Y H:i:s")." - ".
-				$REMOTE_ADDR." - ".
-				(getUserId() ? getUserName() : 'Anonymous')." - ".
-				$LogString."\r\n";
-			$fp = fopen($logfile, "a");
+			$LOGFILE_CREATE='daily';
+		if ($LOGFILE_CREATE=='daily')
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH .'pgv-' . date('Ymd') . '.log';
+		if ($LOGFILE_CREATE=='weekly')
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH .'pgv-' . date('Ym') . '-week' . date('W') . '.log';
+		if ($LOGFILE_CREATE=='monthly')
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH .'pgv-' . date('Ym') . '.log';
+		if ($LOGFILE_CREATE=='yearly')
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH .'pgv-' . date('Y') . '.log';
+		if (is_writable(PHPGEDVIEW_PKG_INDEX_PATH)) {
+			$logline=date('d.m.Y H:i:s').' - '.$REMOTE_ADDR.' - '.(getUserId() ? getUserName() : 'Anonymous').' - '.$LogString.PGV_EOL;
+			$fp = fopen($logfile, 'a');
 			flock($fp, 2);
 			fputs($fp, $logline);
 			flock($fp, 3);
@@ -369,84 +319,88 @@ function AddToLog($LogString, $savelangerror=false) {
 	if ($wroteLogString)
 		return $logline;
 	else
-		return "";
+		return '';
 }
 
 //----------------------------------- AddToSearchLog
 //-- requires a string to add into the searchlog-file
 function AddToSearchLog($LogString, $allgeds) {
-	global $INDEX_DIRECTORY, $SEARCHLOG_CREATE, $GEDCOM, $username;
+	global $SEARCHLOG_CREATE;
 
-	if (!isset($allgeds))
+	if (empty($allgeds))
 		return;
-	if (count($allgeds) == 0)
-		return;
+
+	$all_geds=get_all_gedcoms();
 
 	//-- do not allow code to be written to the log file
-	$LogString = preg_replace("/<\?.*\?>/", "*** CODE DETECTED ***", $LogString);
+	$LogString = preg_replace('/<\?.*\?>/', '*** CODE DETECTED ***', $LogString);
 
-	$oldged = $GEDCOM;
-	foreach($allgeds as $indexval => $value) {
-		$GEDCOM = $value;
-		include(get_config_file());
-		if ($SEARCHLOG_CREATE != "none") {
-			$REMOTE_ADDR = $_SERVER['REMOTE_ADDR'];
-			if (empty($SEARCHLOG_CREATE))
-				$SEARCHLOG_CREATE="daily";
-			if ($SEARCHLOG_CREATE=="daily")
-				$logfile = $INDEX_DIRECTORY."srch-" . $GEDCOM . date("Ymd") . ".log";
-			if ($SEARCHLOG_CREATE=="weekly")
-				$logfile = $INDEX_DIRECTORY."srch-" . $GEDCOM . date("Ym") . "-week" . date("W") . ".log";
-			if ($SEARCHLOG_CREATE=="monthly")
-				$logfile = $INDEX_DIRECTORY."srch-" . $GEDCOM . date("Ym") . ".log";
-			if ($SEARCHLOG_CREATE=="yearly")
-				$logfile = $INDEX_DIRECTORY."srch-" . $GEDCOM . date("Y") . ".log";
-			if (is_writable($INDEX_DIRECTORY)) {
-				$logline = "Date / Time: ".date("d.m.Y H:i:s") . " - IP: " . $REMOTE_ADDR . " - User: " .  PGV_USER_NAME . "<br />";
-				if (count($allgeds) == count(get_all_gedcoms()))
-					$logline .= "Searchtype: Global<br />";
-				else
-					$logline .= "Searchtype: Gedcom<br />";
-				$logline .= $LogString . "<br /><br />\r\n";
-				$fp = fopen($logfile, "a");
-				flock($fp, 2);
-				fputs($fp, $logline);
-				flock($fp, 3);
-				fclose($fp);
+	foreach ($allgeds as $ged_id=>$ged_name) {
+		if (count($all_geds)) {
+			// If we have more than one gedcom, then need to load the settings
+			require get_config_file($ged_id); // Note: load locally, not globally
+		}
+		switch ($SEARCHLOG_CREATE) {
+		case 'none':
+			continue 2;
+		case 'yearly':
+			$logfile=PHPGEDVIEW_PKG_INDEX_PATH .'srch-'.$ged_name.date('Y').'.log';
+			break;
+		case 'monthly':
+			$logfile=PHPGEDVIEW_PKG_INDEX_PATH .'srch-'.$ged_name.date('Ym').'.log';
+			break;
+		case 'weekly':
+			$logfile=PHPGEDVIEW_PKG_INDEX_PATH .'srch-'.$ged_name.date('Ym').'-week'.date('W').'.log';
+			break;
+		case 'daily':
+		default:
+			$logfile=PHPGEDVIEW_PKG_INDEX_PATH .'srch-'.$ged_name.date('Ymd').'.log';
+			break;
+		}
+		if (is_writable(PHPGEDVIEW_PKG_INDEX_PATH )) {
+			$logline='Date / Time: '.date('d.m.Y H:i:s').' - IP: '.$_SERVER['REMOTE_ADDR'].' - User: '.PGV_USER_NAME.'<br />';
+			if (count($allgeds)==count($all_geds)) {
+				$logline.='Searchtype: Global<br />';
+			} else {
+				$logline.='Searchtype: Gedcom<br />';
 			}
+			$logline.=$LogString.'<br /><br />'.PGV_EOL;
+			$fp=fopen($logfile, 'a');
+			flock($fp, 2);
+			fputs($fp, $logline);
+			flock($fp, 3);
+			fclose($fp);
 		}
 	}
-	$GEDCOM = $oldged;
-	include(get_config_file());
 }
 
 //----------------------------------- AddToChangeLog
 //-- requires a string to add into the changelog-file
 function AddToChangeLog($LogString, $ged="") {
-	global $INDEX_DIRECTORY, $CHANGELOG_CREATE, $GEDCOM, $username, $SEARCHLOG_CREATE;
+	global $CHANGELOG_CREATE, $GEDCOM, $username, $SEARCHLOG_CREATE;
 
 	//-- do not allow code to be written to the log file
-	$LogString = preg_replace("/<\?.*\?>/", "*** CODE DETECTED ***", $LogString);
+	$LogString = preg_replace('/<\?.*\?>/', "*** CODE DETECTED ***", $LogString);
 
 	if (empty($ged))
 		$ged = $GEDCOM;
 	$oldged = $GEDCOM;
 	$GEDCOM = $ged;
 	if ($ged!=$oldged)
-		include(get_config_file());
+		include get_config_file();
 	if ($CHANGELOG_CREATE != "none") {
 		$REMOTE_ADDR = $_SERVER['REMOTE_ADDR'];
 		if (empty($CHANGELOG_CREATE))
 			$CHANGELOG_CREATE="daily";
 		if ($CHANGELOG_CREATE=="daily")
-			$logfile = $INDEX_DIRECTORY."/ged-" . $GEDCOM . date("Ymd") . ".log";
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH ."/ged-" . $GEDCOM . date("Ymd") . ".log";
 		if ($CHANGELOG_CREATE=="weekly")
-			$logfile = $INDEX_DIRECTORY."/ged-" . $GEDCOM . date("Ym") . "-week" . date("W") . ".log";
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH ."/ged-" . $GEDCOM . date("Ym") . "-week" . date("W") . ".log";
 		if ($CHANGELOG_CREATE=="monthly")
-			$logfile = $INDEX_DIRECTORY."/ged-" . $GEDCOM . date("Ym") . ".log";
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH ."/ged-" . $GEDCOM . date("Ym") . ".log";
 		if ($CHANGELOG_CREATE=="yearly")
-			$logfile = $INDEX_DIRECTORY."/ged-" . $GEDCOM . date("Y") . ".log";
-		if (is_writable($INDEX_DIRECTORY)) {
+			$logfile = PHPGEDVIEW_PKG_INDEX_PATH ."/ged-" . $GEDCOM . date("Y") . ".log";
+		if (is_writable(PHPGEDVIEW_PKG_INDEX_PATH )) {
 			$logline = date("d.m.Y H:i:s") . " - " . $REMOTE_ADDR . " - " . $LogString . "\r\n";
 			$fp = fopen($logfile, "a");
 			flock($fp, 2);
@@ -458,35 +412,35 @@ function AddToChangeLog($LogString, $ged="") {
 	}
 	$GEDCOM = $oldged;
 	if ($ged!=$oldged)
-		include(get_config_file());
+		include get_config_file();
 }
 
 //----------------------------------- addMessage
 //-- stores a new message in the database
 function addMessage($message) {
-	global $TBLPREFIX, $CONTACT_METHOD, $pgv_lang,$CHARACTER_SET, $LANGUAGE, $PGV_STORE_MESSAGES, $SERVER_URL, $PGV_SIMPLE_MAIL, $WEBMASTER_EMAIL;
+	global $TBLPREFIX, $gBitDb, $CONTACT_METHOD, $pgv_lang,$CHARACTER_SET, $LANGUAGE, $PGV_STORE_MESSAGES, $SERVER_URL, $PGV_SIMPLE_MAIL, $WEBMASTER_EMAIL;
 	global $TEXT_DIRECTION, $TEXT_DIRECTION_array, $DATE_FORMAT, $DATE_FORMAT_array, $TIME_FORMAT, $TIME_FORMAT_array, $WEEK_START, $WEEK_START_array;
 	global $PHPGEDVIEW_EMAIL;
 
-	//-- do not allow users to send a message to themselves
-	if ($message["from"]==$message["to"])
+	$user_id_from=get_user_id($message['from']);
+	$user_id_to  =get_user_id($message['to']);
+
+	require_once PGV_ROOT.'includes/functions/functions_mail.php';
+
+	if (!$user_id_to) {
+		//-- the to user must be a valid user in the system before it will send any mails
 		return false;
-
-	require_once('includes/functions/functions_mail.php');
-
-	if (!get_user_id($message["to"])) {
-			//-- the to user must be a valid user in the system before it will send any mails
-			return false;
 	}
 
 	// Switch to the "from" user's language
 	$oldLanguage = $LANGUAGE;
-	$from_lang=get_user_setting($message["from"], 'language');
-	if ($from_lang && $LANGUAGE!=$from_lang)
-		loadLanguage($from_lang);
+	$from_lang=get_user_setting($user_id_from, 'language');
+	if ($from_lang && $LANGUAGE!=$from_lang) {
+		loadLanguage($from_lang, true);
+	}
 
 	//-- setup the message body for the "from" user
-	$email2 = stripslashes($message["body"]);
+	$email2 = $message["body"];
 	if (isset($message["from_name"]))
 		$email2 = $pgv_lang["message_from_name"]." ".$message["from_name"]."\r\n".$pgv_lang["message_from"]." ".$message["from_email"]."\r\n\r\n".$email2;
 	if (!empty($message["url"]))
@@ -494,56 +448,56 @@ function addMessage($message) {
 	$email2 .= "\r\n=--------------------------------------=\r\nIP ADDRESS: ".$_SERVER['REMOTE_ADDR']."\r\n";
 	$email2 .= "DNS LOOKUP: ".gethostbyaddr($_SERVER['REMOTE_ADDR'])."\r\n";
 	$email2 .= "LANGUAGE: $LANGUAGE\r\n";
-	$subject2 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").stripslashes($message["subject"]);
+	$subject2 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").$message["subject"];
 	$from ="";
-	if (!get_user_id($message["from"])) {
+	if (!$user_id_from) {
 		$from = $message["from"];
-		$email2 = $pgv_lang["message_email3"]."\r\n\r\n".stripslashes($email2);
+		$email2 = $pgv_lang["message_email3"]."\r\n\r\n".$email2;
 		$fromFullName = $message["from"];
 	} else {
-		$fromFullName = getUserFullName($message['from']);
-		if (!$PGV_SIMPLE_MAIL)
-			$from = hex4email(stripslashes($fromFullName),$CHARACTER_SET). " <".get_user_setting($message["from"], 'email').">";
-		else
-			$from = get_user_setting($message["from"], 'email');
-		$email2 = $pgv_lang["message_email2"]."\r\n\r\n".stripslashes($email2);
-
+		$fromFullName = getUserFullName($user_id_from);
+		$from = !$PGV_SIMPLE_MAIL
+			? hex4email($fromFullName,$CHARACTER_SET). " <".get_user_setting($user_id_from, 'email').">"
+			: get_user_setting($user_id_from, 'email');
+		$email2 = $pgv_lang["message_email2"]."\r\n\r\n".$email2;
 	}
 	if ($message["method"]!="messaging") {
-		$subject1 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").stripslashes($message["subject"]);
-		if (!get_user_id($message["from"])) {
+		$subject1 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").$message["subject"];
+		if (!$user_id_from) {
 			$email1 = $pgv_lang["message_email1"];
-			if (!empty($message["from_name"]))
-				$email1 .= $message["from_name"]."\r\n\r\n".stripslashes($message["body"]);
-			else
-				$email1 .= $from."\r\n\r\n".stripslashes($message["body"]);
+			if (!empty($message["from_name"])) {
+				$email1 .= $message["from_name"]."\r\n\r\n".$message["body"];
+			} else {
+				$email1 .= $from."\r\n\r\n".$message["body"];
+			}
 		} else {
 			$email1 = $pgv_lang["message_email1"];
-			$email1 .= stripslashes($fromFullName)."\r\n\r\n".stripslashes($message["body"]);
+			$email1 .= $fromFullName."\r\n\r\n".$message["body"];
 		}
 		if (!isset($message["no_from"])) {
 			if (stristr($from, $PHPGEDVIEW_EMAIL)){
-				$from = get_user_setting($WEBMASTER_EMAIL, 'email');
+				$from = get_user_setting(get_user_id($WEBMASTER_EMAIL), 'email');
 			}
-			if (!get_user_id($message["from"]))
+			if (!$user_id_from) {
 				$header2 = $PHPGEDVIEW_EMAIL;
-			else
-				if (isset($to))
-					$header2 = $to;
-			if (!empty($header2))
+			} elseif (isset($to)) {
+				$header2 = $to;
+			}
+			if (!empty($header2)) {
 				pgvMail($from, $header2, $subject2, $email2);
+			}
 		}
 	}
 
 	//-- Load the "to" users language
-	$to_lang=get_user_setting($message["to"], 'language');
-	if ($to_lang && $LANGUAGE!=$to_lang)
-		loadLanguage($to_lang);
-
+	$to_lang=get_user_setting($user_id_to, 'language');
+	if ($to_lang && $LANGUAGE!=$to_lang) {
+		loadLanguage($to_lang, true);
+	}
 	if (isset($message["from_name"]))
 		$message["body"] = $pgv_lang["message_from_name"]." ".$message["from_name"]."\r\n".$pgv_lang["message_from"]." ".$message["from_email"]."\r\n\r\n".$message["body"];
 	//-- [ phpgedview-Feature Requests-1588353 ] Supress admin IP address in Outgoing PGV Email
-	if (!userIsAdmin(get_user_id($message["from"]))) {
+	if (!userIsAdmin($user_id_from)) {
 		if (!empty($message["url"]))
 			$message["body"] .= "\r\n\r\n--------------------------------------\r\n\r\n".$pgv_lang["viewing_url"]."\r\n".$SERVER_URL.$message["url"]."\r\n";
 		$message["body"] .= "\r\n=--------------------------------------=\r\nIP ADDRESS: ".$_SERVER['REMOTE_ADDR']."\r\n";
@@ -553,37 +507,36 @@ function addMessage($message) {
 	if (empty($message["created"]))
 		$message["created"] = gmdate ("D, d M Y H:i:s T");
 	if ($PGV_STORE_MESSAGES && ($message["method"]!="messaging3" && $message["method"]!="mailto" && $message["method"]!="none")) {
-		PGV_DB::prepare("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)")
-			->execute(array(get_next_id("messages", "m_id"), $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"]));
+		$gBitDb->query("INSERT INTO {$TBLPREFIX}messages (m_id, m_from, m_to, m_subject, m_body, m_created) VALUES (?, ? ,? ,? ,? ,?)"
+			, [ get_next_id("messages", "m_id"), $message["from"], $message["to"], $message["subject"], $message["body"], $message["created"] ] );
 	}
 	if ($message["method"]!="messaging") {
-		$subject1 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").stripslashes($message["subject"]);
-		if (!get_user_id($message["from"])) {
+		$subject1 = "[".$pgv_lang["phpgedview_message"].($TEXT_DIRECTION=="ltr"?"] ":" [").$message["subject"];
+		if (!$user_id_from) {
 			$email1 = $pgv_lang["message_email1"];
 			if (!empty($message["from_name"]))
-				$email1 .= $message["from_name"]."\r\n\r\n".stripslashes($message["body"]);
+				$email1 .= $message["from_name"]."\r\n\r\n".$message["body"];
 			else
-				$email1 .= $from."\r\n\r\n".stripslashes($message["body"]);
+				$email1 .= $from."\r\n\r\n".$message["body"];
 		} else {
 			$email1 = $pgv_lang["message_email1"];
-			$email1 .= stripslashes($fromFullName)."\r\n\r\n".stripslashes($message["body"]);
+			$email1 .= $fromFullName."\r\n\r\n".$message["body"];
 		}
-		if (!get_user_id($message["to"])) {
+		if (!$user_id_to) {
 			//-- the to user must be a valid user in the system before it will send any mails
 			return false;
 		} else {
-			$toFullName=getUserFullName($message['to']);
-			if (!$PGV_SIMPLE_MAIL)
-				$to = hex4email(stripslashes($toFullName),$CHARACTER_SET). " <".get_user_setting($message["to"], 'email').">";
-			else
-				$to = get_user_setting($message["to"], 'email');
+			$toFullName=getUserFullName($user_id_to);
+			$to = !$PGV_SIMPLE_MAIL
+				? hex4email($toFullName, $CHARACTER_SET). " <".get_user_setting($user_id_to, 'email').">"
+				: get_user_setting($user_id_to, 'email');
 		}
-		if (get_user_setting($message["to"], 'email'))
+		if (get_user_setting($user_id_to, 'email'))
 			pgvMail($to, $from, $subject1, $email1);
 	}
 
 	if ($LANGUAGE!=$oldLanguage)
-		loadLanguage($oldLanguage);			// restore language settings if needed
+		loadLanguage($oldLanguage, true);			// restore language settings if needed
 
 	return true;
 }
@@ -593,28 +546,29 @@ function addMessage($message) {
 function deleteMessage($message_id) {
 	global $TBLPREFIX, $gBitDb;
 
-	return (bool)$gBitDb->query("DELETE FROM {$TBLPREFIX}messages WHERE m_id=?")->execute(array($message_id));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}messages WHERE m_id=?", [ $message_id ] );
+	return (bool)$gBitDb->Affected_Rows();
 }
 
 //----------------------------------- getUserMessages
 //-- Return an array of a users messages
 function getUserMessages($username) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	$rows=
-		$gBitDb->query("SELECT * FROM {$TBLPREFIX}messages WHERE m_to=? ORDER BY m_id DESC"
-			, array($username));
+		$gBitDb->getAll("SELECT * FROM {$TBLPREFIX}messages WHERE m_to=? ORDER BY m_id DESC"
+			, [ $username ] );
 
-	$messages=array();
-	while ( $row = $rows->fetchRow() ) {
-		$messages[]=array(
-			"id"=>$row[m_id],
-			"to"=>$row[m_to],
-			"from"=>$row[m_from],
-			"subject"=>$row[m_subject],
-			"body"=>$row[m_body],
-			"created"=>$row[m_created]
-		);
+	$messages=[];
+	foreach ( $rows as $row ) {
+		$messages[] = [
+			"id"=>$row['m_id'],
+			"to"=>$row['m_to'],
+			"from"=>$row['m_from'],
+			"subject"=>$row['m_subject'],
+			"body"=>$row['m_body'],
+			"created"=>$row['m_created']
+		];
 	}
 	return $messages;
 }
@@ -624,7 +578,7 @@ function getUserMessages($username) {
  * @param array $favorite	the favorite array of the favorite to add
  */
 function addFavorite($favorite) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	// -- make sure a favorite is added
 	if (empty($favorite["gid"]) && empty($favorite["url"]))
@@ -634,23 +588,24 @@ function addFavorite($favorite) {
 	$sql = "SELECT 1 FROM {$TBLPREFIX}favorites WHERE";
 	if (!empty($favorite["gid"])) {
 		$sql.=" fv_gid=?";
-		$vars=array($favorite["gid"]);
+		$vars = [ $favorite["gid"] ];
 	} else {
 		$sql.=" fv_url=?";
-		$vars=array($favorite["url"]);
+		$vars = [ $favorite["url"] ];
 	}
 	$sql.="AND fv_file=? AND fv_username=?";
 	$vars[]=$favorite["file"];
 	$vars[]=$favorite["username"];
 
-	if (PGV_DB::prepare($sql)->execute($vars)->fetchOne()) {
+	if ( $gBitDb->getOne( $sql, $vars ) ) {
 		return false;
 	}
 
 	//-- add the favorite to the database
 	return (bool)
-		PGV_DB::prepare("INSERT INTO {$TBLPREFIX}favorites (fv_id, fv_username, fv_gid, fv_type, fv_file, fv_url, fv_title, fv_note) VALUES (?, ? ,? ,? ,? ,? ,? ,?)")
-			->execute(array(get_next_id("favorites", "fv_id"), $favorite["username"], $favorite["gid"], $favorite["type"], $favorite["file"], $favorite["url"], $favorite["title"], $favorite["note"]));
+		$gBitDb->query(
+			"INSERT INTO {$TBLPREFIX}favorites (fv_id, fv_username, fv_gid, fv_type, fv_file, fv_url, fv_title, fv_note) VALUES (?, ? ,? ,? ,? ,? ,? ,?)"
+			, [ get_next_id("favorites", "fv_id"), $favorite["username"], $favorite["gid"], $favorite["type"], $favorite["file"], $favorite["url"], $favorite["title"], $favorite["note"] ] );
 }
 
 /**
@@ -659,11 +614,10 @@ function addFavorite($favorite) {
  * @param int $fv_id	the id of the favorite to delete
  */
 function deleteFavorite($fv_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	return (bool)
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}favorites WHERE fv_id=?")
-		->execute(array($fv_id));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}favorites WHERE fv_id=?", [ $fv_id ] );
 }
 
 /**
@@ -677,21 +631,21 @@ function getUserFavorites($username) {
 	$rows=
 		$gBitDb->getAll(
 			"SELECT * FROM {$TBLPREFIX}favorites WHERE fv_username=?"
-			, array($username));
+			, [ $username ] );
 
-	$favorites = array();
+	$favorites = [];
 	foreach ($rows as $row) {
-		if (get_id_from_gedcom($row->fv_file)) { // If gedcom exists
-			$favorites[]=array(
-				"id"=>$row->fv_id,
-				"username"=>$row->fv_username,
-				"gid"=>$row->fv_gid,
-				"type"=>$row->fv_type,
-				"file"=>$row->fv_file,
-				"title"=>$row->fv_title,
-				"note"=>$row->fv_note,
-				"url"=>$row->fv_url
-			);
+		if (get_id_from_gedcom($row['fv_file'])) { // If gedcom exists
+			$favorites[] = [ 
+				"id"		=> $row['fv_id'],
+				"username"	=> $row['fv_username'],
+				"gid"		=> $row['fv_gid'],
+				"type"		=> $row['fv_type'],
+				"file"		=> $row['fv_file'],
+				"title"		=> $row['fv_title'],
+				"note"		=> $row['fv_note'],
+				"url"		=> $row['fv_url']
+			];
 		}
 	}
 	return $favorites;
@@ -709,38 +663,38 @@ function getUserFavorites($username) {
 function getBlocks($username) {
 	global $TBLPREFIX, $gBitDb;
 
-	$blocks = array();
-	$blocks["main"] = array();
-	$blocks["right"] = array();
+	$blocks = [];
+	$blocks["main"] = [];
+	$blocks["right"] = [];
 
 	$rows =
 		$gBitDb->getAll(
 			"SELECT * FROM {$TBLPREFIX}blocks WHERE b_username=? ORDER BY b_location, b_order"
-			, array($username));
+			, [ $username ]);
 
 	if ($rows) {
 		foreach ($rows as $row) {
-			if (!isset($row->b_config))
-				$row->b_config="";
-			if ($row->b_location=="main")
-				$blocks["main"][$row->b_order] = array($row->b_name, @unserialize($row->b_config));
-			if ($row->b_location=="right")
-				$blocks["right"][$row->b_order] = array($row->b_name, @unserialize($row->b_config));
+			if ( !isset($row['b_config']) )
+				$row['b_config'] = "";
+			if ( $row['b_location'] == "main" )
+				$blocks["main"][$row['b_order']] = [ "id"=>$row['b_id'], $row['b_name'], @unserialize($row['b_config']) ];
+			if ($row['b_location'] == "right" )
+				$blocks["right"][$row['b_order']] = [ "id"=>$row['b_id'], $row['b_name'], @unserialize($row['b_config']) ];
 		}
 	} else {
 		if (get_user_id($username)) {
 			//-- if no blocks found, check for a default block setting
 			$rows =
 				$gBitDb->getAll("SELECT * FROM {$TBLPREFIX}blocks WHERE b_username=? ORDER BY b_location, b_order"
-				, array('defaultuser'));
+				, [ 'defaultuser' ] );
 
 			foreach ($rows as $row) {
-				if (!isset($row->b_config))
-					$row->b_config="";
+				if (!isset($row['b_config']))
+					$row['b_config']="";
 				if ($row->b_location=="main")
-					$blocks["main"][$row->b_order] = array($row->b_name, @unserialize($row->b_config));
+					$blocks["main"][$row['b_order']] = [ "id"=>$row['b_id'], $row['b_name'], @unserialize($row['b_config']) ];
 				if ($row->b_location=="right")
-					$blocks["right"][$row->b_order] = array($row->b_name, @unserialize($row->b_config));
+					$blocks["right"][$row['b_order']] = [ "id"=>$row['b_id'], $row['b_name'], @unserialize($row['b_config']) ];
 			}
 		}
 	}
@@ -752,35 +706,35 @@ function getBlocks($username) {
  *
  * Sets the blocks for a gedcom or user portal
  * the $setdefault parameter tells the program to also store these blocks as the blocks used by default
- * @param String $username the username or gedcom name to update the blocks for
+ * @param string $username the username or gedcom name to update the blocks for
  * @param array $ublocks the new blocks to set for the user or gedcom
  * @param boolean $setdefault	if true tells the program to also set these blocks as the blocks for the defaultuser
  */
 function setBlocks($username, $ublocks, $setdefault=false) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=? AND b_name!=?")
-		->execute(array($username, 'faq'));
+	$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=? AND b_name!=?"
+		, [ $username, 'faq' ] );
 
 	if ($setdefault) {
-		PGV_DB::prepare("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=?")
-			->execute(array('defaultuser'));
+		$gBitDb->query("DELETE FROM {$TBLPREFIX}blocks WHERE b_username=?"
+			, [ 'defaultuser' ] );
 	}
 
-	$statement=PGV_DB::prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)");
+	$statement = $gBitDb->prepare("INSERT INTO {$TBLPREFIX}blocks (b_id, b_username, b_location, b_order, b_name, b_config) VALUES (?, ?, ?, ?, ?, ?)");
 
 	foreach($ublocks["main"] as $order=>$block) {
-		$statement->execute(array(get_next_id("blocks", "b_id"), $username, 'main', $order, $block[0], serialize($block[1])));
+		$gBitDb->execute($statement, [ get_next_id("blocks", "b_id"), $username, 'main', $order, $block[0], serialize($block[1]) ] );
 
 		if ($setdefault) {
-			$statement->execute(array(get_next_id("blocks", "b_id"), 'defaultuser', 'main', $order, $block[0], serialize($block[1])));
+			$gBitDb->execute($statement, [ get_next_id("blocks", "b_id"), 'defaultuser', 'main', $order, $block[0], serialize($block[1]) ] );
 		}
 	}
 	foreach($ublocks["right"] as $order=>$block) {
-		$statement->execute(array(get_next_id("blocks", "b_id"), $username, 'right', $order, $block[0], serialize($block[1])));
+		$gBitDb->execute($statement, [ get_next_id("blocks", "b_id"), $username, 'right', $order, $block[0], serialize($block[1]) ] );
 
 		if ($setdefault) {
-			$statement->execute(array(get_next_id("blocks", "b_id"), 'defaultuser', 'right', $order, $block[0], serialize($block[1])));
+			$gBitDb->execute($statement, [ get_next_id("blocks", "b_id"), 'defaultuser', 'right', $order, $block[0], serialize($block[1]) ] );
 		}
 	}
 }
@@ -796,7 +750,7 @@ function setBlocks($username, $ublocks, $setdefault=false) {
  * @param array $news a news item array
  */
 function addNews($news) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
 	if (!isset($news["date"]))
 		$news["date"] = client_time();
@@ -804,23 +758,26 @@ function addNews($news) {
 		// In case news items are added from usermigrate, it will also contain an ID.
 		// So we check first if the ID exists in the database. If not, insert instead of update.
 		$exists=
-			PGV_DB::prepare("SELECT 1 FROM {$TBLPREFIX}news where n_id=?")
-			->execute(array($news["id"]))
-			->fetchOne();
+			$gBitDb->getOne(
+				"SELECT 1 FROM {$TBLPREFIX}news where n_id=?"
+				, [ $news["id"] ] );
 
 		if (!$exists) {
 			return (bool)
-				PGV_DB::prepare("INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)")
-				->execute(array($news["id"], $news["username"], $news["date"], $news["title"], $news["text"]));
+				$gBitDb->query(
+					"INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)"
+					, [ $news["id"], $news["username"], $news["date"], $news["title"], $news["text"] ] );
 		} else {
 			return (bool)
-				PGV_DB::prepare("UPDATE {$TBLPREFIX}news SET n_date=?, n_title=? , n_text=? WHERE n_id=?")
-				->execute(array($news["date"], $news["title"], $news["text"], $news["id"]));
+				$gBitDb->query(
+					"UPDATE {$TBLPREFIX}news SET n_date=?, n_title=? , n_text=? WHERE n_id=?"
+					, [ $news["date"], $news["title"], $news["text"], $news["id"] ] );
 		}
 	} else {
 		return (bool)
-			PGV_DB::prepare("INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)")
-			->execute(array(get_next_id("news", "n_id"), $news["username"], $news["date"], $news["title"], $news["text"]));
+			$gBitDb->query(
+				"INSERT INTO {$TBLPREFIX}news (n_id, n_username, n_date, n_title, n_text) VALUES (?, ? ,? ,? ,?)"
+				, [ get_next_id("news", "n_id"), $news["username"], $news["date"], $news["title"], $news["text"] ] );
 	}
 }
 
@@ -831,34 +788,34 @@ function addNews($news) {
  * @param int $news_id the id number of the news item to delete
  */
 function deleteNews($news_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	return (bool)PGV_DB::prepare("DELETE FROM {$TBLPREFIX}news WHERE n_id=?")->execute(array($news_id));
+	return (bool)$gBitDb->query("DELETE FROM {$TBLPREFIX}news WHERE n_id=?", [ $news_id ] );
 }
 
 /**
  * Gets the news items for the given user or gedcom
  *
- * @param String $username the username or gedcom file name to get news items for
+ * @param string $username the username or gedcom file name to get news items for
+ * @return array
  */
 function getUserNews($username) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	$rows=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}news WHERE n_username=? ORDER BY n_date DESC")
-		->execute(array($username))
-		->fetchAll();
+	$rows = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}news WHERE n_username=? ORDER BY n_date DESC"
+		, [ $username ]);
 
-	$news=array();
-	foreach ($rows as $row) {
-		$news[$row->n_id]=array(
-			"id"=>$row->n_id,
-			"username"=>$row->n_username,
-			"date"=>$row->n_date,
-			"title"=>$row->n_title,
-			"text"=>$row->n_text,
-			"anchor"=>"article".$row->n_id
-		);
+	$news=[];
+	while ( $row = $rows->fetchRow() ) {
+		$news[$row['n_id']]=[
+			"id"=>$row['n_id'],
+			"username"=>$row['n_username'],
+			"date"=>$row['n_date'],
+			"title"=>$row['n_title'],
+			"text"=>$row['n_text'],
+			"anchor"=>"article".$row['n_id']
+		];
 	}
 	return $news;
 }
@@ -867,27 +824,25 @@ function getUserNews($username) {
  * Gets the news item for the given news id
  *
  * @param int $news_id the id of the news entry to get
+ * @return array|null
  */
 function getNewsItem($news_id) {
-	global $TBLPREFIX;
+	global $TBLPREFIX, $gBitDb;
 
-	$row=
-		PGV_DB::prepare("SELECT * FROM {$TBLPREFIX}news WHERE n_id=?")
-		->execute(array($news_id))
-		->fetchOneRow();
+	$res = $gBitDb->query(
+		"SELECT * FROM {$TBLPREFIX}news WHERE n_id=?"
+		, [ $news_id ], 1 );
 
-	if ($row) {
-		return array(
-			"id"=>$row->n_id,
-			"username"=>$row->n_username,
-			"date"=>$row->n_date,
-			"title"=>$row->n_title,
-			"text"=>$row->n_text,
-			"anchor"=>"article".$row->n_id
-		);
+	if ( $row = $res->fetchRow() ) {
+		return [
+			"id"		=>$row['n_id'],
+			"username"	=>$row['n_username'],
+			"date"		=>$row['n_date'],
+			"title"		=>$row['n_title'],
+			"text"		=>$row['n_text'],
+			"anchor"	=>"article".$row['n_id']
+		];
 	} else {
 		return null;
 	}
 }
-
-?>

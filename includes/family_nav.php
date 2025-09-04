@@ -6,7 +6,7 @@
 * ( Currently used with Facts and Details tab, and Album Tab pages )
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2007 to 2008  PGV Development Team.  All rights reserved.
+* Copyright (C) 2007 to 2010  PGV Development Team.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,11 +28,7 @@
 * @author Brian Holland
 */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_FAMILY_NAV_PHP', '');
 
 // -----------------------------------------------------------------------------
@@ -79,9 +75,9 @@ if (isset($_COOKIE['lastclick'])) {
 			<tr>
 				<td style="padding-bottom: 4px;" align="center" colspan="2">
 				<?php
-				echo "<a href=\"family.php?famid=".$famid."\">";
-				//echo "<b>". $pgv_lang["parent_family"] ."&nbsp;&nbsp;(".$famid.")</b>";
-				echo "<b>".$pgv_lang["parent_family"]."&nbsp;&nbsp;</b><span class=\"age\">(".$famid.")</span>";
+				echo '<a href="', encode_url($family->getLinkUrl()), '">';
+				//echo "<b>", $pgv_lang["parent_family"] , "&nbsp;&nbsp;(", $famid, ")</b>";
+				echo "<b>", $pgv_lang["parent_family"], "&nbsp;&nbsp;</b><span class=\"age\">(", $famid, ")</span>";
 				echo "</a>";
 				?>
 				</td>
@@ -89,7 +85,7 @@ if (isset($_COOKIE['lastclick'])) {
 			<?php
 			if (isset($people["husb"])) {
 				$menu = new Menu("&nbsp;" . $people["husb"]->getLabel() . "&nbsp;". "\n");
-				if ($TEXT_DIRECTION=="ltr") { 
+				if ($TEXT_DIRECTION=="ltr") {
 					$menu->addClass("", "", "submenu flyout");
 				}else{
 					$menu->addClass("", "", "submenu flyoutrtl");
@@ -123,7 +119,7 @@ if (isset($_COOKIE['lastclick'])) {
 
 			if (isset($people["wife"])) {
 				$menu = new Menu("&nbsp;" . $people["wife"]->getLabel() . "&nbsp;". "\n");
-				if ($TEXT_DIRECTION=="ltr") { 
+				if ($TEXT_DIRECTION=="ltr") {
 					$menu->addClass("", "", "submenu flyout");
 				}else{
 					$menu->addClass("", "", "submenu flyoutrtl");
@@ -161,7 +157,7 @@ if (isset($_COOKIE['lastclick'])) {
 				if ($pid == $child->getXref() ){
 				}else{
 					$menu = new Menu($child->getLabel() . "\n");
-					if ($TEXT_DIRECTION=="ltr") { 
+					if ($TEXT_DIRECTION=="ltr") {
 						$menu->addClass("", "", "submenu flyout");
 					}else{
 						$menu->addClass("", "", "submenu flyoutrtl");
@@ -220,8 +216,8 @@ if (isset($_COOKIE['lastclick'])) {
 			<tr>
 				<td style="padding-bottom: 4px;" align="center" colspan="2">
 				<?php
-				echo "<a href=\"family.php?famid=".$famid."\">";
-				echo "<b>".$pgv_lang["step_parent_family"]."&nbsp;&nbsp;</b><span class=\"age\">(".$famid.")</span>";
+				echo '<a href="', encode_url($family->getLinkUrl()), '">';
+				echo "<b>", $pgv_lang["step_parent_family"], "&nbsp;&nbsp;</b><span class=\"age\">(", $famid, ")</span>";
 				echo "</a>";
 				?>
 				</td>
@@ -236,7 +232,7 @@ if (isset($_COOKIE['lastclick'])) {
 				}else{
 					$menu->addLabel("&nbsp;" . $people["husb"]->getLabel() . "&nbsp;". "\n");
 				}
-				if ($TEXT_DIRECTION=="ltr") { 
+				if ($TEXT_DIRECTION=="ltr") {
 					$menu->addClass("", "", "submenu flyout");
 				}else{
 					$menu->addClass("", "", "submenu flyoutrtl");
@@ -279,7 +275,7 @@ if (isset($_COOKIE['lastclick'])) {
 				}else{
 					$menu->addLabel("&nbsp;" . $people["wife"]->getLabel() . "&nbsp;". "\n");
 				}
-				if ($TEXT_DIRECTION=="ltr") { 
+				if ($TEXT_DIRECTION=="ltr") {
 					$menu->addClass("", "", "submenu flyout");
 				}else{
 					$menu->addClass("", "", "submenu flyoutrtl");
@@ -316,7 +312,7 @@ if (isset($_COOKIE['lastclick'])) {
 				$elderdate = $family->getMarriageDate();
 				foreach($people["children"] as $key=>$child) {
 					$menu = new Menu($child->getLabel() . "\n");
-					if ($TEXT_DIRECTION=="ltr") { 
+					if ($TEXT_DIRECTION=="ltr") {
 						$menu->addClass("", "", "submenu flyout");
 					}else{
 						$menu->addClass("", "", "submenu flyoutrtl");
@@ -359,8 +355,8 @@ if (isset($_COOKIE['lastclick'])) {
 			<tr>
 				<td style="padding-bottom: 4px;" align="center" colspan="2">
 				<?php
-				echo "<a href=\"family.php?famid=".$famid."\">";
-				echo "<b>".$pgv_lang["immediate_family"]."&nbsp;&nbsp;</b><span class=\"age\">(".$famid.")</span>";
+				echo '<a href="', encode_url($family->getLinkUrl()), '">';
+				echo "<b>", $pgv_lang["immediate_family"], "&nbsp;&nbsp;</b><span class=\"age\">(", $famid, ")</span>";
 				echo "</a>";
 				?>
 				</td>
@@ -377,7 +373,7 @@ if (isset($_COOKIE['lastclick'])) {
 			$styleadd = "";
 			if ( isset($people["husb"]) && $spousetag == 'HUSB' ) {
 				$menu = new Menu("&nbsp;" . $people["husb"]->getLabel() . "&nbsp;". "\n");
-				if ($TEXT_DIRECTION=="ltr") { 
+				if ($TEXT_DIRECTION=="ltr") {
 					$menu->addClass("", "", "submenu flyout");
 				}else{
 					$menu->addClass("", "", "submenu flyoutrtl");
@@ -416,7 +412,7 @@ if (isset($_COOKIE['lastclick'])) {
 
 			if ( isset($people["wife"]) && $spousetag == 'WIFE') {
 				$menu = new Menu("&nbsp;" . $people["wife"]->getLabel() . "&nbsp;". "\n");
-				if ($TEXT_DIRECTION=="ltr") { 
+				if ($TEXT_DIRECTION=="ltr") {
 					$menu->addClass("", "", "submenu flyout");
 				}else{
 					$menu->addClass("", "", "submenu flyoutrtl");
@@ -457,7 +453,7 @@ if (isset($_COOKIE['lastclick'])) {
 			if (isset($people["children"])) {
 				foreach($people["children"] as $key=>$child) {
 					$menu = new Menu("&nbsp;" . $child->getLabel() . "&nbsp;". "\n");
-					if ($TEXT_DIRECTION=="ltr") { 
+					if ($TEXT_DIRECTION=="ltr") {
 						$menu->addClass("", "", "submenu flyout");
 					}else{
 						$menu->addClass("", "", "submenu flyoutrtl");
@@ -501,7 +497,7 @@ if (isset($_COOKIE['lastclick'])) {
 // -----------------------------------------------------------------------------
 
 // ==================================================================
-require_once 'includes/functions/functions_charts.php';
+require_once PGV_ROOT.'includes/functions/functions_charts.php';
 /**
 * print the information for an individual chart box
 *
@@ -512,7 +508,7 @@ require_once 'includes/functions/functions_charts.php';
 * @param int $count on some charts it is important to keep a count of how many boxes were printed
 */
 function print_pedigree_person_nav($pid, $style=1, $show_famlink=true, $count=0, $personcount="1") {
-	global $HIDE_LIVE_PEOPLE, $SHOW_LIVING_NAMES, $PRIV_PUBLIC, $factarray, $ZOOM_BOXES, $LINK_ICONS, $view, $SCRIPT_NAME, $GEDCOM;
+	global $HIDE_LIVE_PEOPLE, $SHOW_LIVING_NAMES, $PRIV_PUBLIC, $factarray, $ZOOM_BOXES, $LINK_ICONS, $view, $GEDCOM;
 	global $pgv_lang, $MULTI_MEDIA, $SHOW_HIGHLIGHT_IMAGES, $bwidth, $bheight, $PEDIGREE_FULL_DETAILS, $SHOW_ID_NUMBERS, $SHOW_PEDIGREE_PLACES;
 	global $CONTACT_EMAIL, $CONTACT_METHOD, $TEXT_DIRECTION, $DEFAULT_PEDIGREE_GENERATIONS, $OLD_PGENS, $talloffset, $PEDIGREE_LAYOUT, $MEDIA_DIRECTORY;
 	global $PGV_IMAGE_DIR, $PGV_IMAGES, $ABBREVIATE_CHART_LABELS, $USE_MEDIA_VIEWER;
@@ -537,7 +533,7 @@ function print_pedigree_person_nav($pid, $style=1, $show_famlink=true, $count=0,
 		$step_parentlinks = false;
 	}
 
-	$tmp=array('M'=>'','F'=>'F', 'U'=>'NN');
+	$tmp=array('M'=>'', 'F'=>'F', 'U'=>'NN');
 	$isF=$tmp[$person->getSex()];
 	$spouselinks = "";
 	$parentlinks = "";
@@ -703,23 +699,31 @@ function print_pedigree_person_nav($pid, $style=1, $show_famlink=true, $count=0,
 								}
 							}
 						}
-						$spouselinks .= "<ul class=\"clist ".$TEXT_DIRECTION."\">\n";
 						// Children ------------------------------   @var $child Person
+						$hasChildren = 'No';
 						foreach($children as $c=>$child) {
 							if ($child) {
+								if ($hasChildren == 'No') {
+									$hasChildren = 'Yes';
+									$spouselinks .= "\n<ul class=\"clist ".$TEXT_DIRECTION."\">";
+								}
 								$persons="Yes";
-									$title = $pgv_lang["indi_info"].": ".$child->getXref();
-									$spouselinks .= "<li>";
-									$spouselinks .= "<a href=\"".encode_url($child->getLinkUrl()."&amp;tab={$tabno}")."\">";
-									$spouselinks .= PrintReady($child->getFullName());
-									$spouselinks .= "</a>";
-									$spouselinks .= "</li>\n";
+								$title = $pgv_lang["indi_info"].": ".$child->getXref();
+								$spouselinks .= "\n<li>";
+								$spouselinks .= "<a href=\"".encode_url($child->getLinkUrl()."&amp;tab={$tabno}")."\">";
+								$spouselinks .= PrintReady($child->getFullName());
+								$spouselinks .= "</a>";
+								$spouselinks .= "</li>";
 							}
 						}
-						$spouselinks .= "</ul>";
+						if ($hasChildren == 'Yes') {
+							$spouselinks .= "\n</ul>";
+						} else {
+							$spouselinks .= '<br />';
+						}
 					}
 				}
-				
+
 				if ($persons != "Yes") {
 					$spouselinks  .= "&nbsp;(".$pgv_lang['none'].")\n\t\t";
 				}
@@ -729,7 +733,7 @@ function print_pedigree_person_nav($pid, $style=1, $show_famlink=true, $count=0,
 				if ($person_step != "Yes") {
 					$step_parentlinks .= "&nbsp;(".$pgv_lang['unknown'].")\n\t\t";
 				}
-				
+
 			}
 		}
 	}

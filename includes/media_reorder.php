@@ -25,14 +25,10 @@
  * @author Brian Holland
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_MEDIA_REORDER_PHP', '');
 
-include_once("includes/functions/functions_print_facts.php");
+require_once PGV_ROOT.'includes/functions/functions_print_facts.php';
 
 	print "<br /><b>".$pgv_lang["reorder_media"]."</b>";
 //	print_help_link("reorder_children_help", "qm");
@@ -40,7 +36,7 @@ include_once("includes/functions/functions_print_facts.php");
 
 	global $MULTI_MEDIA, $TBLPREFIX, $SHOW_ID_NUMBERS, $MEDIA_EXTERNAL;
 	global $pgv_lang, $pgv_changes, $factarray, $view;
-	global $GEDCOM, $MEDIATYPE, $pgv_changes;
+	global $MEDIATYPE, $pgv_changes;
 	global $WORD_WRAPPED_NOTES, $MEDIA_DIRECTORY, $PGV_IMAGE_DIR, $PGV_IMAGES, $TEXT_DIRECTION;
 	global $is_media, $cntm1, $cntm2, $cntm3, $cntm4, $t, $mgedrec;
 	global $edit, $tabno ;
@@ -67,47 +63,48 @@ include_once("includes/functions/functions_print_facts.php");
 	  print "\n";
 
       if (!showFact("OBJE", $pid)) return false;
-      if (!isset($pgv_changes[$pid."_".$GEDCOM])) $gedrec = find_gedcom_record($pid);
-      else $gedrec = find_updated_record($pid);
+	$gedrec = ( !isset( $pgv_changes[$pid . "_" . PGV_GEDCOM] ) ) 
+		? find_gedcom_record( $pid, PGV_GED_ID ) 
+		: find_updated_record( $pid, PGV_GED_ID );
 
 	//related=true means show related items
-	$related="true";
+	$related = "true";
 
 	//-- find all of the related ids
-	$ids = array($pid);
+	$ids = [ $pid ];
 	if ($related) {
-		$ct = preg_match_all("/1 FAMS @(.*)@/", $gedrec, $match, PREG_SET_ORDER);
-		for($i=0; $i<$ct; $i++) {
-			$ids[] = trim($match[$i][1]);
+		$ct = preg_match_all( "/1 FAMS @(.*)@/", $gedrec, $match, PREG_SET_ORDER );
+		for ( $i = 0; $i < $ct; $i++ ) {
+			$ids[] = trim( $match[$i][1] );
 		}
 	}
 
 	//-- If  they exist, get a list of the sorted current objects in the indi gedcom record  -  (1 _PGV_OBJS @xxx@ .... etc) ----------
-	$sort_current_objes = array();
-	if ($level>0) $sort_regexp = "/".$level." _PGV_OBJS @(.*)@/";
-	else $sort_regexp = "/_PGV_OBJS @(.*)@/";
-	$sort_ct = preg_match_all($sort_regexp, $gedrec, $sort_match, PREG_SET_ORDER);
-	for ($i=0; $i<$sort_ct; $i++) {
-		if (!isset($sort_current_objes[$sort_match[$i][1]])) $sort_current_objes[$sort_match[$i][1]] = 1;
-		else $sort_current_objes[$sort_match[$i][1]]++;
+	$sort_current_objes = [];
+	$sort_regexp = ( $level > 0 ) ? "/" . $level . " _PGV_OBJS @(.*)@/" : "/_PGV_OBJS @(.*)@/";
+	$sort_ct = preg_match_all( $sort_regexp, $gedrec, $sort_match, PREG_SET_ORDER );
+	for ( $i = 0; $i < $sort_ct; $i++ ) {
+		if (!isset( $sort_current_objes[$sort_match[$i][1]] ))
+			$sort_current_objes[$sort_match[$i][1]] = 1;
+		else
+			$sort_current_objes[$sort_match[$i][1]]++;
 		$sort_obje_links[$sort_match[$i][1]][] = $sort_match[$i][0];
 	}
 	// -----------------------------------------------------------------------------------------------
-
+	
 	// create ORDER BY list from Gedcom sorted records list  ---------------------------
 	$orderbylist = 'ORDER BY '; // initialize
-	foreach ($sort_match as $media_id) {
+	foreach ( $sort_match as $media_id ) {
 		$orderbylist .= "m_media='$media_id[1]' DESC, ";
 	}
-	$orderbylist = rtrim($orderbylist, ', ');
+	$orderbylist = rtrim( $orderbylist, ', ' );
 	//  print_r($orderbylist);
 	// -----------------------------------------------------------------------------------------------
-
+	
 	//-- get a list of the current objects in the record
-	$current_objes = array();
-	if ($level>0) $regexp = "/".$level." OBJE @(.*)@/";
-	else $regexp = "/OBJE @(.*)@/";
-	$ct = preg_match_all($regexp, $gedrec, $match, PREG_SET_ORDER);
+	$current_objes = [];
+	$regexp = ( $level > 0 ) ? "/" . $level . " OBJE @(.*)@/" : "/OBJE @(.*)@/";
+	$ct = preg_match_all( $regexp, $gedrec, $match, PREG_SET_ORDER);
 	for ($i=0; $i<$ct; $i++) {
 		if (!isset($current_objes[$match[$i][1]])) $current_objes[$match[$i][1]] = 1;
 		else $current_objes[$match[$i][1]]++;
@@ -120,7 +117,7 @@ include_once("includes/functions/functions_print_facts.php");
 	$sqlmm .= "m_media, m_ext, m_file, m_titl, m_gedfile, m_gedrec, mm_gid, mm_gedrec FROM {$TBLPREFIX}media, {$TBLPREFIX}media_mapping where ";
 	$sqlmm .= "mm_gid IN (";
 	$i=0;
-	$vars=array();
+	$vars = [];
 	foreach ($ids as $key=>$media_id) {
 		if ($i>0) $sqlmm .= ",";
 		$sqlmm .= "?";
@@ -144,7 +141,7 @@ include_once("includes/functions/functions_print_facts.php");
 
 	$rows = $gBitDb->query( $sqlmm, $vars );
 
-	$foundObjs = array();
+	$foundObjs = [];
 
 			while ( $rowm = $rows->fetchRow() ) {
 
@@ -170,7 +167,7 @@ include_once("includes/functions/functions_print_facts.php");
 					$imgwidth = $imgsize[0]+40;
 					$imgheight = $imgsize[1]+150;
 				}
-				$rows = array();
+				$rows = [];
 
 				$rows['normal'] = $rowm;
 				if (isset($current_objes[$rowm['m_media']])) $current_objes[$rowm['m_media']]--;
@@ -191,7 +188,7 @@ include_once("includes/functions/functions_print_facts.php");
 
 print "\n";
 ?>
-<script type="text/javascript" language="javascript">
+<script language="javascript">
 // <![CDATA[
 	new Effect.BlindDown('reorder_media_list', {duration: .5});
 	Sortable.create('reorder_media_list',

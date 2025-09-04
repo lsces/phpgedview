@@ -3,7 +3,7 @@
  * Provides media tab header for reorder media Items using drag and drop
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2008  PHPGedView Development Team.  All rights reserved.
+ * Copyright (C) 2009  PHPGedView Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,19 +25,15 @@
  * @author Brian Holland
  */
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_MEDIA_TAB_HEAD_PHP', '');
 
 global $LB_AL_HEAD_LINKS, $gedrec;
 
-require_once("js/prototype.js.htm");
-require_once("js/scriptaculous.js.htm");
+require_once PGV_ROOT.'js/prototype.js.htm';
+require_once PGV_ROOT.'js/scriptaculous.js.htm';
 ?>
-<script language="javascript" type="text/javascript">
+<script language="javascript"">
 <!--
 	function reorder_media() {
 	var win02 = window.open("edit_interface.php?action=reorder_media&pid=<?php print $pid; ?>", "win02", "resizable=1, menubar=0, scrollbars=1, top=20, height=840, width=450 ");
@@ -48,9 +44,9 @@ require_once("js/scriptaculous.js.htm");
 
 <?php
 	// Find if indi and family associated media exists and then count them ( $tot_med_ct)
-	include ('includes/media_reorder_count.php');
+	require 'includes/media_reorder_count.php';
 
-	$gedrec = find_gedcom_record($pid);
+	$gedrec = find_gedcom_record($pid, PGV_GED_ID);
 	$regexp = "/OBJE @(.*)@/";
 	$ct = preg_match_all($regexp, $gedrec, $match, PREG_SET_ORDER);
 

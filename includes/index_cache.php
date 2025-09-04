@@ -23,11 +23,7 @@
  * @subpackage Display
  * @version $Id$
  */
-
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
+namespace Bitweaver\Phpgedview;
 
 define('PGV_INDEX_CACHE_PHP', '');
 
@@ -38,7 +34,7 @@ define('PGV_INDEX_CACHE_PHP', '');
  * @return boolean  returns false if the block could not be loaded from cache
  */
 function loadCachedBlock($block, $index) {
-	global $PGV_BLOCKS, $INDEX_DIRECTORY, $theme_name, $lang_short_cut, $LANGUAGE, $GEDCOM;
+	global $PGV_BLOCKS, $theme_name, $lang_short_cut, $LANGUAGE, $GEDCOM;
 
 	//-- ignore caching when DEBUG is set
 	//-- ignore caching for logged in users
@@ -54,15 +50,15 @@ function loadCachedBlock($block, $index) {
 	}
 	if ($cacheLife==0) return false;
 
-	$fname = "{$INDEX_DIRECTORY}/cache/{$theme_name}/{$lang_short_cut[$LANGUAGE]}/{$GEDCOM}/{$index}_{$block[0]}";
+	$fname = "{PHPGEDVIEW_PKG_INDEX_PATH}/cache/{$theme_name}/{$lang_short_cut[$LANGUAGE]}/{$GEDCOM}/{$index}_{$block[0]}";
 	if (file_exists($fname)) {
 		// Check for expired cache (<0: no expiry), 0: immediate, >0: expires in x days)  Zero already checked
 		if ($cacheLife > 0) {
 			$modtime = filemtime($fname);
 			//-- time should start at the beginning of the day
-			$modtime = $modtime - (date("G",$modtime)*60*60 + date("i",$modtime)*60 + date("s",$modtime));
-			$checktime = ($cacheLife*24*60*60);
-			$modtime = $modtime+$checktime;
+			$modtime -= date( "G", $modtime ) * 60 * 60 + date( "i", $modtime ) * 60 + date( "s", $modtime );
+			$checktime = $cacheLife * 24 * 60 * 60;
+			$modtime += $checktime;
 			if ($modtime<time()) return false;
 		}
 		return @readfile($fname);
@@ -78,7 +74,7 @@ function loadCachedBlock($block, $index) {
  * @return boolean  returns false if the block could not be saved to cache
  */
 function saveCachedBlock($block, $index, $content) {
-	global $PGV_BLOCKS, $INDEX_DIRECTORY, $theme_name, $lang_short_cut, $LANGUAGE, $GEDCOM;
+	global $PGV_BLOCKS, $theme_name, $lang_short_cut, $LANGUAGE, $GEDCOM;
 
 	//-- ignore caching when DEBUG is set
 	//-- ignore caching for logged in users
@@ -88,21 +84,34 @@ function saveCachedBlock($block, $index, $content) {
 
 	//-- ignore cache when its life is not configured or when its life is zero
 	$cacheLife = 0;
-	if (isset($block[1]['cache'])) $cacheLife = $block[1]['cache'];
-	else if (isset($PGV_BLOCKS[$block[0]]['config']['cache'])) $cacheLife = $PGV_BLOCKS[$block[0]]['config']['cache'];
-	if ($cacheLife==0) return false;
+	if (isset($block[1]['cache'])) {
+		$cacheLife = $block[1]['cache'];
+	} elseif (isset($PGV_BLOCKS[$block[0]]['config']['cache'])) {
+		$cacheLife = $PGV_BLOCKS[$block[0]]['config']['cache'];
+	}
+	if ($cacheLife==0) {
+		return false;
+	}
 
-	$fname = $INDEX_DIRECTORY."/cache";
-	@mkdir($fname);
+	$fname = PHPGEDVIEW_PKG_INDEX_PATH ."cache";
+	if ( !is_readable($fname)) {
+		mkdir($fname);
+	}
 
 	$fname .= "/".$theme_name;
-	@mkdir($fname);
+	if ( !is_readable($fname)) {
+		mkdir($fname);
+	}
 
 	$fname .= "/".$lang_short_cut[$LANGUAGE];
-	@mkdir($fname);
+	if ( !is_readable($fname)) {
+		mkdir($fname);
+	}
 
 	$fname .= "/".$GEDCOM;
-	@mkdir($fname);
+	if ( !is_readable($fname)) {
+		mkdir($fname);
+	}
 
 	$fname .= "/".$index."_".$block[0];
 	$fp = @fopen($fname, "wb");
@@ -121,7 +130,8 @@ function saveCachedBlock($block, $index, $content) {
  */
 function removeDir($dir) {
 	if (!is_writable($dir)) {
-		if (!@chmod($dir, 0777)) return FALSE;
+//		if (!@chmod($dir, PGV_PERM_EXE)) 
+		return FALSE;
 	}
 
 	$d = dir($dir);
@@ -147,8 +157,7 @@ function removeDir($dir) {
  * clears the cache files
  */
 function clearCache() {
-	global $PGV_BLOCKS, $INDEX_DIRECTORY, $lang_short_cut, $LANGUAGE, $GEDCOM;
+	global $PGV_BLOCKS,$lang_short_cut, $LANGUAGE, $GEDCOM;
 
-	removeDir("{$INDEX_DIRECTORY}/cache");
+	removeDir(PHPGEDVIEW_PKG_INDEX_PATH."cache");
 }
-?>

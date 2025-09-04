@@ -3,7 +3,7 @@
  * File contains var's to glue Help_text for PHPGedView together
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,11 +28,7 @@
 // The variables in this file are used to glue together other var's in the help_text.xx.php
 // Do NOT put any var's, that need to be translated, in this file
 
-if (!defined('PGV_PHPGEDVIEW')) {
-	header('HTTP/1.0 403 Forbidden');
-	exit;
-}
-
+namespace Bitweaver\Phpgedview;
 define('PGV_HELP_TEXT_VARS_PHP', '');
 
 loadLangFile("pgv_confighelp");
@@ -141,11 +137,9 @@ $pgv_lang["help_edit_privacy.php"]		="~#pgv_lang[edit_privacy_title]#~<br /><br 
 
 //Specials for contents
 $vpos = strpos($pgv_lang["enter_terms"], ":", 0);
-if ($vpos>0) $enter_terms = substr($pgv_lang["enter_terms"], 0, $vpos);
-else $enter_terms = $pgv_lang["enter_terms"];
+$enter_terms = ( $vpos > 0 ) ? substr( $pgv_lang["enter_terms"], 0, $vpos ) : $pgv_lang["enter_terms"];
 $vpos = strpos($pgv_lang["soundex_search"], ":", 0);
-if ($vpos>0) $soundex_search = substr($pgv_lang["soundex_search"], 0, $vpos);
-else $soundex_search = $pgv_lang["soundex_search"];
+$soundex_search = ( $vpos > 0 ) ? substr( $pgv_lang["soundex_search"], 0, $vpos ) : $pgv_lang["soundex_search"];
 
 $pgv_lang["help_used_in_contents"]		= "<div class=\"name_head center\"><b>#pgv_lang[page_help]#</b></div><br />#pgv_lang[help_help_items]#";
 $pgv_lang["search_used_in_contents"]		= "<div class=\"name_head center\"><b>#pgv_lang[search]#</b></div><ul><li><a href=\"#header_search\">#pgv_lang[header]#</a></li><li><a href=\"#menu_search\">#pgv_lang[menu]#</a></li><li><a href=\"#help_search\">#pgv_lang[search]#</li><li><a href=\"#search_enter_terms\">$enter_terms</a></li></ul><br /><br /><a href=\"#top\">$UpArrow </a><a name=\"header_search\"></a>#pgv_lang[header_search_help]#<br /><br /><a href=\"#top\">$UpArrow </a><a name=\"menu_search\"></a>#pgv_lang[menu_search_help]#<br /><a href=\"#top\">$UpArrow </a><a name=\"help_search\"></a>#pgv_lang[help_search.php]#<br /><a href=\"#top\">$UpArrow </a><a name=\"search_enter_terms\"></a>#pgv_lang[search_enter_terms_help]#";
@@ -190,7 +184,7 @@ $pgv_lang["h31"]	= "help_ancestry.php,ancestry_chart";
 $pgv_lang["h32"]	= "help_fanchart.php,fan_chart";
 $pgv_lang["h33"]	= "help_reportengine.php,reports";
 $pgv_lang["h34"]	= "def_help_items,definitions";
-$pgv_lang["h35"]	= "accesskey_viewing_advice_help,accesskeys";
+$pgv_lang["h35"]	= "";
 $pgv_lang["h36"]	= "help_faq.php,faq_list";
 $pgv_lang["h37"]	= "hs_title_help,hs_title";
 $pgv_lang["h38"]	= "help_hourglass.php,hourglass_chart";
@@ -212,7 +206,6 @@ while (isset($pgv_lang["h$i"])) {
 
 //-- Help Contents for admin
 
-// $pgv_lang["ah1"]	= "how_upgrade_help,ah1_help";
 $pgv_lang["ah1"]	= "";
 $pgv_lang["ah2"]	= "help_editconfig.php,ah2_help";
 $pgv_lang["ah3"]	= "add_upload_gedcom_help,ah3_help";
@@ -231,7 +224,6 @@ $pgv_lang["ah15"]	= "convert_ansi2utf_help,ah15_help";
 $pgv_lang["ah16"]	= "help_edit_privacy.php,ah16_help";
 $pgv_lang["ah17"]	= "help_useradmin.php,ah17_help";
 $pgv_lang["ah18"]	= "help_admin.php,ah18_help";
-//$pgv_lang["ah19"]	= "addmedia_tool_help,ah19_help";
 $pgv_lang["ah19"]	= "";
 $pgv_lang["ah20"]	= "change_indi2id_help,ah20_help";
 $pgv_lang["ah21"]	= "help_editlang.php,ah21_help";
@@ -251,5 +243,3 @@ while (isset($pgv_lang["ah$i"])) {
 }
 
 $pgv_lang["admin_help_contents_help"]		=$pgv_lang["help_contents_help"].$pgv_lang["a_help_contents_help"];
-
-?>
