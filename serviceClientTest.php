@@ -5,7 +5,7 @@ define('PGV_SCRIPT_NAME', 'serviceClientTest.php');
 require './config.php';
 
 ob_start();
-require_once './SOAP/Client.php';
+require_once UTIL_PKG_INCLUDE_PATH.'pear/SOAP/Client.php';
 
 //-- put your URL here
 $url = 'http://localhost/pgv-svn/genservice.php?wsdl';
