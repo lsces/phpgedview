@@ -1,5 +1,5 @@
 /**
- * @version $Id: acdropdown.js,v 1.1 2008/07/09 16:21:35 lsces Exp $
+ * @version $Id$
  * @author http://momche.net
  *
  * Some changes in cAutocomplete.prototype.loadListArray
