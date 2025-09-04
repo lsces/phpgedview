@@ -7,7 +7,7 @@
  * file.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2012  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,31 +46,27 @@
 // NOTE: $replace_gedcom = When uploading a GEDCOM, user will be asked to replace an existing one. If yes, overwrite
 // NOTE: $bakfile = Name and path of the backupfile, this file is created if a file with the same name exists
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require_once "includes/bitsession.php";
-require_once 'includes/functions/functions_import.php';
-require_once 'includes/functions/functions_export.php';
+define('PGV_SCRIPT_NAME', 'uploadgedcom.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_import.php';
+require_once PGV_ROOT.'includes/functions/functions_export.php';
 
 loadLangFile("pgv_confighelp");
 
-if (!$gBitUser->isAdmin()) {
+if (!PGV_USER_GEDCOM_ADMIN) {
 	header("Location: login.php?url=uploadgedcom.php");
 	exit;
 }
 
-// editconfig.php and uploadgedcom.php make extensive use of
+// editconfig_gedcom.php and uploadgedcom.php make extensive use of
 // import_request_variables and are heavily inter-dependent.
-@import_request_variables('cgp');
+## @import_request_variables('cgp');
+/*	PHP version 5.4.0 has *removed* the import_request_variables() function, so we now have to use a
+ *	"roll-your-own" implementation!  Also, the input forms only use the "get" and "post" methods, so
+ *	we shouldn't look at the $_COOKIE array. */
+import_req_variables('gp');
 
 @ini_set('zlib.output_compression','0');
 
@@ -94,8 +90,10 @@ if (!isset ($config_gedcom)) $config_gedcom = "";
 if (!isset ($continue)) $continue = false;
 if (!isset ($import_existing)) $import_existing = false;
 if (!isset($utf8convert)) $utf8convert = "no";
-if (isset($_REQUEST['keepmedia']) && $_REQUEST['keepmedia']=='yes') $keepmedia=true;
-else $keepmedia = false;
+$keepmedia = ( isset( $_REQUEST['keepmedia'] ) && $_REQUEST['keepmedia'] == 'yes' ) ? true : false;
+
+$path = decrypt( $path );				// path needed to be encrypted to get past hack detection
+$bakfile = decrypt( $bakfile );		// bakfile needed to be encrypted to get past hack detection
 
 // NOTE: GEDCOM was uploaded
 if ($check == "upload") {
@@ -106,24 +104,24 @@ if ($check == "upload") {
 else if ($check == "add") {
 	$verify = "verify_gedcom";
 	$ok = true;
-} else if ($check == "add_new") {
-	if (((!file_exists($INDEX_DIRECTORY.$GEDFILENAME)) && !file_exists($path.$GEDFILENAME)) || $override == "yes") {
-		if ($path != "") $fp = fopen($path.$GEDFILENAME, "wb");
-		else $fp = fopen($INDEX_DIRECTORY.$GEDFILENAME, "wb");
+}
+else if ($check == "add_new") {
+	if (( ( !file_exists( PHPGEDVIEW_PKG_INDEX_PATH  . $GEDFILENAME ) ) && !file_exists( $path . $GEDFILENAME ) ) || $override == "yes") {
+		$fp = ( $path != "" ) ? fopen( $path . $GEDFILENAME, "wb" ) : fopen( PHPGEDVIEW_PKG_INDEX_PATH  . $GEDFILENAME, "wb" );
 		if ($fp) {
-			$newgedcom = gedcom_header($GEDFILENAME).
-			"0 @I1@ INDI\n".
-			"1 NAME Given Names /Surname/\n".
-			"1 SEX M\n".
-			"1 BIRT\n".
-			"2 DATE 01 JAN 1850\n".
-			"2 PLAC Click edit and change me\n".
-			"0 TRLR\n";
-			$newgedcom = preg_replace('/[\r\n]+/', PGV_EOL, $newgedcom);
-			fwrite($fp, $newgedcom);
-			fclose($fp);
-			$logline = AddToLog($GEDFILENAME." updated");
-			check_in($logline, $GEDFILENAME, $INDEX_DIRECTORY);
+			$newgedcom = gedcom_header( $GEDFILENAME ) .
+				"0 @I1@ INDI\n" .
+				"1 NAME Given Names /Surname/\n" .
+				"1 SEX M\n" .
+				"1 BIRT\n" .
+				"2 DATE 01 JAN 1850\n" .
+				"2 PLAC Click edit and change me\n" .
+				"0 TRLR\n";
+			$newgedcom = preg_replace( '/[\r\n]+/', PGV_EOL, $newgedcom );
+			fwrite( $fp, $newgedcom );
+			fclose( $fp );
+			$logline = AddToLog( $GEDFILENAME . " updated" );
+			check_in( $logline, $GEDFILENAME, PHPGEDVIEW_PKG_INDEX_PATH  );
 			$verify = "validate_form";
 			$exists = true;
 			// NOTE: Go straight to import, no other settings needed
@@ -136,27 +134,22 @@ else if ($check == "add") {
 			$GEDCOM = $GEDFILENAME;
 			$FILE = $GEDCOM;
 		}
-	} else {
-		if ($path != "")
-		$fp = fopen($path.$GEDFILENAME.".bak", "wb");
-		else
-		$fp = fopen($INDEX_DIRECTORY.$GEDFILENAME.".bak", "wb");
+	}
+	else {
+		$fp = ( $path != "" ) ? fopen( $path . $GEDFILENAME . ".bak", "wb" ) : fopen( PHPGEDVIEW_PKG_INDEX_PATH  . $GEDFILENAME . ".bak", "wb" );
 		if ($fp) {
-			$newgedcom = gedcom_header($GEDFILENAME).
-			"0 @I1@ INDI\n".
-			"1 NAME Given Names /Surname/\n".
-			"1 SEX M\n".
-			"1 BIRT\n".
-			"2 DATE 01 JAN 1850\n".
-			"2 PLAC Click edit and change me\n".
-			"0 TRLR\n";
-			$newgedcom = preg_replace('/[\r\n]+/', PGV_EOL, $newgedcom);
-			fwrite($fp, $newgedcom);
-			fclose($fp);
-			if ($path != "")
-			$bakfile = $path.$GEDFILENAME.".bak";
-			else
-			$bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
+			$newgedcom = gedcom_header( $GEDFILENAME ) .
+				"0 @I1@ INDI\n" .
+				"1 NAME Given Names /Surname/\n" .
+				"1 SEX M\n" .
+				"1 BIRT\n" .
+				"2 DATE 01 JAN 1850\n" .
+				"2 PLAC Click edit and change me\n" .
+				"0 TRLR\n";
+			$newgedcom = preg_replace( '/[\r\n]+/', PGV_EOL, $newgedcom );
+			fwrite( $fp, $newgedcom );
+			fclose( $fp );
+			$bakfile = ( $path != "" ) ? $path . $GEDFILENAME . ".bak" : PHPGEDVIEW_PKG_INDEX_PATH  . $GEDFILENAME . ".bak";
 			$ok = false;
 			$verify = "verify_gedcom";
 			$exists = true;
@@ -165,10 +158,9 @@ else if ($check == "add") {
 } else
 if ($check == "cancel_upload") {
 	if ($exists) {
-		unset ($GEDCOMS[$GEDFILENAME]);
-		store_gedcoms();
+		delete_gedcom(get_id_from_gedcom($GEDFILENAME));
 		if ($action == "add_new_form")
-		@ unlink($INDEX_DIRECTORY.$GEDFILENAME);
+		@ unlink(PHPGEDVIEW_PKG_INDEX_PATH .$GEDFILENAME);
 	}
 	// NOTE: Cleanup everything no longer needed
 	if (isset($bakfile) && file_exists($bakfile)) unlink($bakfile);
@@ -182,10 +174,10 @@ if ($check == "cancel_upload") {
 }
 
 if ($cleanup_needed == "cleanup_needed" && $continue == $pgv_lang["del_proceed"]) {
-	require_once ("includes/functions/functions_tools.php");
+	require_once PGV_ROOT.'includes/functions/functions_tools.php';
 
 	$filechanged = false;
-	if (file_is_writeable($GEDCOMS[$GEDFILENAME]["path"]) && (file_exists($GEDCOMS[$GEDFILENAME]["path"]))) {
+	if (file_is_writeable(get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path')) && (file_exists(get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path')))) {
 		$l_BOMcleanup = false;
 		$l_headcleanup = false;
 		$l_macfilecleanup = false;
@@ -193,8 +185,8 @@ if ($cleanup_needed == "cleanup_needed" && $continue == $pgv_lang["del_proceed"]
 		$l_placecleanup = false;
 		$l_datecleanup = false;
 		$l_isansi = false;
-		$fp = fopen($GEDCOMS[$GEDFILENAME]["path"], "rb");
-		$fw = fopen($INDEX_DIRECTORY."/".$GEDFILENAME.".bak", "wb");
+		$fp = fopen(get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path'), "rb");
+		$fw = fopen(PHPGEDVIEW_PKG_INDEX_PATH ."/".$GEDFILENAME.".bak", "wb");
 		//-- read the gedcom and test it in 8KB chunks
 		while (!feof($fp)) {
 			$fcontents = fread($fp, 1024 * 8);
@@ -226,10 +218,10 @@ if ($cleanup_needed == "cleanup_needed" && $continue == $pgv_lang["del_proceed"]
 			}
 
 			if (isset ($_POST["cleanup_places"]) && $_POST["cleanup_places"] == "YES") {
-				if (($sample = need_place_cleanup()) !== false) {
-					$l_placecleanup = true;
+//				if (($sample = need_place_cleanup()) !== false) {
+//					$l_placecleanup = true;
 					place_cleanup();
-				}
+//				}
 			}
 
 			if (line_endings_cleanup()) {
@@ -255,7 +247,7 @@ if ($cleanup_needed == "cleanup_needed" && $continue == $pgv_lang["del_proceed"]
 		}
 		fclose($fp);
 		fclose($fw);
-		copy($INDEX_DIRECTORY."/".$GEDFILENAME.".bak", $GEDCOMS[$GEDFILENAME]["path"]);
+		copy(PHPGEDVIEW_PKG_INDEX_PATH ."/".$GEDFILENAME.".bak", get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path'));
 		$cleanup_needed = false;
 		$import = "true";
 	} else {
@@ -264,71 +256,81 @@ if ($cleanup_needed == "cleanup_needed" && $continue == $pgv_lang["del_proceed"]
 }
 
 // NOTE: Change header depending on action
-if ($action == "upload_form") print_header($pgv_lang["upload_gedcom"]);
-else if ($action == "add_form") print_header($pgv_lang["add_gedcom"]);
-else if ($action == "add_new_form") print_header($pgv_lang["add_new_gedcom"]);
-else print_header($pgv_lang["ged_import"]);
+if ($action == "upload_form") {
+	print_header($pgv_lang["upload_gedcom"]);
+} elseif ($action == "add_form") {
+	print_header($pgv_lang["add_gedcom"]);
+} elseif ($action == "add_new_form") {
+	print_header($pgv_lang["add_new_gedcom"]);
+} else {
+	print_header($pgv_lang["ged_import"]);
+}
 
 // NOTE: Print form header
-print "<form enctype=\"multipart/form-data\" method=\"post\" name=\"configform\" action=\"uploadgedcom.php\">";
+echo "<form enctype=\"multipart/form-data\" method=\"post\" name=\"configform\" action=\"uploadgedcom.php\">";
 
 // NOTE: Print table header
-print "\n<table class=\"facts_table center $TEXT_DIRECTION\">";
+echo "\n<table class=\"facts_table center ", $TEXT_DIRECTION, "\">";
 
 // NOTE: Add GEDCOM form
 if ($action == "add_form") {
-	print "<tr><td class=\"topbottombar $TEXT_DIRECTION\" colspan=\"2\">";
-	print "<a href=\"javascript: ";
-	if ($import_existing)
-	print $pgv_lang["ged_import"];
-	else
-	print $pgv_lang["add_gedcom"];
-	print "\" onclick=\"expand_layer('add-form');return false\"><img id=\"add-form_img\" src=\"".$PGV_IMAGE_DIR."/";
-	if ($startimport != "true")
-	print $PGV_IMAGES["minus"]["other"];
-	else
-	print $PGV_IMAGES["plus"]["other"];
-	print "\" border=\"0\" width=\"11\" height=\"11\" alt=\"\" /></a>";
+	echo "<tr><td class=\"topbottombar ", $TEXT_DIRECTION, "\" colspan=\"2\">";
+	echo "<a href=\"javascript: ";
+	if ($import_existing) {
+		echo $pgv_lang["ged_import"];
+	} else {
+		echo $pgv_lang["add_gedcom"];
+	}
+	echo "\" onclick=\"expand_layer('add-form');return false\"><img id=\"add-form_img\" src=\"", $PGV_IMAGE_DIR, "/";
+	if ($startimport != "true") {
+		echo $PGV_IMAGES["minus"]["other"];
+	} else {
+		echo $PGV_IMAGES["plus"]["other"];
+	}
+	echo "\" border=\"0\" width=\"11\" height=\"11\" alt=\"\" /></a>";
 	print_help_link("add_gedcom_help", "qm", "add_gedcom");
-	print "&nbsp;<a href=\"javascript: ";
-	if ($import_existing)
-	print $pgv_lang["ged_import"];
-	else
-	print $pgv_lang["add_gedcom"];
+	echo "&nbsp;<a href=\"javascript: ";
+	if ($import_existing) {
+		echo $pgv_lang["ged_import"];
+	} else {
+		echo $pgv_lang["add_gedcom"];
+	}
 	print "\" onclick=\"expand_layer('add-form');return false\">";
-	if ($import_existing)
-	print $pgv_lang["ged_import"];
-	else
-	print $pgv_lang["add_gedcom"];
-	print "</a>";
-	print "</td></tr>";
-	print "<tr><td class=\"optionbox\">";
-	print "<div id=\"add-form\" style=\"display: ";
-	if ($startimport != "true")
-	print "block ";
-	else
-	print "none ";
-	print "\">";
+	if ($import_existing) {
+		echo $pgv_lang["ged_import"];
+	} else {
+		echo $pgv_lang["add_gedcom"];
+	}
+	echo "</a>";
+	echo "</td></tr>";
+	echo "<tr><td class=\"optionbox\">";
+	echo "<div id=\"add-form\" style=\"display: ";
+	if ($startimport != "true") {
+		echo "block ";
+	} else {
+		echo "none ";
+	}
+	echo "\">";
 	?>
 	<input type="hidden" name="check" value="add" />
-	<input type="hidden" name="action" value="<?php print $action; ?>" />
-	<input type="hidden" name="import_existing" value="<?php print $import_existing; ?>" />
+	<input type="hidden" name="action" value="<?php echo $action; ?>" />
+	<input type="hidden" name="import_existing" value="<?php echo $import_existing; ?>" />
 	<table class="facts_table">
 	<?php
 
 	$i = 0;
 	if (!empty ($error)) {
-		print "<tr><td class=\"optionbox wrap\" colspan=\"2\">";
-		print "<span class=\"error\">".$error."</span>\n";
-		print "</td></tr>";
+		echo "<tr><td class=\"optionbox wrap\" colspan=\"2\">";
+		echo "<span class=\"error\">", $error, "</span>\n";
+		echo "</td></tr>";
 	}
 	?>
 	<tr>
 	<td class="descriptionbox width20 wrap">
 	<?php print_help_link("gedcom_path_help", "qm","gedcom_path");?>
-	<?php print $pgv_lang["gedcom_file"]; ?></td>
-	<td class="optionbox"><input type="text" name="GEDFILENAME" value="<?php if (isset($GEDFILENAME) && strlen($GEDFILENAME) > 4) print $GEDCOMS[$GEDFILENAME]["path"]; ?>"
-					size="60" dir ="ltr" tabindex="<?php $i++; print $i?>"	<?php if ((!$no_upload && isset($GEDFILENAME)) && (empty($error))) print "disabled "; ?> />
+	<?php echo $pgv_lang["gedcom_file"]; ?></td>
+	<td class="optionbox"><input type="text" name="GEDFILENAME" value="<?php if (isset($GEDFILENAME) && strlen($GEDFILENAME) > 4) echo get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path'); ?>"
+					size="60" dir ="ltr" tabindex="<?php $i++; echo $i?>"	<?php if ((!$no_upload && isset($GEDFILENAME)) && (empty($error))) echo "disabled "; ?> />
 	</td>
 	</tr>
 	</table>
@@ -337,49 +339,54 @@ if ($action == "add_form") {
 <?php
 }
 // NOTE: Upload GEDCOM form
-else if ($action == "upload_form") {
-	print "<tr><td class=\"topbottombar $TEXT_DIRECTION\" colspan=\"2\">";
-	print "<a href=\"javascript: ".$pgv_lang["upload_gedcom"]."\" onclick=\"expand_layer('upload_gedcom'); return false;\"><img id=\"upload_gedcom_img\" src=\"".$PGV_IMAGE_DIR."/";
-	if ($startimport != "true")
-	print $PGV_IMAGES["minus"]["other"];
-	else
-	print $PGV_IMAGES["plus"]["other"];
-	print "\" border=\"0\" width=\"11\" height=\"11\" alt=\"\" /></a>";
+elseif ($action == "upload_form") {
+	echo "<tr><td class=\"topbottombar ", $TEXT_DIRECTION, "\" colspan=\"2\">";
+	echo "<a href=\"javascript: ", $pgv_lang["upload_gedcom"], "\" onclick=\"expand_layer('upload_gedcom'); return false;\"><img id=\"upload_gedcom_img\" src=\"", $PGV_IMAGE_DIR, "/";
+	if ($startimport != "true") {
+		echo $PGV_IMAGES["minus"]["other"];
+	} else {
+		echo $PGV_IMAGES["plus"]["other"];
+	}
+	echo "\" border=\"0\" width=\"11\" height=\"11\" alt=\"\" /></a>";
 	print_help_link("upload_gedcom_help", "qm", "upload_gedcom");
-	print "&nbsp;<a href=\"javascript: ".$pgv_lang["upload_gedcom"]."\" onclick=\"expand_layer('upload_gedcom');return false\">".$pgv_lang["upload_gedcom"]."</a>";
-	print "</td></tr>";
-	print "<tr><td class=\"optionbox wrap\">";
-	print "<div id=\"upload_gedcom\" style=\"display: ";
-	if ($startimport != "true")
-	print "block ";
-	else
-	print "none ";
-	print "\">";
+	echo "&nbsp;<a href=\"javascript: ", $pgv_lang["upload_gedcom"], "\" onclick=\"expand_layer('upload_gedcom');return false\">", $pgv_lang["upload_gedcom"], "</a>";
+	echo "</td></tr>";
+	echo "<tr><td class=\"optionbox wrap\">";
+	echo "<div id=\"upload_gedcom\" style=\"display: ";
+	if ($startimport != "true") {
+		echo "block ";
+	} else {
+		echo "none ";
+	}
+	echo "\">";
 ?>
-<input type="hidden" name="action" value="<?php print $action; ?>" />
+<input type="hidden" name="action" value="<?php echo $action; ?>" />
 <input type="hidden" name="check" value="upload" />
 <table class="facts_table">
 <?php
 
 if (!empty ($error)) {
-	print "<span class=\"error\">".$error."</span><br />\n";
+	echo "<span class=\"error\">", $error, "</span><br />\n";
 	print_text("common_upload_errors");
-	print "<br />\n";
+	echo "<br />\n";
 }
 ?>
 <tr>
 <td class="descriptionbox width20 wrap">
-<?php print $pgv_lang["gedcom_file"];?></td>
+<?php echo $pgv_lang["gedcom_file"];?></td>
 <td class="optionbox" dir="ltr">
 <?php
 
-if (isset($GEDFILENAME)) print PrintReady($path.$GEDFILENAME);
-else if (isset($UPFILE)) print PrintReady($UPFILE["name"]);
-else {
-	print "<input name=\"UPFILE\" type=\"file\" size=\"60\" />";
-	if (!$filesize = ini_get('upload_max_filesize'))
-	$filesize = "2M";
-	print " ( ".$pgv_lang["max_upload_size"]." $filesize )";
+if (isset($GEDFILENAME)) {
+	echo PrintReady($path.$GEDFILENAME);
+} elseif (isset($UPFILE)) {
+	echo PrintReady($UPFILE["name"]);
+} else {
+	echo "<input name=\"UPFILE\" type=\"file\" size=\"60\" />";
+	if (!$filesize = ini_get('upload_max_filesize')) {
+		$filesize = "2M";
+	}
+	echo " ( ", $pgv_lang["max_upload_size"], " $filesize )";
 }
 ?>
 </td>
@@ -387,51 +394,53 @@ else {
 </table>
 <?php
 
-print "</div>";
-print "</td></tr>";
+echo "</div>";
+echo "</td></tr>";
 }
 // NOTE: Add new GEDCOM form
-else if ($action == "add_new_form") {
-	print "<tr><td class=\"topbottombar $TEXT_DIRECTION\" colspan=\"2\">";
-	print "<a href=\"javascript: ".$pgv_lang["add_new_gedcom"]."\" onclick=\"expand_layer('add_new_gedcom');return false\"><img id=\"add_new_gedcom_img\" src=\"".$PGV_IMAGE_DIR."/";
-	if ($startimport != "true")
-	print $PGV_IMAGES["minus"]["other"];
-	else
-	print $PGV_IMAGES["plus"]["other"];
-	print "\" border=\"0\" width=\"11\" height=\"11\" alt=\"\" /></a>";
+elseif ($action == "add_new_form") {
+	echo "<tr><td class=\"topbottombar ", $TEXT_DIRECTION, "\" colspan=\"2\">";
+	echo "<a href=\"javascript: ", $pgv_lang["add_new_gedcom"], "\" onclick=\"expand_layer('add_new_gedcom');return false\"><img id=\"add_new_gedcom_img\" src=\"", $PGV_IMAGE_DIR, "/";
+	if ($startimport != "true") {
+		echo $PGV_IMAGES["minus"]["other"];
+	} else {
+		echo $PGV_IMAGES["plus"]["other"];
+	}
+	echo "\" border=\"0\" width=\"11\" height=\"11\" alt=\"\" /></a>";
 	print_help_link("add_gedcom_instructions", "qm", "add_new_gedcom");
-	print "&nbsp;<a href=\"javascript: ".$pgv_lang["add_new_gedcom"]."\" onclick=\"expand_layer('add_new_gedcom');return false\">".$pgv_lang["add_new_gedcom"]."</a>";
-	print "</td></tr>";
-	print "<tr><td class=\"optionbox\">";
-	print "<div id=\"add-form\" style=\"display: ";
-	if ($startimport != "true")
-	print "block ";
-	else
-	print "none ";
-	print "\">";
+	echo "&nbsp;<a href=\"javascript: ", $pgv_lang["add_new_gedcom"], "\" onclick=\"expand_layer('add_new_gedcom');return false\">", $pgv_lang["add_new_gedcom"], "</a>";
+	echo "</td></tr>";
+	echo "<tr><td class=\"optionbox\">";
+	echo "<div id=\"add-form\" style=\"display: ";
+	if ($startimport != "true") {
+		echo "block ";
+	} else {
+		echo "none ";
+	}
+	echo "\">";
 ?>
-<input type="hidden" name="action" value="<?php print $action; ?>" />
+<input type="hidden" name="action" value="<?php echo $action; ?>" />
 <input type="hidden" name="check" value="add_new" />
 <table class="facts_table">
 <?php
 
 if (!empty ($error)) {
-	print "<tr><td class=\"optionbox wrap\" colspan=\"2\">";
-	print "<span class=\"error\">".$error."</span>\n";
-	print "</td></tr>";
+	echo "<tr><td class=\"optionbox wrap\" colspan=\"2\">";
+	echo "<span class=\"error\">", $error, "</span>\n";
+	echo "</td></tr>";
 }
 ?>
 <tr>
 <td class="descriptionbox width20 wrap">
-<?php print $pgv_lang["gedcom_file"];?>
+<?php echo $pgv_lang["gedcom_file"];?>
 </td>
-<td class="optionbox"><input name="GEDFILENAME" type="text" value="<?php if (isset($GEDFILENAME)) print $path.$GEDFILENAME; ?>" size="60" <?php if (isset($GEDFILENAME) && !$no_upload) print "disabled"; ?> /></td>
+<td class="optionbox"><input name="GEDFILENAME" type="text" value="<?php if (isset($GEDFILENAME)) echo $path, $GEDFILENAME; ?>" size="60" <?php if (isset($GEDFILENAME) && !$no_upload) echo "disabled"; ?> /></td>
 </tr>
 </table>
 <?php
 
-print "</div>";
-print "</td></tr>";
+echo "</div>";
+echo "</td></tr>";
 }
 
 if ($verify == "verify_gedcom") {
@@ -542,22 +551,20 @@ if ($verify == "validate_form") {
 	print "<span class=\"error\">$error</span>\n";
 
 	if ($import != true) {
-		require_once ("includes/functions/functions_tools.php");
-		if ($override == "yes") {
-if ( empty($bakfile) ) $bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
-			copy($bakfile, $GEDCOMS[$GEDFILENAME]["path"]);
-			if (file_exists($bakfile))
-			unlink($bakfile);
-			$bakfile = false;
-		}
+		require_once PGV_ROOT.'includes/functions/functions_tools.php';
+
 		$l_BOMcleanup = false;
 		$l_headcleanup = false;
 		$l_macfilecleanup = false;
 		$l_lineendingscleanup = false;
+		$l_isansi = false;
 		$l_placecleanup = false;
 		$l_datecleanup = false;
-		$l_isansi = false;
-		$fp = fopen($GEDCOMS[$GEDFILENAME]["path"], "r");
+		$fp = fopen(get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path'), "r");
+
+		$samplePlace = array();
+		$sampleDate = array();
+		$ambiguousDate = false;
 
 		// TODO - there are two problems with this next block of code.  Firstly, by
 		// checking the file in chunks (rather than complete records), we won't spot
@@ -572,9 +579,23 @@ if ( empty($bakfile) ) $bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
 			if (!$l_headcleanup && need_head_cleanup()) $l_headcleanup = true;
 			if (!$l_macfilecleanup && need_macfile_cleanup()) $l_macfilecleanup = true;
 			if (!$l_lineendingscleanup && need_line_endings_cleanup()) $l_lineendingscleanup = true;
-			if (!$l_placecleanup && ($placesample = need_place_cleanup()) !== false) $l_placecleanup = true;
-			if (!$l_datecleanup && ($datesample = need_date_cleanup()) !== false) $l_datecleanup = true;
+//			if (!$l_placecleanup && ($placesample = need_place_cleanup()) !== false) $l_placecleanup = true;
+//			if (!$l_datecleanup && ($datesample = need_date_cleanup()) !== false) $l_datecleanup = true;
 			if (!$l_isansi && is_ansi()) $l_isansi = true;
+			$sample = need_place_cleanup();
+			if ($sample !== false) {
+				$l_placecleanup = true;
+				$samplePlace += $sample;
+			}
+			$sample = need_date_cleanup();
+			if ($sample !== false) {
+				$l_datecleanup = true;
+				if (isset($sample['choose'])) {
+					$ambiguousDate = true;
+					unset($sample['choose']);
+				}
+				$sampleDate += $sample;
+			}
 		}
 		fclose($fp);
 
@@ -586,7 +607,7 @@ if ( empty($bakfile) ) $bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
 		} else {
 			$cleanup_needed = true;
 			print "<input type=\"hidden\" name=\"cleanup_needed\" value=\"cleanup_needed\">";
-			if (!file_is_writeable($GEDCOMS[$GEDFILENAME]["path"]) && (file_exists($GEDCOMS[$GEDFILENAME]["path"]))) {
+			if (!file_is_writeable(get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path')) && (file_exists(get_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'path')))) {
 				print "<span class=\"error\">".str_replace("#GEDCOM#", $GEDCOM, $pgv_lang["error_header_write"])."</span>\n";
 				print "</td></tr>";
 			}
@@ -622,7 +643,7 @@ if ( empty($bakfile) ) $bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
 			if ($l_placecleanup) {
 				print "<tr><td class=\"optionbox wrap\" colspan=\"2\">";
 				print "\n<table class=\"facts_table\">";
-				print "<tr><td class=\"optionbox wrap\" colspan=\"2\">";
+				print "<tr><td class=\"optionbox wrap\" colspan=\"3\">";
 				print "<span class=\"error\">".$pgv_lang["place_cleanup_detected"]."</span>\n";
 				print "</td></tr>";
 				print "<tr><td class=\"descriptionbox wrap width20\">";
@@ -631,7 +652,12 @@ if ( empty($bakfile) ) $bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
 				print "</td><td class=\"optionbox\" colspan=\"2\"><select name=\"cleanup_places\">\n";
 				print "<option value=\"YES\" selected=\"selected\">".$pgv_lang["yes"]."</option>\n<option value=\"NO\">".$pgv_lang["no"]."</option>\n</select>";
 				print "</td></tr>";
-				print "</td></tr><tr><td class=\"optionbox\" colspan=\"2\">".$pgv_lang["example_place"]."<br />".PrintReady(nl2br($placesample[0]));
+				print "</td></tr><tr><td class=\"optionbox\" colspan=\"3\">".$pgv_lang["example_place"];
+				$max = min(count($samplePlace), 5);		// Show only the first 5 examples
+				for ($i=0; $i<$max; $i++) {
+					print "<br />".PrintReady(nl2br($samplePlace[$i]));
+				}
+				print "</td></tr>";
 				print "</table>\n";
 				print "</td></tr>";
 			}
@@ -645,12 +671,16 @@ if ( empty($bakfile) ) $bakfile = $INDEX_DIRECTORY.$GEDFILENAME.".bak";
 				print $pgv_lang["date_format"];
 
 				print "</td><td class=\"optionbox\" colspan=\"2\">";
-				if (isset ($datesample["choose"])) {
+				if ($ambiguousDate) {
 					print "<select name=\"datetype\">\n";
 					print "<option value=\"1\">".$pgv_lang["day_before_month"]."</option>\n<option value=\"2\">".$pgv_lang["month_before_day"]."</option>\n</select>";
 				} else
 				print "<input type=\"hidden\" name=\"datetype\" value=\"3\" />";
-				print "</td></tr><tr><td class=\"optionbox\" colspan=\"2\">".$pgv_lang["example_date"]."<br />".$datesample[0];
+				print "</td></tr><tr><td class=\"optionbox\" colspan=\"2\">".$pgv_lang["example_date"];
+				$max = min(count($sampleDate), 5);		// Show only the first 5 examples
+				for ($i=0; $i<$max; $i++) {
+					print "<br />".$sampleDate[$i];
+				}
 				print "</td></tr>";
 				print "</table>\n";
 				print "</td></tr>";
@@ -773,8 +803,7 @@ if ($import == true) {
 }
 
 if ($startimport == "true") {
-	$GEDCOMS[$ged]["imported"] = false;
-	store_gedcoms();
+	set_gedcom_setting(get_id_from_gedcom($GEDFILENAME), 'imported', false);
 
 	if (isset ($exectime)) {
 		$oldtime = time() - $exectime;
@@ -789,15 +818,15 @@ if ($startimport == "true") {
 	function setup_progress_bar($FILE_SIZE) {
 		global $pgv_lang, $ged, $timelimit;
 		?>
-		<script type="text/javascript">
+		<script>
 		<!--
 		function complete_progress(time, exectext, go_pedi, go_welc) {
 			progress = document.getElementById("progress_header");
 			if (progress) progress.innerHTML = '<span class="error"><b><?php print $pgv_lang["import_complete"]; ?></b></span><br />'+exectext+' '+time+' <?php print $pgv_lang["sec"]; ?>';
 			progress = document.getElementById("link1");
-			if (progress) progress.innerHTML = '<a href="pedigree.php?ged=<?php print encode_url(preg_replace("/'/", "\'", $ged)); ?>">'+go_pedi+'</a>';
+			if (progress) progress.innerHTML = '<a href="pedigree.php?ged=<?php print encode_url(str_replace("'", "\'", $ged)); ?>">'+go_pedi+'</a>';
 			progress = document.getElementById("link2");
-			if (progress) progress.innerHTML = '<a href="index.php?ctype=gedcom&ged=<?php print encode_url(preg_replace("/'/", "\'", $ged)); ?>">'+go_welc+'</a>';
+			if (progress) progress.innerHTML = '<a href="index.php?ctype=gedcom&ged=<?php print encode_url(str_replace("'", "\'", $ged)); ?>">'+go_welc+'</a>';
 			progress = document.getElementById("link3");
 			if (progress) progress.innerHTML = '<a href="editgedcoms.php"><?php print $pgv_lang["manage_gedcoms"]; ?></a>';
 		}
@@ -856,14 +885,15 @@ if ($startimport == "true") {
 
 if (!isset ($stage))
 $stage = 0;
-if ((empty ($ged)) || (!isset ($GEDCOMS[$ged])))
-$ged = $GEDCOM;
-
+if ((empty ($ged)) || (!get_id_from_gedcom($ged))) {
+	$ged = $GEDCOM;
+}
+$ged_id=get_id_from_gedcom($ged);
 $temp = $THEME_DIR;
-$GEDCOM_FILE = $GEDCOMS[$ged]["path"];
+$GEDCOM_FILE = get_gedcom_setting($ged_id, 'path');
 $FILE = $ged;
-$TITLE = $GEDCOMS[$ged]["title"];
-require ($GEDCOMS[$ged]["config"]);
+$TITLE = get_gedcom_setting($ged_id, 'title');
+require get_config_file($ged_id);
 if ($LANGUAGE <> $_SESSION["CLANGUAGE"])
 $LANGUAGE = $_SESSION["CLANGUAGE"];
 
@@ -880,9 +910,9 @@ if (isset ($GEDCOM_FILE)) {
 
 if ($stage == 0) {
 	$_SESSION["resumed"] = 0;
-	if (file_exists($INDEX_DIRECTORY.basename($GEDCOM_FILE).".new"))
-	unlink($INDEX_DIRECTORY.basename($GEDCOM_FILE).".new");
-	empty_database(get_id_from_gedcom($FILE), $keepmedia);
+	if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".new"))
+	unlink(PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".new");
+	empty_database($ged_id, $keepmedia);
 	//-- erase any of the changes
 	foreach ($pgv_changes as $cid => $changes) {
 		if ($changes[0]["gedcom"] == $ged)
@@ -923,21 +953,17 @@ if ($stage == 1) {
 	//-- open handle to read file
 	$fpged = fopen($GEDCOM_FILE, "rb");
 	//-- open handle to write changed file
-	$fpnewged = fopen($INDEX_DIRECTORY.basename($GEDCOM_FILE).".new", "ab");
+	$fpnewged = fopen(PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".new", "ab");
 	$BLOCK_SIZE = 1024 * 4; //-- 4k bytes per read (4kb is usually the page size of a virtual memory system)
 	//-- resume a halted import from the session
 	if (!empty ($_SESSION["resumed"])) {
-		$TOTAL_BYTES = $_SESSION["TOTAL_BYTES"];
+		$import_stats=$_SESSION['import_stats'];
+		$start_time  =$_SESSION['start_time'];
+		$TOTAL_BYTES =$_SESSION["TOTAL_BYTES"];
 		$fcontents = $_SESSION["fcontents"];
-		$listtype = $_SESSION["listtype"];
-		$exectime_start = $_SESSION["exectime_start"];
 		$media_count = $_SESSION["media_count"];
 		$found_ids = $_SESSION["found_ids"];
 		$MAX_IDS = $_SESSION["MAX_IDS"];
-		$show_type = $_SESSION["show_type"];
-		$i_start = $_SESSION["i_start"];
-		$type_BYTES = $_SESSION["type_BYTES"];
-		$i = $_SESSION["i"];
 		$autoContinue = $_SESSION["autoContinue"];
 		fseek($fpged, $TOTAL_BYTES);
 	} else {
@@ -945,8 +971,9 @@ if ($stage == 1) {
 		$TOTAL_BYTES = 0;
 		$media_count = 0;
 		$MAX_IDS = array();
-		$listtype = array();
 		$_SESSION["resumed"] = 1;
+		$import_stats=array();
+		$start_time=microtime(true);
 	}
 	while (!feof($fpged)) {
 		$temp = fread($fpged, $BLOCK_SIZE);
@@ -964,69 +991,38 @@ if ($stage == 1) {
 			}
 
 			//-- pull the next record out of the file
-			if ($pos2)
-			$indirec = substr($fcontents, $pos1, $pos2 - $pos1);
-			else
-			$indirec = substr($fcontents, $pos1);
+				$indirec = $pos2 ? substr( $fcontents, $pos1, $pos2 - $pos1 ) : substr( $fcontents, $pos1 );
 
-			//-- remove any extra slashes
-			$indirec = preg_replace("/\\\/", "/", $indirec);
-			print "\n";
-			//-- import anything that is not a blob
-			if (!preg_match("/\n1 BLOB/", $indirec)) {
-				try {
-					import_record(trim($indirec), false);
-				} catch (PDOException $ex) {
-					// Import errors are likely to be caused by duplicate records.
-					// There is no safe way of handling these.  Just display them
-					// and let the user decide.
-					echo '<pre class="error">', $ex->getMessage(), '</pre>';
-					// Don't let the error message disappear off the screen.
-					$autoContinue=false;
-				}
+			$record_type= import_record($indirec, $ged_id, false);
+
+			// Generate import statistics
+			if (!isset($import_stats[$record_type])) {
+				$import_stats[$record_type]=array(
+					'records'=>0,
+					'bytes'  =>0,
+					'seconds'=>0
+				);
 			}
+			$end_time=microtime(true);
+			$import_stats[$record_type]['records']++;
+			$import_stats[$record_type]['bytes'  ]+=$pos2 ? $pos2-$pos1 : strlen($indirec);
+			$import_stats[$record_type]['seconds']+=$end_time-$start_time;
+			$start_time=$end_time;
 
 			//-- move the cursor to the start of the next record
 			$pos1 = $pos2;
 
-			//-- calculate some statistics
-			if (!isset ($show_type)) {
-				$show_type = $xtype;
-				$i_start = 1;
-				$exectime_start = 0;
-				$type_BYTES = 0;
-			}
 			$i ++;
-			if ($show_type != $xtype) {
-				$newtime = time();
-				$exectime = $newtime - $oldtime;
-				$show_exectime = $exectime - $exectime_start;
-				$show_i = $i - $i_start;
-				$type_BYTES = $TOTAL_BYTES - $type_BYTES;
-				if (!isset ($listtype[$show_type]["type"])) {
-					$listtype[$show_type]["exectime"] = $show_exectime;
-					$listtype[$show_type]["bytes"] = $type_BYTES;
-					$listtype[$show_type]["i"] = $show_i;
-					$listtype[$show_type]["i_start"] = $i_start;
-					$listtype[$show_type]["type"] = $show_type;
-				} else {
-					$listtype[$show_type]["exectime"] += $show_exectime;
-					$listtype[$show_type]["bytes"] += $type_BYTES;
-					$listtype[$show_type]["i"] += $show_i;
-				}
-				$show_type = $xtype;
-				$i_start = $i;
-				$exectime_start = $exectime;
-				$type_BYTES = $TOTAL_BYTES;
-			}
+
 			//-- update the progress bars at every 50 records
 			if ($i % 25 == 0) {
 				$newtime = time();
 				$exectime = $newtime - $oldtime;
-				print "\n<script type=\"text/javascript\">update_progress($TOTAL_BYTES, $exectime);</script>\n";
+				echo PGV_JS_START, "update_progress($pos2, $exectime);", PGV_JS_END;
 				flush();
-			} else
-			print " ";
+			} else {
+				print ' ';
+			}
 
 			//-- check if we are getting close to timing out
 			if ($i % 5 == 0) {
@@ -1038,18 +1034,14 @@ if ($stage == 1) {
 					$importtime = $importtime + $exectime;
 					$fcontents = substr($fcontents, $pos2);
 					//-- store the resume information in the session
+					$_SESSION['import_stats']=$import_stats;
+					$_SESSION['start_time']=$start_time;
 					$_SESSION["media_count"] = $media_count;
-					$_SESSION["TOTAL_BYTES"] = $TOTAL_BYTES;
+					$importtime += $exectimeES;
 					$_SESSION["fcontents"] = $fcontents;
-					$_SESSION["listtype"] = $listtype;
-					$_SESSION["exectime_start"] = $exectime_start;
 					$_SESSION["importtime"] = $importtime;
 					$_SESSION["MAX_IDS"] = $MAX_IDS;
-					$_SESSION["i"] = $i;
 					$_SESSION["found_ids"] = $found_ids;
-					$_SESSION["show_type"] = $show_type;
-					$_SESSION["i_start"] = $i_start;
-					$_SESSION["type_BYTES"] = $type_BYTES;
 					$_SESSION["autoContinue"] = $autoContinue;
 
 					//-- close the file connection
@@ -1079,7 +1071,7 @@ if ($stage == 1) {
 					</tr>
 					</table>
 					<?php if ($autoContinue=="YES") { ?>
-					<script type="text/javascript">
+					<script>
 						<!--
 						(function (fn) {
 							if (window.addEventListener) window.addEventListener('load', fn, false);
@@ -1108,17 +1100,17 @@ if ($stage == 1) {
 	//-- copied over the old file.
 	//-- The records are written during the import_record() method and the
 	//-- update_media() method
-	$res = @ copy($GEDCOM_FILE, $INDEX_DIRECTORY.basename($GEDCOM_FILE).".bak");
+	$res = @ copy($GEDCOM_FILE, PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".bak");
 	if (!$res)
-		print "<span class=\"error\">Unable to create backup of the GEDCOM file at ".$INDEX_DIRECTORY.basename($GEDCOM_FILE).".bak</span><br />";
+		print "<span class=\"error\">Unable to create backup of the GEDCOM file at ".PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".bak</span><br />";
 	//unlink($GEDCOM_FILE);
-	$res = @ copy($INDEX_DIRECTORY.basename($GEDCOM_FILE).".new", $GEDCOM_FILE);
+	$res = @ copy(PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".new", $GEDCOM_FILE);
 	if (!$res) {
-		print "<span class=\"error\">Unable to copy updated GEDCOM file ".$INDEX_DIRECTORY.basename($GEDCOM_FILE).".new to ".$GEDCOM_FILE."</span><br />";
+		print "<span class=\"error\">Unable to copy updated GEDCOM file ".PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".new to ".$GEDCOM_FILE."</span><br />";
 	} else {
-		@unlink($INDEX_DIRECTORY.basename($GEDCOM_FILE).".new");
+		@unlink(PHPGEDVIEW_PKG_INDEX_PATH .basename($GEDCOM_FILE).".new");
 		$logline = AddToLog($GEDCOM_FILE." updated");
-		check_in($logline, $GEDCOM_FILE, $INDEX_DIRECTORY);
+		check_in($logline, $GEDCOM_FILE, PHPGEDVIEW_PKG_INDEX_PATH );
 	}
 	$newtime = time();
 	$exectime = $newtime - $oldtime;
@@ -1127,55 +1119,56 @@ if ($stage == 1) {
 	$go_pedi = $pgv_lang["click_here_to_go_to_pedigree_tree"];
 	$go_welc = $pgv_lang["welcome_page"];
 	if ($LANGUAGE == "french" || $LANGUAGE == "italian") {
-		print "<script type=\"text/javascript\">complete_progress($importtime, \"$exec_text\", \"$go_pedi\", \"$go_welc\");</script>";
-	} else {
-		print "<script type=\"text/javascript\">complete_progress($importtime, '$exec_text', '$go_pedi', '$go_welc');</script>";
+		echo PGV_JS_START, "complete_progress($importtime, \"$exec_text\", \"$go_pedi\", \"$go_welc\");", PGV_JS_END;
+	$importtime += $exectime
+		echo PGV_JS_START, "complete_progress($importtime, '$exec_text', '$go_pedi', '$go_welc');", PGV_JS_END;
 	}
 	flush();
 
-	// TODO: Layout for Hebrew
-	$show_table1 = "\n<table class=\"list_table\"><tr>";
+	// Import Statistics
+	$show_table1  = "<table class=\"list_table\"><tr>";
 	$show_table1 .= "<tr><td class=\"topbottombar\" colspan=\"4\">".$pgv_lang["ged_import"]."</td></tr>";
-	$show_table1 .= "<td class=\"descriptionbox\">&nbsp;".$pgv_lang["exec_time"]."&nbsp;</td>";
-	$show_table1 .= "<td class=\"descriptionbox\">&nbsp;".$pgv_lang["bytes_read"]."&nbsp;</td>\n";
-	$show_table1 .= "<td class=\"descriptionbox\">&nbsp;".$pgv_lang["found_record"]."&nbsp;</td>";
-	$show_table1 .= "<td class=\"descriptionbox\">&nbsp;".$pgv_lang["type"]."&nbsp;</td></tr>\n";
-	foreach ($listtype as $indexval => $type) {
-		$show_table1 .= "<tr><td class=\"optionbox indent\">".$type["exectime"]." ".$pgv_lang["sec"]."</td>";
-		$show_table1 .= "<td class=\"optionbox indent\">". ($type["bytes"] == "0" ? "++" : $type["bytes"])."</td>\n";
-		$show_table1 .= "<td class=\"optionbox indent\">".$type["i"]."</td>";
-		$show_table1 .= "<td class=\"optionbox\">&nbsp;".$type["type"]."&nbsp;</td></tr>\n";
+	$show_table1 .= "<td class=\"descriptionbox\">".$pgv_lang["exec_time"]."</td>";
+	$show_table1 .= "<td class=\"descriptionbox\">".$pgv_lang["bytes_read"]."</td>";
+	$show_table1 .= "<td class=\"descriptionbox\">".$pgv_lang["found_record"]."</td>";
+	$show_table1 .= "<td class=\"descriptionbox\">".$pgv_lang["type"]."</td></tr>";
+	$total_seconds=0;
+	$total_bytes  =0;
+	$total_records=0;
+	foreach ($import_stats as $type=>$stats) {
+		$total_seconds+=$stats['seconds'];
+		$total_bytes  +=$stats['bytes'];
+		$total_records+=$stats['records'];
+		$show_table1 .= "<tr><td class=\"optionbox indent\">".sprintf("%.2f %s", $stats['seconds'], $pgv_lang['sec'])."</td>";
+		$show_table1 .= "<td class=\"optionbox indent\">".$stats['bytes']."</td>";
+		$show_table1 .= "<td class=\"optionbox indent\">".$stats['records']."</td>";
+		$show_table1 .= "<td class=\"optionbox\">".$type."</td></tr>";
 	}
-	$show_table1 .= "<tr><td class=\"optionbox indent\">$importtime ".$pgv_lang["sec"]."</td>";
-	$show_table1 .= "<td class=\"optionbox indent\">$TOTAL_BYTES<script type=\"text/javascript\">update_progress($TOTAL_BYTES, $exectime);</script></td>\n";
-	$show_table1 .= "<td class=\"optionbox indent\">". ($i -1)."</td>";
-	$show_table1 .= "<td class=\"optionbox\">&nbsp;</td></tr>\n";
-	$show_table1 .= "</table>\n";
-	print "<tr><td class=\"topbottombar $TEXT_DIRECTION\">";
-	print $pgv_lang["import_statistics"];
-	print "</td></tr>";
+	$show_table1 .= "<tr><td class=\"optionbox indent\">".sprintf("%.2f %s", $total_seconds, $pgv_lang['sec'])."</td>";
+	$show_table1 .= "<td class=\"optionbox indent\">".$total_bytes.PGV_JS_START."update_progress($total_bytes, $exectime);".PGV_JS_END;
+	$show_table1 .= "<td class=\"optionbox indent\">". $total_records."</td>";
+	$show_table1 .= "<td class=\"optionbox\">&nbsp;</td></tr>";
+	$show_table1 .= "</table>";
+	echo "<tr><td class=\"topbottombar $TEXT_DIRECTION\">", $pgv_lang["import_statistics"], "</td></tr>";
 	print "<tr><td class=\"optionbox\">";
-	print "\n<table cellspacing=\"20px\"><tr><td class=\"optionbox\" style=\"vertical-align: top;\">";
+	print "<table cellspacing=\"20px\"><tr><td class=\"optionbox\" style=\"vertical-align: top;\">";
 	if (isset ($skip_table)) {
 	 print "<br />...";
 	} else {
 		print $show_table1;
 	}
-	print "</td></tr></table>\n";
+	print "</td></tr></table>";
 	// NOTE: Finished Links
-	import_max_ids(get_id_from_gedcom($FILE), $MAX_IDS);
-	$GEDCOMS[$ged]["imported"] = true;
-	$GEDCOMS[$ged]["pgv_ver" ] = PGV_VERSION;
-	store_gedcoms();
+	import_max_ids($ged_id, $MAX_IDS);
+	set_gedcom_setting($ged_id, 'imported', true);
+	set_gedcom_setting($ged_id, 'pgv_ver', PGV_VERSION);
 	print "</td></tr>";
 
 	$record_count = 0;
 	$_SESSION["resumed"] = 0;
+	unset ($_SESSION['import_stats']);
 	unset ($_SESSION["TOTAL_BYTES"]);
 	unset ($_SESSION["fcontents"]);
-	unset ($_SESSION["listtype"]);
-	unset ($_SESSION["exectime_start"]);
-	unset ($_SESSION["i"]);
 	@ set_time_limit($TIME_LIMIT);
 }
 }

@@ -6,7 +6,7 @@
 * back to here.
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+* Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
 * Author: Mike Elliott (coloredpixels)
 *
 * This program is free software; you can redistribute it and/or modify
@@ -29,12 +29,12 @@
 * @version $Id$
 */
 
-require "config.php";
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'search_engine.php');
+require './config.php';
 
 loadLangFile('pgv_help');
-
-if (!isset($help)) $help = "";
-require ("includes/help_text_vars.php");
 
 header("Content-Type: text/html; charset=$CHARACTER_SET");
 
@@ -47,7 +47,7 @@ if ($rtl_stylesheet && $TEXT_DIRECTION=='rtl') {
 }
 echo '<meta name="robots" content="noindex,follow" />';
 echo '<meta name="generator" content="', PGV_PHPGEDVIEW, ' - ', PGV_PHPGEDVIEW_URL, '" />';
-echo '<title>'. $pgv_lang['label_search_engine_detected'], '</title>';
+echo '<title>', $pgv_lang['label_search_engine_detected'], '</title>';
 echo '</head><body>';
 echo '<div class="helptext">', $pgv_lang['search_engine_landing_page'];
 if ($SEARCH_SPIDER) {

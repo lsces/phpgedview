@@ -1,9 +1,9 @@
 <?php
 /**
- * Search in help files 
+ * Search in help files
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2007  John Finlay and Others
+ * Copyright (C) 2002 to 2012  PGV Development Team.  All rights reerved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,10 @@
  * @version $Id$
  */
 
-require "config.php";
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'searchhelp.php');
+require './config.php';
 
 print_simple_header($pgv_lang["hs_title"]);
 
@@ -51,7 +54,7 @@ $searchintext =safe_POST('searchintext');
 $found = 0;
 
 ?>
-<script type="text/javascript">
+<script>
 <!--
 function checkfrm(frm) {
 	if (frm.searchtext.value.length<2) {
@@ -65,7 +68,7 @@ function checkfrm(frm) {
 </script>
 <?php
 // Print the form for input
-print "<form name=\"entersearch\" action=\"$SCRIPT_NAME\" method=\"post\" onsubmit=\"return checkfrm(this);\">";
+print '<form name="entersearch" action="'.PGV_SCRIPT_NAME.'" method="post" onsubmit="return checkfrm(this);">';
 print "<input name=\"action\" type=\"hidden\" value=\"search\" />";
 print "<table class=\"facts_table $TEXT_DIRECTION\">";
 print "<tr><td colspan=\"2\" class=\"topbottombar\">";
@@ -144,8 +147,11 @@ if ((!empty($searchtext)) && strlen($searchtext)>1)  {
 
 	// Find all helpvars, so we know what vars to check after the lang.xx file has been reloaded
 	foreach ($pgv_lang as $text => $value) {
-		if ($searchintext == "all") $helpvarnames[] = $text;
-		else if ((substr($text, -5) == "_help" && $value{0}!="_") || (substr($text, -4) == ".php")) $helpvarnames[] = $text;
+		if ($searchintext == "all") {
+			$helpvarnames[] = $text;
+		} elseif ((substr($text, -5) == "_help" && $value[0]!="_") || (substr($text, -4) == ".php")) {
+			$helpvarnames[] = $text;
+		}
 	}
 
 	// Split the search criteria if all or any is chosen. Otherwise, just fill the array with the sentence
@@ -158,7 +164,7 @@ if ((!empty($searchtext)) && strlen($searchtext)>1)  {
 		$helptxt = print_text($value,0,1);
 		// Remove hyperlinks
 		$helptxt = preg_replace("/<a[^<>]+>/", "", $helptxt);
-		$helptxt = preg_replace("/<\/a>/", "", $helptxt);
+		$helptxt = str_replace("</a>", "", $helptxt);
 		// Remove unresolved language variables
 		$helptxt = preg_replace("/#pgv[^#]+#/i", "", $helptxt);
 		// Save the original text for clean search
@@ -170,10 +176,8 @@ if ((!empty($searchtext)) && strlen($searchtext)>1)  {
 			// See if there is a case insensitive hit
 			if (strpos(UTF8_strtoupper($helptxtorg), UTF8_strtoupper($criterium))) {
 				// Set the search string for preg_replace, case insensitive
-				$srch = "/$criterium/i";
 				// The \\0 is for wrapping the existing string in the text with the span
-				$repl = "<span class=\"search_hit\">\\0</span>";
-				$helptxt = preg_replace($srch, $repl, $helptxt);
+				$helptxt = preg_replace("~$criterium~i", '<span class="search_hit">$0</span>', $helptxt);
 				$cfound++;
 			}
 			else $cnotfound++;
@@ -197,7 +201,7 @@ if (!empty($searchtext)) {
 }
 print "</table></form>";
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 	document.entersearch.searchtext.focus();
 </script>
 <?php

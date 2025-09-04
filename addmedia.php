@@ -8,7 +8,7 @@
  * Requires SQL mode.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008, John Finlay and others, all rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,31 +28,13 @@
  * @version $Id$
  */
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
+define('PGV_SCRIPT_NAME', 'addmedia.php');
+require './config.php';
 
-// leave manual config until we can move it to bitweaver table 
-require("config.php");
-require($factsfile["english"]);
-if (file_exists($factsfile[$LANGUAGE])) require $factsfile[$LANGUAGE];
-
-require './includes/functions/functions_print_lists.php';
-require './includes/functions/functions_edit.php';
-
-if (empty($ged)) $ged = $GEDCOM;
-$GEDCOM = $ged;
-
-if ($_SESSION["cookie_login"]) {
-	header('Location: '.encode_url("login.php?type=simple&ged={$GEDCOM}&url=addmedia.php", false));
-	exit;
-}
+require PGV_ROOT.'includes/functions/functions_print_lists.php';
+require PGV_ROOT.'includes/functions/functions_edit.php';
 
 // TODO use GET/POST, rather than $_REQUEST
 // TODO decide what validation is required on these input parameters
@@ -80,8 +62,9 @@ print_simple_header($pgv_lang["add_media_tool"]);
 $disp = true;
 if (empty($pid) && !empty($mid)) $pid = $mid;
 if (!empty($pid)) {
-	if (!isset($pgv_changes[$pid."_".$GEDCOM])) $gedrec = find_media_record($pid);
-	else $gedrec = find_updated_record($pid);
+	$gedrec = !isset($pgv_changes[$pid."_".PGV_GEDCOM])
+		? find_media_record($pid, PGV_GED_ID)
+		: find_updated_record($pid, PGV_GED_ID);
 	$disp = displayDetailsById($pid, "OBJE");
 }
 if ($action=="update" || $action=="newentry") {
@@ -106,13 +89,13 @@ if (!PGV_USER_CAN_EDIT || !$disp || !$ALLOW_EDIT_GEDCOM) {
 	exit;
 }
 
-if ($ENABLE_AUTOCOMPLETE) require './js/autocomplete.js.htm';
+if ($ENABLE_AUTOCOMPLETE) require PGV_ROOT.'/js/autocomplete.js.html';
 echo PGV_JS_START;
 ?>
 	// Shared Notes =========================
 	function findnote(field) {
 		pastefield = field;
-		findwin = window.open('find.php?type=note', '_blank', 'left=50,top=50,width=600,height=520,resizable=1,scrollbars=1');
+		findwin = window.open('find.php?type=note', '_blank', 'left=50, top=50, width=600, height=520, resizable=1, scrollbars=1');
 		return false;
 	}
 	var language_filter, magnify;
@@ -126,15 +109,15 @@ echo PGV_JS_START;
 	function paste_id(value) {
 		pastefield.value = value;
 	}
-	function paste_char(value,lang,mag) {
+	function paste_char(value, lang, mag) {
 		pastefield.value += value;
 		language_filter = lang;
 		magnify = mag;
 	}
 	function checkpath(folder) {
 		value = folder.value;
-		if (value.substr(value.length-1,1) == "/") value = value.substr(0, value.length-1);
-		if (value.substr(0,1) == "/") value = value.substr(1, value.length-1);
+		if (value.substr(value.length-1, 1) == "/") value = value.substr(0, value.length-1);
+		if (value.substr(0, 1) == "/") value = value.substr(1, value.length-1);
 		result = value.split("/");
 		if (result.length > <?php print $MEDIA_DIRECTORY_LEVELS; ?>) {
 			alert('<?php print_text("max_media_depth"); ?>');
@@ -163,7 +146,7 @@ if ($action=="newentry") {
 	$thumbFile = "";
 	if (!empty($_FILES['mediafile']["name"]) || !empty($_FILES['thumbnail']["name"])) {
 		// Validate and correct folder names
-		$folderName = trim(trim(safe_POST('folder', PGV_REGEX_NOSCRIPT)), '/');
+		$folderName = trim(trim(safe_POST('folder', PGV_REGEX_NOSCRIPT) ?? ''), '/');
 		$folderName = check_media_depth($folderName."/y.z", "BACK");
 		$folderName = dirname($folderName)."/";
 		$thumbFolderName = str_replace($MEDIA_DIRECTORY, $MEDIA_DIRECTORY."thumbs/", $folderName);
@@ -182,8 +165,7 @@ if ($action=="newentry") {
 		$error = "";
 
 		// Determine file name on server
-		if (PGV_USER_GEDCOM_ADMIN && !empty($text[0])) $fileName = trim(trim($text[0]), '/');
-		else $fileName = '';
+		$fileName = PGV_USER_GEDCOM_ADMIN && !empty($text[0]) ? trim(trim($text[0]), '/') : '';
 		$parts = pathinfo_utf($fileName);
 		if (!empty($parts["basename"])) {
 			// User supplied a name to be used on the server
@@ -193,14 +175,16 @@ if ($action=="newentry") {
 				$lastDot = strrpos($mediaFile, '.');
 				if ($lastDot !== false) $mediaFile = substr($mediaFile, 0, $lastDot);
 				// Use extension of original uploaded file name
-				if (!empty($_FILES["mediafile"]["name"])) $parts = pathinfo_utf($_FILES["mediafile"]["name"]);
-				else $parts = pathinfo_utf($_FILES["thumbnail"]["name"]);
+				$parts = !empty($_FILES["mediafile"]["name"])
+					? pathinfo_utf($_FILES["mediafile"]["name"])
+					: pathinfo_utf($_FILES["thumbnail"]["name"]);
 				if (!empty($parts["extension"])) $mediaFile .= ".".$parts["extension"];
 			}
 		} else {
 			// User did not specify a name to be used on the server:  use the original uploaded file name
-			if (!empty($_FILES["mediafile"]["name"])) $parts = pathinfo_utf($_FILES["mediafile"]["name"]);
-			else $parts = pathinfo_utf($_FILES["thumbnail"]["name"]);
+			$parts = !empty($_FILES["mediafile"]["name"])
+				? pathinfo_utf($_FILES["mediafile"]["name"])
+				: pathinfo_utf($_FILES["thumbnail"]["name"]);
 			$mediaFile = $parts["basename"];
 		}
 		if (!empty($_FILES["mediafile"]["name"])) {
@@ -253,9 +237,9 @@ if ($action=="newentry") {
 					$ext = strtolower($parts["extension"]);
 					if (isImageTypeSupported($ext)) {
 						$thumbnail = $thumbFolderName.$mediaFile;
-						$okThumb = generate_thumbnail($folderName.$mediaFile, $thumbnail, "OVERWRITE");
+						$okThumb = generate_thumbnail($folderName.$mediaFile, $thumbnail);
 						if (!$okThumb) {
-							$error .= print_text("thumbgen_error",0,1);
+							$error .= print_text("thumbgen_error", 0, 1);
 						} else {
 							print_text("thumb_genned");
 							print "<br />";
@@ -305,11 +289,11 @@ if ($action=="newentry") {
 					$filename .= ".".$parts["extension"];
 				}
 			}
-			if (substr($folder,-1)!="/") $folder .= "/";
+			if (substr($folder, -1)!="/") $folder .= "/";
 			if ($folder=="/") $folder = "";
 			$folder = check_media_depth($folder."y.z", "BACK");
 			$folder = dirname($folder)."/";
-			if (substr($oldFolder,-1)!="/") $oldFolder .= "/";
+			if (substr($oldFolder, -1)!="/") $oldFolder .= "/";
 			if ($oldFolder=="/") $oldFolder = "";
 			$oldFolder = check_media_depth($oldFolder."y.z", "BACK");
 			$oldFolder = dirname($oldFolder)."/";
@@ -358,7 +342,7 @@ if ($action=="newentry") {
 					$GLOBALS["newThumbFolder"] = str_replace($MEDIA_DIRECTORY, $MEDIA_DIRECTORY."thumbs/", $folder);
 					$mediaAction = 0;
 					if ($filename!=$oldFilename) $mediaAction = 1;
-					if ($folder!=$oldFolder) $mediaAction = $mediaAction + 2;
+					if ($folder!=$oldFolder) $mediaAction += 2;
 
 					if (!$isMain) {
 						print_text("main_media_fail0");
@@ -413,18 +397,16 @@ if ($action=="newentry") {
 
 		$newged = handle_updates($newged);
 
-		require_once 'includes/classes/class_media.php';
 		$media_obje = new Media($newged);
 		$mediaid = Media::in_obje_list($media_obje);
 		if (!$mediaid) $mediaid = append_gedrec($newged, $linktoid);
 		if ($mediaid) {
 			AddToChangeLog("Media ID ".$mediaid." successfully added.");
-			if ($linktoid!="") $link = linkMedia($mediaid, $linktoid, $level);
-			else $link = false;
+			$link = $linktoid!="" ? linkMedia($mediaid, $linktoid, $level) : false;
 			if ($link) {
 				AddToChangeLog("Media ID ".$media_id." successfully added to $linktoid.");
 			} else {
-				echo "<a href=\"javascript:// OBJE $mediaid\" onclick=\"openerpasteid('$mediaid'); return false;\">".$pgv_lang["paste_id_into_field"]." <b>$mediaid</b></a><br /><br />\n";
+				echo "<a href=\"javascript://OBJE $mediaid\" onclick=\"openerpasteid('$mediaid'); return false;\">", $pgv_lang["paste_id_into_field"], " <b>$mediaid</b></a><br /><br />\n";
 				echo PGV_JS_START;
 				echo "openerpasteid('", $mediaid, "');";
 				echo PGV_JS_END;
@@ -457,11 +439,11 @@ if ($action == "update") {
 		}
 		if (!isset($folder) && isset($oldFolder)) $folder = $oldFolder;
 		$folder = trim($folder);
-		if (substr($folder,-1)!="/") $folder .= "/";
+		if (substr($folder, -1)!="/") $folder .= "/";
 		if ($folder=="/") $folder = "";
 		$folder = check_media_depth($folder."y.z", "BACK");
 		$folder = dirname($folder)."/";
-		if (substr($oldFolder,-1)!="/") $oldFolder .= "/";
+		if (substr($oldFolder, -1)!="/") $oldFolder .= "/";
 		if ($oldFolder=="/") $oldFolder = "";
 		$oldFolder = check_media_depth($oldFolder."y.z", "BACK");
 		$oldFolder = dirname($oldFolder)."/";
@@ -509,7 +491,7 @@ if ($action == "update") {
 			$GLOBALS["newThumbFolder"] = str_replace($MEDIA_DIRECTORY, $MEDIA_DIRECTORY."thumbs/", $folder);
 			$mediaAction = 0;
 			if ($filename!=$oldFilename) $mediaAction = 1;
-			if ($folder!=$oldFolder) $mediaAction = $mediaAction + 2;
+			if ($folder!=$oldFolder) $mediaAction += 2;
 
 			if (!$isMain) {
 				print_text("main_media_fail0");
@@ -552,8 +534,9 @@ if ($action == "update") {
 		$text = array_merge(array($folder.$filename), $text);
 
 		if (!empty($pid)) {
-			if (!isset($pgv_changes[$pid."_".$GEDCOM])) $gedrec = find_gedcom_record($pid);
-			else $gedrec = find_updated_record($pid);
+			$gedrec = !isset($pgv_changes[$pid."_".PGV_GEDCOM])
+				? find_gedcom_record($pid, PGV_GED_ID)
+				: find_updated_record($pid, PGV_GED_ID);
 		}
 		$newrec = "0 @$pid@ OBJE\n";
 		$newrec = handle_updates($newrec);
@@ -564,7 +547,9 @@ if ($action == "update") {
 		//-- look for the old record media in the file
 		//-- if the old media record does not exist that means it was
 		//-- generated at import and we need to append it
-		if (replace_gedrec($pid, $newrec, $update_CHAN)) AddToChangeLog("Media ID ".$pid." successfully updated.");
+		if (replace_gedrec($pid, $newrec, $update_CHAN)) {
+			AddToChangeLog("Media ID ".$pid." successfully updated.");
+		}
 
 		if ($pid && $linktoid!="") {
 			$link = linkMedia($pid, $linktoid, $level);

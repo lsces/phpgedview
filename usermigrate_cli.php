@@ -25,8 +25,10 @@
  * @version $Id$
  */
 
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'usermigrate_cli.php');
 require './config.php';
-require_once 'includes/controllers/usermigrate_ctrl.php';
 
 $controller = new UserMigrateController();
 $controller->init();
@@ -92,24 +94,27 @@ else {
 
 // load admin lang keys
 $file = "./languages/admin.".$lang_short_cut[$LANGUAGE].".php";
-if (file_exists($file)) include($file);
+if (file_exists($file)) include $file;
 
 // load the edit lang keys
-$file = "./languages/editor.".$lang_short_cut[$LANGUAGE].".php";
-if (file_exists($file)) include($file);
+$file = "./languages/editor." . $lang_short_cut[$LANGUAGE] . ".php";
+if (file_exists( $file ))
+	include $file;
 
-if (!empty($controller->errorMsg)) print "\r\n\r\n*** ERROR: ".$controller->errorMsg." ***\r\n\r\n";
+if (!empty( $controller->errorMsg ))
+	print "\r\n\r\n*** ERROR: " . $controller->errorMsg . " ***\r\n\r\n";
 
 // Backup part of usermigrate
 if ($controller->proceed == "backup") {
 	// Make the zip
-	if (count($controller->flist) > 0) {
+	if (count( $controller->flist ) > 0) {
 		if ($controller->v_list == 0) {
 			print $controller->errorMsg;
-		} else {
-			print $pgv_lang["um_zip_succ"]."\r\n";
-			print $pgv_lang["um_zip_dl"]." ".$controller->fname;
-			printf("(%.0f Kb)\r\n", (filesize($controller->fname)/1024));
+		}
+		else {
+			print $pgv_lang["um_zip_succ"] . "\r\n";
+			print $pgv_lang["um_zip_dl"] . " " . $controller->fname;
+			printf( "(%.0f Kb)\r\n", filesize( $controller->fname ) / 1024 );
 			print $pgv_lang["files_in_backup"];
 			foreach($controller->flist as $f=>$file) {
 				print "\t".$file."\r\n";
@@ -127,7 +132,7 @@ if (($controller->proceed == "export") || ($controller->proceed == "exportovr"))
 	print "\r\n".$pgv_lang["um_sql_index"]."\r\n";
 }
 if ($controller->proceed == "import") {
-	if ((file_exists($INDEX_DIRECTORY."authenticate.php")) == false) {
+	if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."authenticate.php")) == false) {
 		print $pgv_lang["um_nousers"];
 		exit;
 	}
@@ -142,28 +147,28 @@ if ($controller->proceed == "import") {
 
 	// Get messages and import them
 	print $pgv_lang["um_imp_messages"]."<br />";
-	if ((file_exists($INDEX_DIRECTORY."messages.dat")) == false) {
+	if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."messages.dat")) == false) {
 		print $pgv_lang["um_nomsg"]."<br /><br />";
 	}
 	if ($controller->msgSuccess) print $pgv_lang["um_imp_succ"]."<br /><br />";
 
 	// Get favorites and import them
 	print $pgv_lang["um_imp_favorites"]."<br />";
-	if ((file_exists($INDEX_DIRECTORY."favorites.dat")) == false) {
+	if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."favorites.dat")) == false) {
 		print $pgv_lang["um_nofav"]."<br /><br />";
 	}
 	if ($controller->favSuccess) print $pgv_lang["um_imp_succ"]."<br /><br />";
 
 	// Get news and import it
 	print $pgv_lang["um_imp_news"]."<br />";
-	if ((file_exists($INDEX_DIRECTORY."news.dat")) == false) {
+	if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."news.dat")) == false) {
 		print $pgv_lang["um_nonews"]."<br /><br />";
 	}
 	if ($controller->newsSuccess) print $pgv_lang["um_imp_succ"]."<br /><br />";
 
 	// Get blocks and import them
 	print $pgv_lang["um_imp_blocks"]."<br />";
-	if ((file_exists($INDEX_DIRECTORY."blocks.dat")) == false) {
+	if ((file_exists(PHPGEDVIEW_PKG_INDEX_PATH ."blocks.dat")) == false) {
 		print $pgv_lang["um_noblocks"]."<br /><br />";
 	}
 	if ($controller->blockSuccess) print $pgv_lang["um_imp_succ"]."<br /><br />";

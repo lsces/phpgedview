@@ -3,7 +3,7 @@
  * Allow admin users to upload media files using a web interface.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2011  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * @version $Id$
  * @package PhpGedView
  * @subpackage Media
+ * @version $Id$
  */
 
-require './config.php';
+namespace Bitweaver\Phpgedview;
 
-require_once 'includes/functions/functions_mediadb.php';
+define('PGV_SCRIPT_NAME', 'uploadmedia.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_mediadb.php';
 
 /**
  * This functions checks if an existing directory is physically writeable
@@ -41,7 +43,7 @@ function dir_is_writable($dir) {
 		$err_write = true;
 		@unlink(filename_decode($dir."x.y"));
 	}
-	return($err_write);
+	return $err_write;
 }
 
 if (!PGV_USER_CAN_EDIT) {
@@ -49,14 +51,9 @@ if (!PGV_USER_CAN_EDIT) {
 	exit;
 }
 
-if (isset($_SESSION["cookie_login"]) && $_SESSION["cookie_login"]==true) {
-	header("Location: ".encode_url("login.php?ged={$GEDCOM}&url=uploadmedia.php", false));
-	exit;
-}
-
 print_header($pgv_lang["upload_media"]);
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 <!--
 	function checkpath(folder) {
 		value = folder.value;
@@ -86,7 +83,7 @@ if (!dir_is_writable($MEDIA_DIRECTORY) || !$MULTI_MEDIA) {
 	print $pgv_lang["no_upload"];
 	print "</b></span><br />";
 } else {
-	show_mediaUpload_form('uploadmedia.php', false);		// We have the green light to upload media, print the form
+	show_mediaUpload_form('uploadmedia.php');		// We have the green light to upload media, print the form
 }
 print_footer();
 ?>

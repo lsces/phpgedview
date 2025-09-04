@@ -25,9 +25,11 @@
  * @version $Id$
  */
 
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'search_advanced.php');
 require './config.php';
-require './includes/controllers/advancedsearch_ctrl.php';
-require './includes/functions/functions_print_lists.php';
+require PGV_ROOT.'includes/functions/functions_print_lists.php';
 
 $controller=new AdvancedSearchController();
 $controller->init();
@@ -35,7 +37,7 @@ $controller->init();
 // Print the top header
 print_header($pgv_lang["advanced_search"]);
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 <!--
 	function checknames(frm) {
 		action = "<?php print $controller->action ?>";
@@ -306,7 +308,7 @@ print_header($pgv_lang["advanced_search"]);
 // set the focus on the first field unless multisite or some search results have been printed
 if (!$somethingPrinted ) {
 ?>
-	<script language="JavaScript" type="text/javascript">
+	<script>
 	<!--
 		document.getElementById('value0').focus();
 	//-->

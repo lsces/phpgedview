@@ -3,7 +3,7 @@
  * Outputs calendar events in the iCalendar (RFC 2445 http://www.ietf.org/rfc/rfc2445.txt) format.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@
  * @TODO use language files
  */
 
-// -- include config file
-require 'config.php';
-require_once 'includes/classes/class_person.php';
-require_once 'includes/classes/class_family.php';
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'ical.php');
+require './config.php';
 
 //Basic http auth needed for non browser authentication. If the user is not logged in and fails basic auth, nothing will be returned
 basicHTTPAuthenticateUser();
@@ -287,7 +287,7 @@ function getIcalFooter(){
  */
 function formatIcalData($data){
 	$data = strip_tags($data);
-	$data = unhtmlentitiesrtl($data); //convert html entities to chars (&quot; &lrm; etc)
+	$data = unhtmlentities($data); //convert html entities to chars (&quot; &lrm; etc)
 	$data = strtr($data, array("\n" => '\\n', '\\' => '\\\\', ',' => '\\,', ';' => '\\;')); //escape special chars as per RFC 2445 spec
 	return rfc2445Fold($data);
 }

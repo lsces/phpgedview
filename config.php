@@ -4,10 +4,10 @@
  *
  * The variables in this file are the main configuration variable for the site
  * Gedcom specific configuration variables are stored in the config_gedcom.php file.
- * Site administrators may edit these settings online through the editconfig.php file.
+ * Site administrators may edit these settings online through the install.php file.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2003  John Finlay and Others
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,36 +25,63 @@
  *
  * @package PhpGedView
  * @subpackage Admin
- * @see editconfig.php
+ * @see install.php
  * @version $Id$
  */
 
-if (preg_match("/\Wconfig.php/", $_SERVER["SCRIPT_NAME"])>0) {
-	print "Got your hand caught in the cookie jar.";
+if (preg_match('/\Wconfig.php/', $_SERVER['SCRIPT_NAME'])>0) {
+	print 'Got your hand caught in the cookie jar.';
 	exit;
 }
 
-$INDEX_DIRECTORY = "./index/";					//-- Readable and Writeable Directory to store index files (include the trailing "/")
-$PGV_SIMPLE_MAIL = true;						//-- allow admins to set this so that they can override the name <emailaddress> combination in the emails
-$USE_REGISTRATION_MODULE = true;				//-- turn on the user self registration module
-$REQUIRE_ADMIN_AUTH_REGISTRATION = true;		//-- require an admin user to authorize a new registration before a user can login
-$ALLOW_USER_THEMES = true;						//-- Allow user to set their own theme
-$ALLOW_CHANGE_GEDCOM = true;					//-- A true value will provide a link in the footer to allow users to change the gedcom they are viewing
-$LOGFILE_CREATE = "monthly";					//-- set how often new log files are created, "none" turns logs off, "daily", "weekly", "monthly", "yearly"
+//$DBTYPE='firebird'; //-- type of database to connect when using the PHP/PDO
+//$DBHOST='localhost'; //-- Host where MySQL database is kept
+//$DBPORT=''; //-- Database port, leave blank for default
+//$DBUSER='SYSDBA'; //-- MySQL database User Name
+//$DBPASS='smallBRO'; //-- MySQL database User Password
+$DBNAME='myhomecloud'; //-- The MySQL database name where you want PHPGedView to build its tables
+$DB_UTF8_COLLATION=true; //-- Use the database to sort/collation UTF8 text
+$TBLPREFIX='pgv_'; //-- prefix to include on table names
+$AUTHENTICATION_MODULE = "authentication.php";	//-- File that contains authentication functions
+$PGV_STORE_MESSAGES=true; //-- allow messages sent to users to be stored in the PGV system
+$PGV_SIMPLE_MAIL=true; //-- allow admins to set this so that they can override the name emailaddress combination in the emails
+$USE_REGISTRATION_MODULE=true; //-- turn on the user self registration module
+$REQUIRE_ADMIN_AUTH_REGISTRATION=true; //-- require an admin user to authorize a new registration before a user can login
+$ALLOW_USER_THEMES=true; //-- Allow user to set their own theme
+$ALLOW_CHANGE_GEDCOM=true; //-- A true value will provide a link in the footer to allow users to change the gedcom they are viewing
+$LOGFILE_CREATE='monthly'; //-- set how often new log files are created, "none" turns logs off, "daily", "weekly", "monthly", "yearly"
 $LOG_LANG_ERROR = false;						//-- Set if non-existing language variables should be written to a logfile
-$PGV_SESSION_SAVE_PATH = "";					//-- Path to save PHP session Files -- DO NOT MODIFY unless you know what you are doing
+$PGV_SESSION_SAVE_PATH=''; //-- Path to save PHP session Files -- DO NOT MODIFY unless you know what you are doing
 												//-- leaving it blank will use the default path for your php configuration as found in php.ini
-$PGV_SESSION_TIME = "7200";						//-- number of seconds to wait before an inactive session times out
-$SERVER_URL = "http:/engineering/phpGedView4_1_5/";								//-- the URL used to access this server
-$LOGIN_URL = "";								//-- the URL to use to go to the login page, use this value if you want to redirect to a different site when users login, useful for switching from http to https
-$MAX_VIEWS = "20";								//-- the maximum number of page views per xx seconds per session
-$MAX_VIEW_TIME = "1";							//-- the number of seconds in which the maximum number of views must not be reached
-$PGV_MEMORY_LIMIT = "32M";						//-- the maximum amount of memory that PGV should be allowed to consume
-$ALLOW_REMEMBER_ME = false;						//-- whether the users have the option of being remembered on the current computer
-$CONFIG_VERSION = "4.0";						//-- the version this config file goes to
+$PGV_SESSION_TIME='7200'; //-- number of seconds to wait before an inactive session times out
+$SERVER_URL=''; //-- the URL used to access this server
+$LOGIN_URL=''; //-- the URL to use to go to the login page, use this value if you want to redirect to a different site when users login, useful for switching from http to https
+$MAX_VIEWS='20'; //-- the maximum number of page views per xx seconds per session
+$MAX_VIEW_TIME='1'; //-- the number of seconds in which the maximum number of views must not be reached
+$PGV_MEMORY_LIMIT='64M'; //-- the maximum amount of memory that PGV should be allowed to consume
+$COMMIT_COMMAND=''; //-- Choices are empty string, cvs or svn
+$PGV_SMTP_ACTIVE=false; //-- Enable to use of SMTP to send external emails
+$PGV_SMTP_HOST=''; //-- The domain name of the SMTP smarthost
+$PGV_SMTP_HELO=''; //-- The local SMTP domain name
+$PGV_SMTP_PORT='25'; //-- The port number talk to the SMTP smarthost
+$PGV_SMTP_AUTH=false; //-- Enable the use of SMTP authorization
+$PGV_SMTP_AUTH_USER='lsces'; //-- User name for SMTP authorization
+$PGV_SMTP_AUTH_PASS='sheila_pass'; //-- Password for SMTP authorization
+$PGV_SMTP_SSL='none'; //-- Use SSL for SMTP authorization
+$PGV_SMTP_FROM_NAME=''; //-- Sender name
+$USE_GOOGLE_ANALYTICS=false; //-- Should this site link to Google Analytics server?
+$PGV_GOOGLE_ANALYTICS=''; //-- This PGV site's Google Analytics account
+$USE_CLUSTRMAPS_ANALYTICS=false; //-- Should this site link to ClustrMaps Analytics server?
+$PGV_CLUSTRMAPS_SITE=''; //-- This PGV site's URL, for use by ClustrMaps Analytics server
+$PGV_CLUSTRMAPS_SERVER=''; //-- ClustrMaps server number assigned to handle your site's requests
 
-$DIRECTORY_MODE = "ldap";						//-- User info stored in db or ldap directory
-$COMMIT_COMMAND = "";						//-- Choices are empty string, cvs or svn
+$CONFIGURED=true;
+require_once '../kernel/includes/setup_inc.php';
+require_once BIT_ROOT_PATH.'kernel/includes/config_defaults_inc.php';
+require_once KERNEL_PKG_INCLUDE_PATH.'bit_error_inc.php';
+use Bitweaver\KernelTools;
 
-$CONFIGURED = true;
-//require_once("includes/session.php");
+// set error reporting
+error_reporting( BIT_PHP_ERROR_REPORTING );
+
+require_once './includes/setup_inc.php';

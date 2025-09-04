@@ -24,6 +24,9 @@
  * @version $Id$
  */
 
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'editlang.php');
 require './config.php';
 
 if (!PGV_USER_IS_ADMIN) {
@@ -33,7 +36,7 @@ if (!PGV_USER_IS_ADMIN) {
 
 loadLangFile('pgv_confighelp');
 
-require './includes/functions/functions_editlang.php';
+require PGV_ROOT.'includes/functions/functions_editlang.php';
 
 $action                =safe_GET('action');
 $file_type             =safe_GET('file_type');
@@ -66,12 +69,12 @@ if (!isset($_SESSION['DEBUG_LANG'])) {
 	$_SESSION['DEBUG_LANG']=false;
 }
 
-$QUERY_STRING = str_replace(array("&amp;", "&&"), "&", $QUERY_STRING);
-if (strpos($QUERY_STRING,"&dv=")) {
-	$QUERY_STRING = substr($QUERY_STRING,0,strpos($QUERY_STRING,"&dv="));
+$QUERY_STRING = str_replace( [ "&amp;", "&&" ], "&", $QUERY_STRING);
+if (strpos($QUERY_STRING, "&dv=")) {
+	$QUERY_STRING = substr($QUERY_STRING, 0, strpos($QUERY_STRING, "&dv="));
 }
 
-echo "<script language=\"JavaScript\" type=\"text/javascript\">";
+echo PGV_JS_START;
 echo "var helpWin;";
 echo "function helpPopup00(which) {";
 echo "if ((!helpWin)||(helpWin.closed)) {helpWin = window.open('editlang_edit.php?' + which, '_blank' , 'left=50, top=30, width=600, height=500, resizable=1, scrollbars=1'); helpWin.focus();}";
@@ -79,9 +82,9 @@ echo "else helpWin.location = 'editlang_edit.php?' + which;";
 echo "return false;";
 echo "}";
 echo "function showchanges(which2) {";
-echo "window.location = '$SCRIPT_NAME?$QUERY_STRING'+which2;";
+echo "window.location = '", PGV_SCRIPT_NAME, "?$QUERY_STRING'+which2;";
 echo "}";
-echo "</script>";
+echo PGV_JS_END;
 
 echo "<div class=\"center\">";
 
@@ -93,14 +96,14 @@ foreach ($pgv_language as $key=>$value) {
 asort($Sorted_Langs);
 
 // Add in the required code to perform a google translation
-echo "<script type='text/javascript' src='http://www.google.com/jsapi'></script>";
-echo "<script type='text/javascript' src='js/translate.js'></script>";
+echo "<script src='http://www.google.com/jsapi'></script>";
+echo "<script src='js/translate.js'></script>";
 
 /* Language File Edit Mask */
 
 switch ($action) {
 case "bom" :
-	echo "<table class=\"facts_table $TEXT_DIRECTION\" style=\"width:70%; \">";
+	echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\" style=\"width:70%; \">";
 	echo "<tr><td class=\"facts_label03\" colspan=\"2\">";
 	echo $pgv_lang["bom_check"];
 	echo "</td></tr>";
@@ -112,10 +115,10 @@ case "bom" :
 	echo "</b></a></td></tr></table>";
 	break;
 case "edit" :
-	echo "<form name=\"choose_form\" method=\"get\" action=\"$SCRIPT_NAME\">";
+	echo "<form name=\"choose_form\" method=\"get\" action=\"", PGV_SCRIPT_NAME, "\">";
 	echo "<input type=\"hidden\" name=\"action\" value=\"edit\" />";
 	echo "<input type=\"hidden\" name=\"execute\" value=\"true\" />";
-	echo "<table class=\"facts_table $TEXT_DIRECTION\" style=\"width:70%; \">";
+	echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\" style=\"width:70%; \">";
 	echo "<tr><td class=\"facts_label03\" colspan=\"4\">";
 	echo $pgv_lang["edit_lang_utility"];
 	echo "</td></tr>";
@@ -127,7 +130,7 @@ case "edit" :
 	echo "<br />";
 	echo "<select name=\"language2\">";
 	foreach ($Sorted_Langs as $key=>$value) {
-		echo "<option value=\"$key\"";
+		echo "<option value=\"", $key, "\"";
 		if ($key == $language2) {
 			echo " selected=\"selected\"";
 		}
@@ -192,7 +195,7 @@ case "edit" :
 	if ($file_type == "lang") {
 		echo " selected=\"selected\"";
 	}
-	echo ">"."lang.xx.php</option>";
+	echo ">", "lang.xx.php</option>";
 
 	echo "</select>";
 	echo "</td>";
@@ -279,7 +282,7 @@ case "edit" :
 		$new_language_array = array();
 		$new_language_array = read_complete_file_into_array($whichFile[$language2], $whichVars);
 
-		echo "<table class=\"facts_table $TEXT_DIRECTION\" style=\"width:70%; \">";
+		echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\" style=\"width:70%; \">";
 		echo "<tr><td class=\"facts_value center\" colspan=\"2\"><span class=\"subheaders\">", $pgv_lang["listing"], ":&nbsp;&nbsp;&nbsp;";
 		echo $whichFile["english"], "&nbsp;&nbsp;&nbsp;", $pgv_lang["and"], "&nbsp;&nbsp;&nbsp;", $whichFile[$language2];
 		echo "</span><br /><br />";
@@ -288,7 +291,7 @@ case "edit" :
 		$lang1 = $language_settings[strtolower($language1)]['lang_short_cut'];
 		$lang2 = $language_settings[strtolower($language2)]['lang_short_cut'];
 
-		$lastfound = (-1);
+		$lastfound = -1;
 		for ($ls01 = 0, $lsmax = sizeof($english_language_array); $ls01 < $lsmax; $ls01++) {
 			if (isset($english_language_array[$ls01][1])) {
 				$dummy_output = "";
@@ -386,7 +389,7 @@ case "debug" :
 	echo "<form name=\"debug_form\" method=\"get\" action=\"editlang.php\">";
 	echo "<input type=\"hidden\" name=\"action\" value=\"debug\" />";
 	echo "<input type=\"hidden\" name=\"execute\" value=\"true\" />";
-	echo "<table class=\"facts_table $TEXT_DIRECTION\" style=\"width:70%; \">";
+	echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\" style=\"width:70%; \">";
 	echo "<tr><td class=\"facts_label03\" colspan=\"3\">";
 	echo $pgv_lang["lang_debug"];
 	echo "</td></tr>";
@@ -408,10 +411,10 @@ case "debug" :
 	echo "</form>";
 	break;
 case "export" :
-	echo "<form name=\"export_form\" method=\"get\" action=\"$SCRIPT_NAME\">";
+	echo "<form name=\"export_form\" method=\"get\" action=\"", PGV_SCRIPT_NAME, "\">";
 	echo "<input type=\"hidden\" name=\"action\" value=\"export\" />";
 	echo "<input type=\"hidden\" name=\"execute\" value=\"true\" />";
-	echo "<table class=\"facts_table $TEXT_DIRECTION\" style=\"width:70%; \">";
+	echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\" style=\"width:70%; \">";
 	echo "<tr><td class=\"facts_label03\" colspan=\"3\">";
 	echo $pgv_lang["export_lang_utility"];
 	echo "</td></tr>";
@@ -423,7 +426,7 @@ case "export" :
 	echo "<br />";
 	echo "<select name=\"language2\">";
 	foreach ($Sorted_Langs as $key=>$value) {
-		echo "<option value=\"$key\"";
+		echo "<option value=\"", $key, "\"";
 		if ($key == $language2) {
 			echo " selected=\"selected\"";
 		}
@@ -475,7 +478,7 @@ case "export" :
 			$language_array = array_merge($language_array, read_export_file_into_array($pgv_language[$language2], "pgv_lang["));
 		}
 		$new_language_array = array();
-		$new_language_array_counter = 0;;
+		$new_language_array_counter = 0;
 
 		for ($z = 0, $zmax = sizeof($language_array); $z < $zmax; $z++) {
 			if (isset($language_array[$z][0])) {
@@ -514,7 +517,7 @@ case "export" :
 		for ($z = 0, $zmax = sizeof($new_language_array); $z < $zmax; $z++) {
 			if ($new_language_array[$z][0] != "config_help" and $new_language_array[$z][0] != "welcome_help") {
 				fwrite($fp, "<li>");
-				fwrite($fp, stripslashes(print_text($new_language_array[$z][1],0,2))."<br /><br /></li>");
+				fwrite($fp, print_text($new_language_array[$z][1], 0, 2)."<br /><br /></li>");
 			}
 		}
 
@@ -530,14 +533,14 @@ case "export" :
 		echo $pgv_lang["export_ok"];
 		echo "</strong><br />";
 		echo $pgv_lang["export_filename"];
-		echo " <a href=\"", $FileName."\">", $FileName, "</a>";
+		echo " <a href=\"", $FileName, "\">", $FileName, "</a>";
 	}
 	break;
 case "compare" :
-	echo "<form name=\"langdiff_form\" method=\"get\" action=\"$SCRIPT_NAME\">";
+	echo "<form name=\"langdiff_form\" method=\"get\" action=\"", PGV_SCRIPT_NAME, "\">";
 	echo "<input type=\"hidden\" name=\"action\" value=\"compare\" />";
 	echo "<input type=\"hidden\" name=\"execute\" value=\"true\" />";
-	echo "<table class=\"facts_table $TEXT_DIRECTION\" style=\"width:70%; \">";
+	echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\" style=\"width:70%; \">";
 	echo "<tr><td class=\"facts_label03\" colspan=\"3\">";
 	echo $pgv_lang["compare_lang_utility"];
 	echo "</td></tr>";
@@ -549,7 +552,7 @@ case "compare" :
 	echo "<br />";
 	echo "<select name=\"language1\">";
 	foreach ($Sorted_Langs as $key=>$value) {
-		echo "<option value=\"$key\"";
+		echo "<option value=\"", $key, "\"";
 		if ($key == $language1) {
 			echo " selected=\"selected\"";
 		}
@@ -564,7 +567,7 @@ case "compare" :
 	echo "<br />";
 	echo "<select name=\"language2\">";
 	foreach ($Sorted_Langs as $key=>$value) {
-		echo "<option value=\"$key\"";
+		echo "<option value=\"", $key, "\"";
 		if ($key == $language2) {
 			echo " selected=\"selected\"";
 		}
@@ -648,7 +651,7 @@ case "compare" :
 				// ---- Look for additions
 				//      These are entries that exist in the first but don't exist in the second file
 				echo "<span class=\"subheaders\">", $pgv_lang["additions"], ":</span>";
-				echo "<table class=\"facts_table $TEXT_DIRECTION\">";
+				echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\">";
 				$count=0;
 				foreach($list1 as $key=>$value) {
 					$key2 = str_replace('"', "'", $key);		// Var name could be enclosed in apostrophes
@@ -666,7 +669,7 @@ case "compare" :
 				// ---- Look for subtractions
 				//      These are entries that exist in the second but don't exist in the first file
 				echo "<span class=\"subheaders\">", $pgv_lang["subtractions"], ":</span>";
-				echo "<table class=\"facts_table $TEXT_DIRECTION\">";
+				echo "<table class=\"facts_table ", $TEXT_DIRECTION, "\">";
 				$count=0;
 				foreach($list2 as $key=>$value) {
 					$key2 = str_replace('"', "'", $key);		// Var name could be enclosed in apostrophes
@@ -745,9 +748,9 @@ default:
 
 //-- load file for language settings
 $Languages_Default = true;
-if (file_exists($INDEX_DIRECTORY."lang_settings.php")) {
+if (file_exists(PHPGEDVIEW_PKG_INDEX_PATH .'lang_settings.php')) {
 	$DefaultSettings = $language_settings;    // Save default settings, so we can merge properly
-	require $INDEX_DIRECTORY."lang_settings.php";
+	require PHPGEDVIEW_PKG_INDEX_PATH .'lang_settings.php';
 	$ConfiguredSettings = $language_settings;  // Save configured settings, same reason
 	$language_settings = array_merge($DefaultSettings, $ConfiguredSettings);  // Copy new langs into config
 	// Now copy new language settings into existing configuration
@@ -822,7 +825,7 @@ foreach ($language_settings as $key=>$value) {
 	$DICTIONARY_SORT[$key]      =$value["DICTIONARY_SORT"];
 	$COLLATION[$key]            =$value["COLLATION"];
 	$DATE_FORMAT_array[$key]    =$value["DATE_FORMAT"];
-	$TIME_FORMAT_array[$key]    =$value["TIME_FORMAT"];;
+	$TIME_FORMAT_array[$key]    =$value["TIME_FORMAT"];
 	$WEEK_START_array[$key]     =$value["WEEK_START"];
 	$TEXT_DIRECTION_array[$key] =$value["TEXT_DIRECTION"];
 	$NAME_REVERSE_array[$key]   =$value["NAME_REVERSE"];
@@ -832,8 +835,8 @@ foreach ($language_settings as $key=>$value) {
 	$dDummy = $value["langcode"];
 	$ct = strpos($dDummy, ";");
 	while ($ct > 1) {
-		$shrtcut = substr($dDummy,0,$ct);
-		$dDummy = substr($dDummy,$ct+1);
+		$shrtcut = substr($dDummy, 0, $ct);
+		$dDummy = substr($dDummy, $ct+1);
 		$langcode[$shrtcut]    = $key;
 		$ct = strpos($dDummy, ";");
 	}

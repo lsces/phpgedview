@@ -23,7 +23,11 @@
  * @subpackage Admin
  * @version $Id$
  */
-require("config.php");
+
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'message.php');
+require './config.php';
 
 loadLangFile("pgv_confighelp");
 
@@ -52,7 +56,7 @@ if ($to=="all" && !PGV_USER_IS_ADMIN) {
 	exit;
 }
 
-if (($action=="send")&&(isset($_SESSION["good_to_send"]))&&($_SESSION["good_to_send"]===true)) {
+if (($action=="send")&& isset( $_SESSION["good_to_send"] )&&($_SESSION["good_to_send"]===true)) {
 	$_SESSION["good_to_send"] = false;
 	if (!empty($from_email)) $from = $from_email;
 	if (!get_user_id($from)) {
@@ -131,8 +135,9 @@ if (($action=="send")&&(isset($_SESSION["good_to_send"]))&&($_SESSION["good_to_s
 			$message["url"] = $url.'&amp;ged='.$GEDCOM;
 			if ($i>0) $message["no_from"] = true;
 			if (addMessage($message)){
-				if (get_user_id($to)) {
-					print str_replace("#TO_USER#", "<b>".getUserFullName($to)."</b>", $pgv_lang["message_sent"]);
+				$to_user_id=get_user_id($to);
+				if ($to_user_id) {
+					print str_replace("#TO_USER#", "<b>".getUserFullName($to_user_id)."</b>", $pgv_lang["message_sent"]);
 					print "<br />";
 				} else {
 					AddToLog('Invalid TO user.'.$to.' Possible spam attack.');
@@ -150,7 +155,7 @@ if ($action=="compose") {
 	print '<span class="subheaders">'.$pgv_lang["message"].'</span>';
 	$_SESSION["good_to_send"] = true;
 	?>
-	<script language="JavaScript" type="text/javascript">
+	<script>
 		function validateEmail(email) {
 			if (email.value.search("(.*)@(.*)")==-1) {
 				alert('<?php print $pgv_lang["invalid_email"]; ?>');
@@ -182,9 +187,10 @@ if ($action=="compose") {
 	else print "return checkForm(this);";
 	print "\">\n";
 	print "<table>\n";
-	if (get_user_id($to)) {
-		$lang_temp = "lang_name_".get_user_setting($to, 'language');
-		$touserName = getUserFullName($to);
+	$to_user_id=get_user_id($to);
+	if ($to_user_id) {
+		$lang_temp = "lang_name_".get_user_setting($to_user_id, 'language');
+		$touserName = getUserFullName($to_user_id);
 		print "<tr><td></td><td>".str_replace("#TO_USER#", "<b>".$touserName."</b>", $pgv_lang["sending_to"])."<br />";
 		print str_replace("#USERLANG#", "<b>".$pgv_lang[$lang_temp]."</b>", $pgv_lang["preferred_lang"])."</td></tr>\n";
 	}

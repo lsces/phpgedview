@@ -27,4 +27,3 @@
  * @subpackage WebService
  */
 include "client.php";
-?>

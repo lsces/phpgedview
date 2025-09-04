@@ -4,7 +4,7 @@
  * Allow an admin user to download the entire gedcom	file.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  John Finlay and Others, all rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,20 +24,12 @@
  * @subpackage Admin
  * @version $Id$
  */
+namespace Bitweaver\Phpgedview;
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+define('PGV_SCRIPT_NAME', 'downloadgedcom.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_export.php';
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require_once("config.php");
-require_once("includes/functions_export.php");
 // Validate user parameters
 if (!isset($_SESSION['exportConvPath'])) $_SESSION['exportConvPath'] = $MEDIA_DIRECTORY;
 if (!isset($_SESSION['exportConvSlashes'])) $_SESSION['exportConvSlashes'] = 'forward';
@@ -56,8 +48,7 @@ $conv_path = stripLRMRLM($conv_path);
 $_SESSION['exportConvPath'] = $conv_path;		// remember this for the next Download
 $_SESSION['exportConvSlashes'] = $conv_slashes;
 
-
-if ((!userGedcomAdmin(getUserName())) || (empty ($ged))) {
+if (!PGV_USER_GEDCOM_ADMIN || !$ged) {
 	header("Location: editgedcoms.php");
 	exit;
 }
@@ -75,13 +66,13 @@ if ($action == 'download') {
 }
 
 if ($action == "download" && $zip == "yes") {
-	require "includes/pclzip.lib.php";
+	require PGV_ROOT.'includes/pclzip.lib.php';
 
-	$temppath = $INDEX_DIRECTORY . "tmp/";
+	$temppath = PHPGEDVIEW_PKG_INDEX_PATH  . "tmp/";
 	$fileName = $ged;
 	if ($filetype =="gramps") $fileName = $ged.".gramps";
 	$zipname = "dl" . date("YmdHis") . $fileName . ".zip";
-	$zipfile = $INDEX_DIRECTORY . $zipname;
+	$zipfile = PHPGEDVIEW_PKG_INDEX_PATH  . $zipname;
 	$gedname = $temppath . $fileName;
 
 	$removeTempDir = false;

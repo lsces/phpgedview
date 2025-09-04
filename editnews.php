@@ -23,11 +23,14 @@
  * @package PhpGedView
  */
 
-require 'config.php';
+namespace Bitweaver\Phpgedview;
 
-$useFCK = file_exists("./modules/FCKeditor/fckeditor.php");
+define('PGV_SCRIPT_NAME', 'editnews.php');
+require './config.php';
+
+$useFCK = file_exists(PGV_ROOT.'modules/FCKeditor/fckeditor.php');
 if($useFCK){
-	include("./modules/FCKeditor/fckeditor.php");
+	require PGV_ROOT.'modules/FCKeditor/fckeditor.php';
 }
 
 if (!PGV_USER_ID) {
@@ -51,7 +54,7 @@ if (empty($username)) $username=$GEDCOM;
 if ($action=="compose") {
 	print '<span class="subheaders">'.$pgv_lang["edit_news"].'</span>';
 	?>
-	<script language="JavaScript" type="text/javascript">
+	<script>
 		function checkForm(frm) {
 			if (frm.title.value=="") {
 				alert('<?php print $pgv_lang["enter_title"]; ?>');

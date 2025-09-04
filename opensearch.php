@@ -20,7 +20,12 @@
  * @subpackage search
  * @version $Id$
  */
+
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'opensearch.php');
 require './config.php';
+
 header('Content-Type: application/opensearchdescription+xml; charset=utf-8');
 
 echo '<?xml version="1.0" encoding="UTF-8"?>';
@@ -32,4 +37,3 @@ echo '<Url type="text/html" template="' . $SERVER_URL. 'search.php?action=genera
 echo '<Url type="application/x-suggestions+json" template="' . $SERVER_URL. 'autocomplete.php?limit=20&amp;field=NAME&amp;fmt=json&amp;q={searchTerms}"/>';
 echo'<Image height="16" width="16" type="image/x-icon">' . $SERVER_URL. $FAVICON . '</Image>';
 echo '</OpenSearchDescription>';
-?>

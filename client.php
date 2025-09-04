@@ -8,7 +8,7 @@
 * When $action is 'delete' the gedcom record with $xref is removed from the file.
 *
 * phpGedView: Genealogy Viewer
-* Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+* Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,15 @@
 * @version $Id$
 */
 
-require "config.php";
+namespace Bitweaver\Phpgedview;
 
-require_once 'includes/functions/functions_edit.php';
+define('PGV_SCRIPT_NAME', 'client.php');
+require './config.php';
+require PGV_ROOT.'includes/functions/functions_edit.php';
 
 header("Content-Type: text/plain; charset=$CHARACTER_SET");
 
-$READ_ONLY = ((isset($_SESSION['readonly']))&&($_SESSION['readonly']==true)) ? 1 : 0;
+$READ_ONLY = ( isset($_SESSION['readonly'] ) && ( $_SESSION['readonly'] == true ) ) ? 1 : 0;
 
 // Make sure there is at least one gedcom.
 if (count(get_all_gedcoms())==0) {
@@ -55,7 +57,7 @@ if ($gedcom) {
 }
 $GED_ID=get_id_from_gedcom($GEDCOM);
 
-if (!check_for_import($GEDCOM)) {
+if (!get_gedcom_setting($GED_ID, 'imported')) {
 	addDebugLog($action." ERROR 22: Gedcom [$GEDCOM] needs to be imported.");
 	print "ERROR 22: Gedcom [$GEDCOM] needs to be imported.\n";
 	exit;
@@ -85,6 +87,7 @@ case 'connect':
 				print "SUCCESS\n".$stat;
 			}
 			$_SESSION['connected']=$user_id;
+			$_SESSION['initiated']=true;
 		} else {
 			addDebugLog($action." username=$username ERROR 10: Username and password key failed to authenticate.");
 			print "ERROR 10: Username and password key failed to authenticate.\n";
@@ -128,9 +131,9 @@ case 'get':
 		$gedrecords="";
 		foreach ($xrefs as $xref1) {
 			if (!empty($xref1)) {
-				$gedrec=find_updated_record($xref1);
+				$gedrec=find_updated_record($xref1, $GED_ID);
 				if (!$gedrec) {
-					$gedrec=find_gedcom_record($xref1);
+					$gedrec=find_gedcom_record($xref1, $GED_ID);
 					if ($gedrec) {
 						preg_match("/0 @(.*)@ (.*)/", $gedrec, $match);
 						$type = trim($match[2]);
@@ -141,12 +144,12 @@ case 'get':
 						else if ($view=='version' || $view=='change') {
 							$chan = get_gedcom_value('CHAN', 1, $gedrec);
 							if (empty($chan)) {
-								$head = find_gedcom_record("HEAD");
+								$head = find_gedcom_record("HEAD", $GED_ID);
 								$head_date = get_sub_record(1, "1 DATE", $head);
 								$lines = explode("\n", $head_date);
 								$head_date = "";
 								foreach($lines as $line) {
-									$num = $line{0};
+									$num = $line[0];
 									$head_date.=($num+1).substr($line, 1)."\n";
 								}
 								$chan = "1 CHAN\n".$head_date;
@@ -252,9 +255,9 @@ case 'getnext':
 	$xref=safe_REQUEST($_REQUEST,'xref', PGV_REGEX_XREF);
 	if ($xref) {
 		$xref1 = get_next_xref($xref, $GED_ID);
-		$gedrec = find_updated_record($xref1);
+		$gedrec = find_updated_record($xref1, $GED_ID);
 		if (!$gedrec) {
-			$gedrec = find_gedcom_record($xref1);
+			$gedrec = find_gedcom_record($xref1, $GED_ID);
 		}
 		if (!displayDetailsById($xref1)) {
 			//-- do not have full access to this record, so privatize it
@@ -271,9 +274,9 @@ case 'getprev':
 	$xref=safe_REQUEST($_REQUEST,'xref', PGV_REGEX_XREF);
 	if ($xref) {
 		$xref1 = get_prev_xref($xref, $GED_ID);
-		$gedrec = find_updated_record($xref1);
+		$gedrec = find_updated_record($xref1, $GED_ID);
 		if (!$gedrec) {
-			$gedrec = find_gedcom_record($xref1);
+			$gedrec = find_gedcom_record($xref1, $GED_ID);
 		}
 		if (!displayDetailsById($xref1)) {
 			//-- do not have full access to this record, so privatize it
@@ -335,8 +338,6 @@ case 'getxref':
 		print "ERROR 18: Invalid \$type or \$position specification.  Valid types are INDI, FAM, SOUR, REPO, NOTE, OBJE, or OTHER\n";
 		exit;
 	}
-	global $gBitDb;
-	
 	switch ($position) {
 	case 'first':
 		$xref=get_first_xref($type, $GED_ID);
@@ -455,4 +456,3 @@ default:
 	addDebugLog($action." ERROR 2: Unable to process request.  Unknown action.");
 	print "ERROR 2: Unable to process request.  Unknown action.\n";
 }
-?>

@@ -1,34 +1,35 @@
 <?php
 /**
- *  Add Remote Link Page
- *
- *  Allow a user the ability to add links to people from other servers and other gedcoms.
- *
- * phpGedView: Genealogy Viewer
+*  Add Remote Link Page
+*
+*  Allow a user the ability to add links to people from other servers and other gedcoms.
+*
+* phpGedView: Genealogy Viewer
 * Copyright (C) 2002 to 2009 PGV Development Team.  All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * @package PhpGedView
- * @subpackage Charts
- * @version $Id$
- */
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+* @package PhpGedView
+* @subpackage Charts
+* @version $Id$
+*/
 
-require 'config.php';
+namespace Bitweaver\Phpgedview;
 
-require './includes/controllers/remotelink_ctrl.php';
+define('PGV_SCRIPT_NAME', 'addremotelink.php');
+require './config.php';
 
 $controller=new RemoteLinkController();
 $controller->init();
@@ -113,11 +114,11 @@ if (!$success) {
 <table class="facts_table">
 	<tr>
 		<td class="title" colspan="2">
-			<?php print_help_link("link_remote_help", "qm"); echo $pgv_lang['title_remote_link']; ?>
+			<?php print_help_link("link_remote_help", "qm", "title_remote_link"); echo $pgv_lang["title_remote_link"]; ?>
 		</td>
 	</tr>
 	<tr>
-		<td class="descriptionbox wrap width20"><?php print_help_link('link_remote_rel_help', 'qm'); ?>
+		<td class="descriptionbox wrap width20"><?php print_help_link("link_remote_rel_help", "qm", "label_rel_to_current"); ?>
 			<?php echo $pgv_lang["label_rel_to_current"]; ?>
 		</td>
 		<td class="optionbox">
@@ -136,7 +137,7 @@ if (!$success) {
 	</tr>
 	<?php if ($controller->server_list || $controller->gedcom_list) { ?>
 	<tr>
-		<td class="descriptionbox wrap width20"><?php print_help_link('link_remote_location_help', 'qm'); ?>
+		<td class="descriptionbox wrap width20"><?php print_help_link("link_remote_location_help", "qm", "label_location"); ?>
 		<?php echo $pgv_lang["label_location"]; ?></td>
 		<td class="optionbox">
 			<?php
@@ -169,7 +170,7 @@ if (!$success) {
 	<tr>
 		<td class="descriptionbox wrap width20">
 			<?php
-				print_help_link('link_person_id_help', 'qm');
+				print_help_link("link_person_id_help", "qm", "label_local_id");
 				echo $pgv_lang["label_local_id"];
 			?>
 		</td>
@@ -178,9 +179,9 @@ if (!$success) {
 		</td>
 	</tr>
 	<tr>
-		<td class="descriptionbox wrap width20"><?php print_help_link('link_remote_site_help', 'qm'); ?>
+		<td class="descriptionbox wrap width20"><?php print_help_link("link_remote_site_help", "qm", "label_site"); ?>
 			<span id="labelSite">
-				<?php echo $pgv_lang['label_site']; ?>
+				<?php echo $pgv_lang["label_site"]; ?>
 			</span>
 		</td>
 		<td class="optionbox" id="tdUrlText">
@@ -207,7 +208,9 @@ if (!$success) {
 					</tr><tr>
 						<td valign="top"><?php echo $pgv_lang["label_site_url"]; ?></td>
 						<td><input type="text" id="txtURL" name="txtURL" size="66" value="<?php echo $controller->form_txtURL; ?>" />
-						<br /><?php echo $pgv_lang['example']; ?>&nbsp;&nbsp;http://www.remotesite.com/phpGedView/genservice.php?wsdl</td>
+					</tr><tr>
+						<td>&nbsp;&nbsp;<?php echo $pgv_lang["example"]; ?></td>
+						<td>http://www.remotesite.com/phpGedView/genservice.php?wsdl</td>
 					</tr><tr>
 						<td><?php echo $pgv_lang["label_gedcom_id2"]; ?></td>
 						<td><input type="text" id="txtGID" name="txtGID" value="<?php echo $controller->form_txtGID; ?>" /></td>
@@ -241,9 +244,25 @@ if (!$success) {
 			</div>
 		</td>
 	</tr>
+	<?php
+	if (PGV_USER_IS_ADMIN) {
+		echo "<tr><td class=\"descriptionbox ", $TEXT_DIRECTION, " wrap width25\">";
+		print_help_link("no_update_CHAN_help", "qm", "no_update_CHAN");
+		echo $pgv_lang["admin_override"], "</td><td class=\"optionbox wrap\">\n";
+		if ($NO_UPDATE_CHAN) {
+			echo "<input type=\"checkbox\" checked=\"checked\" name=\"preserve_last_changed\" />\n";
+		} else {
+			echo "<input type=\"checkbox\" name=\"preserve_last_changed\" />\n";
+		}
+		echo $pgv_lang["no_update_CHAN"], "<br />\n";
+		$event = new Event(get_sub_record(1, "1 CHAN", ""));
+		echo format_fact_date($event, false, true);
+		echo "</td></tr>\n";
+	}
+	?>
 </table>
 <br />
-<input type="submit" value="<?php echo $pgv_lang['label_add_remote_link']; ?>" id="btnSubmit" name="btnSubmit" />
+<input type="submit" value="<?php echo $pgv_lang["label_add_remote_link"]; ?>" id="btnSubmit" name="btnSubmit" />
 </form>
 <?php
 	echo PGV_JS_START, 'swapComponents("', $controller->form_location, '");', PGV_JS_END;
@@ -253,7 +272,7 @@ if (!$success) {
 if ($success && $EDIT_AUTOCLOSE) {
 	echo PGV_JS_START, 'edit_close();', PGV_JS_END;
 } else {
-	echo '<div class="center"><a href="javascript://', $pgv_lang['close_window'], '" onclick="edit_close();">', $pgv_lang['close_window'], '</a></div>';
+	echo '<div class="center"><a href="javascript://', $pgv_lang["close_window"], '" onclick="edit_close();">', $pgv_lang["close_window"], '</a></div>';
 	print_simple_footer();
 }
 

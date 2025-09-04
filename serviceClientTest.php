@@ -1,8 +1,11 @@
 <pre>
 <?php
-require_once('config.php');
+
+define('PGV_SCRIPT_NAME', 'serviceClientTest.php');
+require './config.php';
+
 ob_start();
-require_once('SOAP/Client.php');
+require_once './SOAP/Client.php';
 
 //-- put your URL here
 $url = 'http://localhost/pgv-svn/genservice.php?wsdl';
@@ -10,13 +13,13 @@ print "Getting WSDL<br />";
 
 if (!class_exists('SoapClient')) {
 	print "Using PEAR:SOAP<br />";
-	$wsdl = new SOAP_WSDL($url);
+	$wsdl = new \SOAP_WSDL($url);
 	print "Getting Proxy<br />";
 	$soap = $wsdl->getProxy();
 }
 else {
 	print "Using SOAP Extension<br />";
-	$soap = new SoapClient($url);
+	$soap = new \SoapClient($url);
 }
 
 print "Getting ServiceInfo<br />\n";
@@ -39,11 +42,10 @@ print "After getGedcomRecord<br />";
 
 //$person = $soap->getPersonByID($result->SID, "I1");
 //print_r($person);
-//require_once('includes/GrampsExport.php');
 //$ge= new GrampsExport();
 //$ge->begin_xml();
-//$ge->create_family(find_family_record("F1"), "F1", 1);
-////$ge->create_person(find_person_record("I1"), "I1", 1);
+//$ge->create_family(find_family_record("F1", PGV_GED_ID), "F1", 1);
+////$ge->create_person(find_person_record("I1", PGV_GED_ID), "I1", 1);
 //$xml = $ge->dom->saveXML();
 //print htmlentities($xml);
 //
@@ -85,12 +87,6 @@ print_r($s);
 //print_r($s);
 //
 /************* THE REST OF THESE SCHOULD RETURN SOAP FAULTS SINCE THEY'RE NOT ALLOWED   **********/
-//$s = $soap->getVar($result->SID, 'PGV_BASE_DIRECTORY');
-//print_r($s);
-//
-//$s = $soap->getVar($result->SID, 'PGV_DATABASE');
-//print_r($s);
-//
 //$s = $soap->getVar($result->SID, 'DBTYPE');
 //print_r($s);
 //

@@ -26,18 +26,11 @@
  * @version $Id$
  */
 
-// Initialization
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require_once './includes/functions/functions_charts.php';
+define('PGV_SCRIPT_NAME', 'familybook.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_charts.php';
 
 // Extract form variables
 $pid        =safe_GET_xref('pid');
@@ -49,7 +42,7 @@ $box_width  =safe_GET_integer('box_width',     50, 300, 100);
 
 
 // -- size of the boxes
-if (!$show_full) $bwidth = ($bwidth / 1.5);
+if (!$show_full) $bwidth /= 1.5;
 $bwidth = (int) ($bwidth * $box_width/100);
 
 if ($show_full==false) {
@@ -74,7 +67,7 @@ function print_descendency($pid, $count) {
 	if (count($famids)>0) {
 		$firstkids = 0;
 		foreach($famids as $indexval => $famid) {
-			$famrec = find_family_record($famid);
+			$famrec = find_family_record($famid, PGV_GED_ID);
 			$ct = preg_match_all("/1 CHIL @(.*)@/", $famrec, $match, PREG_SET_ORDER);
 			if ($ct>0) {
 			print "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n";
@@ -128,7 +121,7 @@ function print_descendency($pid, $count) {
 	//-- add offset divs to make things line up better
 	if ($show_spouse) {
 		foreach($famids as $indexval => $famid) {
-			$famrec = find_family_record($famid);
+			$famrec = find_family_record($famid, PGV_GED_ID);
 			if (!empty($famrec)) {
 				$marrec = get_sub_record(1, "1 MARR", $famrec);
 				if (!empty($marrec)) {
@@ -142,7 +135,7 @@ function print_descendency($pid, $count) {
 	// NOTE: If statement OK
 	if ($show_spouse) {
 		foreach($famids as $indexval => $famid) {
-			$famrec = find_family_record($famid);
+			$famrec = find_family_record($famid, PGV_GED_ID);
 			if (!empty($famrec)) {
 				$parents = find_parents_in_record($famrec);
 				$marrec = get_sub_record(1, "1 MARR", $famrec);
@@ -158,7 +151,7 @@ function print_descendency($pid, $count) {
 	}
 	// NOTE: If statement OK
 	if ($count==0) {
-		$indirec = find_person_record($pid);
+		$indirec = find_person_record($pid, PGV_GED_ID);
 		// NOTE: If statement OK
 		if (displayDetailsById($pid, 'INDI') || showLivingNameById($pid)) {
 			// -- print left arrow for decendants so that we can move down the tree
@@ -168,7 +161,7 @@ function print_descendency($pid, $count) {
 			$num=0;
 			// NOTE: For statement OK
 			for($f=0; $f<count($cfamids); $f++) {
-				$famrec = find_family_record($cfamids[$f]);
+				$famrec = find_family_record($cfamids[$f], PGV_GED_ID);
 				if ($famrec) {
 					$num += preg_match_all("/1\s*CHIL\s*@(.*)@/", $famrec, $smatch,PREG_SET_ORDER);
 				}
@@ -185,12 +178,11 @@ function print_descendency($pid, $count) {
 				print "\n\t\t<div id=\"childbox.$pid\" dir=\"".$TEXT_DIRECTION."\" style=\"width:".$bwidth."px; height:".$bheight."px; visibility: hidden;\">";
 				print "\n\t\t\t<table class=\"person_box\"><tr><td>";
 				for($f=0; $f<count($famids); $f++) {
-					$famrec = find_family_record(trim($famids[$f]));
+					$famrec = find_family_record(trim($famids[$f]), PGV_GED_ID);
 					if ($famrec) {
 						$parents = find_parents($famids[$f]);
 						if($parents) {
-							if($pid!=$parents["HUSB"]) $spid=$parents["HUSB"];
-							else $spid=$parents["WIFE"];
+							$spid = $pid != $parents["HUSB"] ? $parents["HUSB"] : $parents["WIFE"];
 							$spouse=Person::getInstance($spid);
 							if ($spouse) {
 								$name=$spouse->getFullName();
@@ -220,7 +212,7 @@ function print_descendency($pid, $count) {
 				}
 				//-- print the siblings
 				for($f=0; $f<count($cfamids); $f++) {
-					$famrec = find_family_record($cfamids[$f]);
+					$famrec = find_family_record($cfamids[$f], PGV_GED_ID);
 					if ($famrec) {
 						$parents = find_parents($cfamids[$f]);
 						if($parents) {
@@ -285,7 +277,7 @@ function max_descendency_generations($pid, $depth) {
 	$famids = find_sfamily_ids($pid);
 	$maxdc = $depth;
 	foreach($famids as $indexval => $famid) {
-		$famrec = find_family_record($famid);
+		$famrec = find_family_record($famid, PGV_GED_ID);
 		$ct = preg_match_all("/1 CHIL @(.*)@/", $famrec, $match, PREG_SET_ORDER);
 		for($i=0; $i<$ct; $i++) {
 			$chil = trim($match[$i][1]);
@@ -302,7 +294,7 @@ function print_person_pedigree($pid, $count) {
 	global $generations, $SHOW_EMPTY_BOXES, $PGV_IMAGE_DIR, $PGV_IMAGES, $bheight, $bhalfheight;
 	if ($count>=$generations) return;
 	$famids = find_family_ids($pid);
-	$hheight = ($bhalfheight+3) * pow(2,($generations-$count-1));
+	$hheight = ($bhalfheight+3) * pow(2,$generations-$count-1);
 	foreach($famids as $indexval => $famid) {
 		print "<table cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"empty-cells: show;\">\n";
 		$parents = find_parents($famid);
@@ -365,7 +357,7 @@ function print_family_book($pid, $descent)
 				print "<br /><br />\n";
 
 				foreach($famids as $indexval => $famid) {
-						$famrec = find_family_record($famid);
+						$famrec = find_family_record($famid, PGV_GED_ID);
 						$ct = preg_match_all("/1 CHIL @(.*)@/", $famrec, $match, PREG_SET_ORDER);
 						for($i=0; $i<$ct; $i++) {
 							$chil = trim($match[$i][1]);
@@ -379,13 +371,12 @@ function print_family_book($pid, $descent)
 // -- print html header information
 print_header(PrintReady($name)." ".$pgv_lang["familybook_chart"]);
 
-if ($ENABLE_AUTOCOMPLETE) require './js/autocomplete.js.htm';
+if ($ENABLE_AUTOCOMPLETE) require PGV_ROOT.'js/autocomplete.js.html';
 
 // LBox =====================================================================================
-if ($MULTI_MEDIA && file_exists("modules/lightbox/album.php")) {
-	include('modules/lightbox/lb_defaultconfig.php');
-	if (file_exists('modules/lightbox/lb_config.php')) include('modules/lightbox/lb_config.php');
-	include('modules/lightbox/functions/lb_call_js.php');
+if (PGV_USE_LIGHTBOX) {
+	require PGV_ROOT.'modules/lightbox/lb_defaultconfig.php';
+	require PGV_ROOT.'modules/lightbox/functions/lb_call_js.php';
 }
 // ==========================================================================================
 
@@ -398,7 +389,7 @@ if ($view=="preview") {
 }
 ?>
 
-<script language="JavaScript" type="text/javascript">
+<script>
 <!--
 	var pastefield;
 	function open_find(textbox) {

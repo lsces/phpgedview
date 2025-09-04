@@ -3,7 +3,7 @@
  * Display a diff between two language files to help in translating.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  John Finlay and Others, all rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,15 +23,17 @@
  * @subpackage Languages
  * @version $Id$
  */
- 
-require "config.php";
-require  $confighelpfile["english"];
-if (file_exists( $confighelpfile[$LANGUAGE])) require  $confighelpfile[$LANGUAGE];
+
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'changelanguage.php');
+require './config.php';
+
+loadLangFile("pgv_confighelp");
 
 //-- make sure that they have admin status before they can use this page
 //-- otherwise have them login again
-$uname = getUserName();
-if (empty($uname)) {
+if (!PGV_USER_IS_ADMIN) {
 	header("Location: login.php?url=changelanguage.php");
 	exit;
 }
@@ -54,7 +56,7 @@ switch ($action) {
 print PGV_JS_START;
 print "var helpWin;";
 print "function showchanges() {";
-print "window.location = '{$_SERVER['PHP_SELF']}';";
+print "window.location = '".PGV_SCRIPT_NAME."';";
 print "}";
 print "function helpPopup03(which) {";
 print "location.href = 'editlang_edit_settings.php?' + which + '&new_shortcut=' + document.new_lang_form.new_shortcut.value;";
@@ -65,15 +67,15 @@ print PGV_JS_END;
 // Create array with configured languages in gedcoms and users
 $configuredlanguages = array();
 
-// Read GEDCOMS configuration and collect language data
+// Read gedcom configuration and collect language data
 foreach (get_all_gedcoms() as $ged_id => $ged_name) {
-	require get_gedcom_setting($ged_id, 'config');
+	require get_config_file($ged_id);
 	if (!isset($configuredlanguages["gedcom"][$LANGUAGE][$ged_name])) {
 		$configuredlanguages["gedcom"][$LANGUAGE][$ged_name] = true;
 	}
 }
 // Restore the current settings
-require get_gedcom_setting(PGV_GED_ID, 'config');
+require get_config_file(PGV_GED_ID);
 
 // Read user configuration and collect language data
 foreach (get_all_users() as $user_id=>$user_name) {
@@ -85,6 +87,11 @@ foreach (get_all_users() as $user_id=>$user_name) {
 // Sort the Language table into localized language name order
 foreach ($pgv_language as $key => $value){
 	$d_LangName = "lang_name_".$key;
+	// If we've added a new language, but haven't defined its name in the current language,
+	// then display something to indicate what is required, rather than an error.
+	if (!array_key_exists($d_LangName, $pgv_lang)) {
+		$pgv_lang[$d_LangName]="\$pgv_lang['$d_LangName']";
+	}
 	$Sorted_Langs[$key] = $pgv_lang[$d_LangName];
 }
 asort($Sorted_Langs);
@@ -117,7 +124,7 @@ print "<img src=\"".$PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]."\" width=\
 
 switch ($action) {
 	case "addnew" :
-		print "<form name=\"new_lang_form\" method=\"get\" action=\"$SCRIPT_NAME\">";
+		print '<form name="new_lang_form" method="get" action="' . PGV_SCRIPT_NAME . '">';
 		print "<input type=\"hidden\" name=\"" . session_name() . "\" value=\"" . session_id() . "\" />";
 		print "<input type=\"hidden\" name=\"action\" value=\"new_lang\" />";
 		print "<input type=\"hidden\" name=\"execute\" value=\"true\" />";
@@ -126,7 +133,7 @@ switch ($action) {
 		print $pgv_lang["add_new_language"];
 		print "</td></tr>";
 
-		require( "includes/lang_codes_std.php");
+		require PGV_ROOT.'includes/lang_codes_std.php';
 		print "<tr><td class=\"facts_value center\"><select name=\"new_shortcut\">\n";
 
 		asort($lng_codes);		// Sort the language codes table into language name order
@@ -153,7 +160,7 @@ switch ($action) {
 
 	case "editold" :
 	default :
-		print "<form name=\"lang_config_form\" method=\"get\" action=\"{$_SERVER['PHP_SELF']}\">";
+		print "<form name=\"lang_config_form\" method=\"get\" action=\"".PGV_SCRIPT_NAME."\">";
 		print "<input type=\"hidden\" name=\"" . session_name() . "\" value=\"" . session_id() . "\" />";
 		print "<input type=\"hidden\" name=\"action\" value=\"config_lang\" />";
 		print "<table class=\"facts_table center $TEXT_DIRECTION\" style=\"width:70%; \">";
@@ -210,7 +217,7 @@ switch ($action) {
 			} else {
 				$d_LangName = "lang_name_" . $value;
 				print "<td class=\"facts_value\" style=\"text-align: center;\">";
-					print $pgv_lang[$d_LangName];
+				print $pgv_lang[$d_LangName];
 				print "</td>";
 				print "<td class=\"facts_value\" style=\"text-align: center;\">";
 					print "<input";

@@ -5,7 +5,7 @@
  * You must supply a $famid value with the identifier for the family.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2010  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,20 +26,10 @@
  * @version $Id$
  */
 
-/**
- * Initialization
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require_once 'includes/controllers/family_ctrl.php';
+define('PGV_SCRIPT_NAME', 'family.php');
+require './config.php';
 
 $controller = new FamilyController();
 $controller->init();
@@ -47,7 +37,7 @@ $controller->init();
 print_header($controller->getPageTitle());
 // completely prevent display if privacy dictates so
 if (!$controller->family){
-	echo "<b>".$pgv_lang["unable_to_find_record"]."</b><br /><br />";
+	echo "<b>", $pgv_lang["unable_to_find_record"], "</b><br /><br />";
 	print_footer();
 	exit;
 }
@@ -58,78 +48,56 @@ else if (!$controller->family->canDisplayDetails()) {
 }
 
 // LB added for Lightbox viewer ==============================================================
-if ($MULTI_MEDIA && file_exists("modules/lightbox/album.php")) {
-	include('modules/lightbox/lb_defaultconfig.php');
-	if (file_exists('modules/lightbox/lb_config.php')) include('modules/lightbox/lb_config.php');
-	include_once('modules/lightbox/functions/lb_call_js.php');
+if (PGV_USE_LIGHTBOX) {
+	require PGV_ROOT.'modules/lightbox/lb_defaultconfig.php';
+	require_once PGV_ROOT.'modules/lightbox/functions/lb_call_js.php';
 }
 // LB ======================================================================================
 
 $PEDIGREE_FULL_DETAILS = "1";		// Override GEDCOM configuration
 $show_full = "1";
 
+$align = ( $TEXT_DIRECTION == 'ltr' ) ? 'left' : 'right';
+
 ?>
-<?php if ($controller->family->isMarkedDeleted()) print "<span class=\"error\">".$pgv_lang["record_marked_deleted"]."</span>"; ?>
-<script language="JavaScript" type="text/javascript">
+<?php if ($controller->family->isMarkedDeleted()) echo "<span class=\"error\">".$pgv_lang["record_marked_deleted"]."</span>"; ?>
+<script>
 <!--
 	function show_gedcom_record(shownew) {
 		fromfile="";
 		if (shownew=="yes") fromfile='&fromfile=1';
-		var recwin = window.open("gedrecord.php?pid=<?php print $controller->getFamilyID(); ?>"+fromfile, "_blank", "top=50,left=50,width=600,height=400,scrollbars=1,scrollable=1,resizable=1");
+		var recwin = window.open("gedrecord.php?pid=<?php echo $controller->getFamilyID(); ?>"+fromfile, "_blank", "top=50, left=50, width=600, height=400, scrollbars=1, scrollable=1, resizable=1");
 	}
 	function showchanges() {
-		window.location = 'family.php?famid=<?php print $controller->famid; ?>&show_changes=yes';
+		window.location = 'family.php?famid=<?php echo $controller->famid; ?>&show_changes=yes';
 	}
 //-->
 </script>
-<table>
+<table align="center" width="95%">
 	<tr>
 		<td>
 		<?php
-		print print_family_parents($controller->getFamilyID());
-		if (!$controller->isPrintPreview() && $controller->display && PGV_USER_CAN_EDIT) {
-		$husb = $controller->getHusband();
-		if (empty($husb)) { ?>
-			<?php print_help_link("edit_add_parent_help", "qm"); ?>
-			<a href="javascript <?php print $pgv_lang["add_father"]; ?>" onclick="return addnewparentfamily('', 'HUSB', '<?php print $controller->famid; ?>');"><?php print $pgv_lang["add_father"]; ?></a><br />
-		<?php }
-		$wife = $controller->getWife();
-		if (empty($wife))  { ?>
-			<?php print_help_link("edit_add_parent_help", "qm"); ?>
-			<a href="javascript <?php print $pgv_lang["add_mother"]; ?>" onclick="return addnewparentfamily('', 'WIFE', '<?php print $controller->famid; ?>');"><?php print $pgv_lang["add_mother"]; ?></a><br />
-		<?php }
-		}
-		?></td>
-		<td valign="top" class="noprint">
-			<div class="accesskeys">
+		print_family_header($controller->famid);
+		?>
+		</td>
+		<td>
 			<?php
-				if (empty($SEARCH_SPIDER)) {
-				?>
-				<a class="accesskeys" href="<?php print 'timeline.php?pids[0]=' . $controller->parents['HUSB'].'&amp;pids[1]='.$controller->parents['WIFE'];?>" title="<?php print $pgv_lang['parents_timeline'] ?>" tabindex="-1" accesskey="<?php print $pgv_lang['accesskey_family_parents_timeline']; ?>"><?php print $pgv_lang['parents_timeline'] ?></a>
-				<a class="accesskeys" href="<?php print 'timeline.php?' . $controller->getChildrenUrlTimeline();?>" title="<?php print $pgv_lang["children_timeline"] ?>" tabindex="-1" accesskey="<?php print $pgv_lang['accesskey_family_children_timeline']; ?>"><?php print $pgv_lang['children_timeline'] ?></a>
-				<a class="accesskeys" href="<?php print 'timeline.php?pids[0]=' .$controller->getHusband().'&amp;pids[1]='.$controller->getWife().'&amp;'.$controller->getChildrenUrlTimeline(2);?>" title="<?php print $pgv_lang['family_timeline'] ?>" tabindex="-1" accesskey="<?php print $pgv_lang['accesskey_family_timeline']; ?>"><?php print $pgv_lang['family_timeline'] ?></a>
-				<?php if ($SHOW_GEDCOM_RECORD) { ?>
-				<a class="accesskeys" href="javascript:show_gedcom_record();" title="<?php print $pgv_lang["view_gedcom"] ?>" tabindex="-1" accesskey="<?php print $pgv_lang["accesskey_family_gedcom"]; ?>"><?php print $pgv_lang["view_gedcom"] ?></a>
-				<?php } ?>
-			<?php } ?>
-			</div>
-			<?php
-			if (empty($SEARCH_SPIDER) && !$controller->isPrintPreview()) :
+			if (empty($SEARCH_SPIDER) && !$controller->isPrintPreview()) {
 			?>
-		<?php if (!$PGV_MENUS_AS_LISTS) {?>
+<?php if (!$PGV_MENUS_AS_LISTS) {?>
 			<table class="sublinks_table" cellspacing="4" cellpadding="0">
 				<tr>
-					<td class="list_label <?php print $TEXT_DIRECTION?>" colspan="4"><?php print $pgv_lang['fams_charts']?></td>
+					<td class="list_label <?php echo $TEXT_DIRECTION?>" colspan="4"><?php echo $pgv_lang['fams_charts']?></td>
 				</tr>
 				<tr>
-					<td class="sublinks_cell <?php print $TEXT_DIRECTION?>">
+					<td class="sublinks_cell <?php echo $TEXT_DIRECTION?>">
 		<?php } else { ?>
 		<div id="optionsmenu" class="sublinks_table">
 			<div class="list_label <?php echo $TEXT_DIRECTION; ?>"><?php echo $pgv_lang["fams_charts"]; ?></div>
 				<ul class="sublinks_cell <?php echo $TEXT_DIRECTION; ?>">
 		<?php } 
 					$menu = $controller->getChartsMenu(); $menu->printMenu();
-					if (file_exists('reports/familygroup.xml')) :
+					if (file_exists(PGV_ROOT.'reports/familygroup.xml')) :
 					?>
 				</<?php if (!$PGV_MENUS_AS_LISTS) {?>td><td<?php } else { ?>ul><ul<?php }?> class="sublinks_cell <?php echo $TEXT_DIRECTION; ?>">
 					<?php
@@ -138,7 +106,7 @@ $show_full = "1";
 					//$menu = $controller->getReportsMenu();
 					//$menu->printMenu();
 					endif; // reports
-					if (PGV_USER_CAN_EDIT && ($controller->display)) :
+					if (PGV_USER_CAN_EDIT && $controller->display) :
 					?>
 				</<?php if (!$PGV_MENUS_AS_LISTS) {?>td><td<?php } else { ?>ul><ul<?php }?> class="sublinks_cell <?php echo $TEXT_DIRECTION; ?>">
 					<?php
@@ -161,22 +129,57 @@ $show_full = "1";
 				</ul>
 		</div>
 		<?php } 
-				if ($controller->accept_success)
-				{
-					print "<b>".$pgv_lang["accept_successful"]."</b><br />";
-				}
-			endif;	// view != preview
+			}	// view != preview
 			?>
 		</td>
 	</tr>
 </table>
-<table class="width90">
-	<tr>
-		<td valign="top" style="width: <?php print $pbwidth?>px;">
+<table align="center" width="95%">
+	<tr valign="top">
+		<td align="<?php echo $align;?>" valign="top" style="width: <?php echo $pbwidth+30 ?>px;"><!--//List of children//-->
 			<?php print_family_children($controller->getFamilyID());?>
 		</td>
-		<td valign="top">
-			<?php print_family_facts($controller->family);?>
+		<td> <!--//parents pedigree chart and Family Details//-->
+			<table align="<?php echo $align;?>" width="100%">
+				<tr>
+					<td class="subheaders" valign="top"><?php echo $pgv_lang["parents"];?></td>
+					<td class="subheaders" valign="top"><?php echo $pgv_lang["gparents"];?></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<table><tr><td> <!--//parents pedigree chart //-->
+						<?php
+						echo print_family_parents($controller->getFamilyID());
+						if (!$controller->isPrintPreview() && $controller->display && PGV_USER_CAN_EDIT) {
+							$husb = $controller->getHusband();
+							if (empty($husb)) { ?>
+								<?php print_help_link("edit_add_parent_help", "qm"); ?>
+			<a href="javascript <?php echo $pgv_lang["add_father"]; ?>" onclick="return addnewparentfamily('', 'HUSB', '<?php echo $controller->famid; ?>');"><?php echo $pgv_lang["add_father"]; ?></a><br />
+						<?php }
+							$wife = $controller->getWife();
+							if (empty($wife))  { ?>
+								<?php print_help_link("edit_add_parent_help", "qm"); ?>
+			<a href="javascript <?php echo $pgv_lang["add_mother"]; ?>" onclick="return addnewparentfamily('', 'WIFE', '<?php echo $controller->famid; ?>');"><?php echo $pgv_lang["add_mother"]; ?></a><br />
+						<?php }
+						}
+						?>
+						</td></tr></table>
+					</td>
+				</tr>
+				<tr>
+					<td align="<?php echo $align; ?>" colspan="2">
+						<br /><hr />
+						<?php print_family_facts($controller->family);?>
+					</td>
+				</tr>
+			</table>
+		</td>
+		<td class="noprint">
+			<?php
+				if ($controller->accept_success) {
+					echo "<b>".$pgv_lang["accept_successful"]."</b><br />";
+				}
+			?>
 		</td>
 	</tr>
 </table>
@@ -186,6 +189,6 @@ if(empty($SEARCH_SPIDER))
 	print_footer();
 else {
 	if($SHOW_SPIDER_TAGLINE)
-		print $pgv_lang["label_search_engine_detected"].": ".$SEARCH_SPIDER;
-	print "\n</div>\n\t</body>\n</html>";
+		echo $pgv_lang["label_search_engine_detected"].": ".$SEARCH_SPIDER;
+	echo "\n</div>\n\t</body>\n</html>";
 }

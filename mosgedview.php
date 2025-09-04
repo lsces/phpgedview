@@ -5,7 +5,7 @@
 // higher, then you can safely delete this file.
 //
 // phpGedView: Genealogy Viewer
-// Copyright (C) 2008 PhpGedView Development team, all rights reserved.
+// Copyright (C) 2008  PGV Development Team.  All rights reserved.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // @version $Id$
+namespace Bitweaver\Phpgedview;
 
 header("Location: ".encode_url("modules/cms_interface/cms_login.php?cms_login={$_COOKIE['post_user']}&cms_password={$_COOKIE['def_upass']}", false));
-
-?>

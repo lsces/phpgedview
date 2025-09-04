@@ -3,7 +3,7 @@
  * Repositories List
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2007  PGV Development Team
+ * Copyright (C) 2002 to 2009 PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,29 +24,15 @@
  * @version $Id$
  */
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
+define('PGV_SCRIPT_NAME', 'repolist.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_print_lists.php';
 
-// leave manual config until we can move it to bitweaver table 
-//require("config.php");
-require_once 'includes/functions/functions_print_lists.php';
-$repolist = get_repo_list();               //-- array of regular repository titles
-$addrepolist = get_repo_add_title_list();  //-- array of additional repository titlesadd
-
-$cr = count($repolist);
-$ca = count($addrepolist);
-$ctot = $cr + $ca;
-
-$gBitSmarty->assign_by_ref( "repolist", $repolist );
-$gBitSmarty->assign_by_ref( "addrepolist", $addrepolist );
-
-$doctitle = "Full Repository List";
-$gBitSmarty->assign( "pagetitle", $doctitle );
-$gBitSystem->display( 'bitpackage:phpgedview/repolist.tpl', tra( 'Repository list' ) );?>
+print_header($pgv_lang['repo_list']);
+echo '<div class="center"><h2>', $pgv_lang['repo_list'], '</h2>';
+print_repo_table(get_repo_list(PGV_GED_ID));
+echo '</div>';
+print_footer();
+?>

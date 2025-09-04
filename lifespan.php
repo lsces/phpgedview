@@ -28,9 +28,10 @@
  * @version $Id$
  */
 
-require './config.php';
+namespace Bitweaver\Phpgedview;
 
-require_once './includes/controllers/lifespan_ctrl.php';
+define('PGV_SCRIPT_NAME', 'lifespan.php');
+require './config.php';
 
 $controller = new LifespanController();
 $controller->init();
@@ -40,9 +41,9 @@ $zoomfactor = 10;
 
 print_header($pgv_lang["lifespan_chart"]);
 
-if ($ENABLE_AUTOCOMPLETE) require './js/autocomplete.js.htm';
+if ($ENABLE_AUTOCOMPLETE) require PGV_ROOT.'js/autocomplete.js.html';
 ?>
-	<script language="JavaScript" type="text/javascript">
+	<script>
 	<!--
 	var pastefield;
 	function paste_id(value) {
@@ -76,7 +77,7 @@ if (!$controller->isPrintPreview()) {
 	<?php }?>
 
 </form>
-<script type="text/javascript">
+<script>
 <!--
 
 var timer;
@@ -368,7 +369,7 @@ var oldMx = 0;
 	<!--  Floating div controls END-->
 	<?php } ?>
 </div>
-<script language="JavaScript" type="text/javascript">
+<script>
 <!--
 var maxY = 80-<?php print $maxY; ?>; // Sets the boundaries for how far the timeline can move in the up direction
 var maxX = <?php if(!isset($maxX)) $maxX = 0; print $maxX; ?>;  // Sets the boundaries for how far the timeline can move in the left direction

@@ -23,24 +23,12 @@
 * @package PhpGedView
 * @subpackage Admin
 */
+namespace Bitweaver\Phpgedview;
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+define('PGV_SCRIPT_NAME', 'config_download.php');
+require './config.php';
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require "config.php";
-require $confighelpfile["english"];
-if (file_exists($confighelpfile[$LANGUAGE])) require $confighelpfile[$LANGUAGE];
-
-global $gBitUser;
-if ( !$gBitUser->IsAdmin() && $CONFIGURED ) {
+if (PGV_ADMIN_USER_EXISTS && !PGV_USER_IS_ADMIN && $CONFIGURED) {
 	header('Location: admin.php');
 	exit;
 }

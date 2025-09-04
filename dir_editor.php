@@ -3,7 +3,7 @@
  * PopUp Window to provide editing features.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2011  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,87 +24,88 @@
  * @subpackage Admin
  * @version $Id$
  */
+namespace Bitweaver\Phpgedview;
 
-require_once 'config.php';
-require_once("includes/functions/functions_edit.php");
+define('PGV_SCRIPT_NAME', 'dir_editor.php');
+require './config.php';
+require PGV_ROOT.'includes/functions/functions_edit.php';
 
 if (!PGV_USER_IS_ADMIN) {
 	header("Location: login.php?url=dir_editor.php");
 	exit;
 }
 
-if ($_SESSION["cookie_login"]) {
-	header("Location: ".encode_url("login.php?type=simple&ged={$GEDCOM}&url=".urlencode("dir_editor.php?".decode_url($QUERY_STRING)), false));
-	exit;
-}
-
-function full_rmdir( $dir )
-{
-	if ( !is_writable( $dir ) )
-	{
-		if ( !@chmod( $dir, 0777 ) )
-		{
+function full_rmdir($dir) {
+	if (!is_writable($dir)) {
+		if (!@chmod($dir, PGV_PERM_EXE)) {
 			return FALSE;
 		}
 	}
 
-	$d = dir( $dir );
-	while ( FALSE !== ( $entry = $d->read() ) )
-	{
-		if ( $entry == '.' || $entry == '..' )
-		{
+	$d = dir($dir);
+	while (FALSE !== ($entry = $d->read())) {
+		if ($entry == '.' || $entry == '..') {
 			continue;
 		}
 		$entry = $dir . '/' . $entry;
-		if ( is_dir( $entry ) )
-		{
-			if ( !full_rmdir( $entry ) )
-			{
+		if (is_dir($entry)) {
+			if (!full_rmdir($entry)) {
 				return FALSE;
 			}
 			continue;
 		}
-		if ( !@unlink( $entry ) )
-		{
+		if (!@unlink($entry)) {
 			$d->close();
 			return FALSE;
 		}
 	}
 
 	$d->close();
-
-	rmdir( $dir );
-
+	rmdir($dir);
 	return TRUE;
 }
 
 // Vars
 $ajaxdeleted = false;
 $elements = Array();
-$locked_by_context = array("readme.txt","index.php","gedcoms.php");
+$locked_by_context = [ "readme.txt", "index.php", "gedcoms.php" ];
+$dbname = explode("/", $DBNAME);
+$locked_by_context[] = end($dbname);
+
+// If we are storing the media in the index directory (this is the
+// default for the media firewall), then don't delete it.
+if (
+	$USE_MEDIA_FIREWALL &&
+	$MEDIA_FIREWALL_ROOTDIR==PHPGEDVIEW_PKG_INDEX_PATH  &&
+	(substr($MEDIA_DIRECTORY, 0, 1)!='.')
+) {
+	$locked_by_context[]=trim($MEDIA_DIRECTORY, '/');
+}
 
 print_header($pgv_lang["index_dir_cleanup"]);
-print "<h3>".$pgv_lang["index_dir_cleanup"]."</h3>";
+echo "<h2>", $pgv_lang["index_dir_cleanup"], "</h2>";
 
-print $pgv_lang['index_dir_cleanup_inst'];
+echo $pgv_lang['index_dir_cleanup_inst'];
 
 //post back
-if(isset($_REQUEST["to_delete"]))
-{
-	print "<span class=\"error\">".$pgv_lang["deleted_files"]."</span><br/>";
-	foreach($_REQUEST["to_delete"] as $k=>$v){
-		if (is_dir($INDEX_DIRECTORY.$v)) full_rmdir($INDEX_DIRECTORY.$v);
-		else if (file_exists($INDEX_DIRECTORY.$v)) unlink($INDEX_DIRECTORY.$v);
-		print "<span class=\"error\">".$v."</span><br/>";
+if(isset($_REQUEST["to_delete"])) {
+	echo "<span class=\"error\">", $pgv_lang["deleted_files"], "</span><br/>";
+	foreach($_REQUEST["to_delete"] as $k=>$v) {
+		if (is_dir(PHPGEDVIEW_PKG_INDEX_PATH .$v)) {
+			full_rmdir(PHPGEDVIEW_PKG_INDEX_PATH .$v);
+		} elseif (file_exists(PHPGEDVIEW_PKG_INDEX_PATH .$v)) {
+			unlink(PHPGEDVIEW_PKG_INDEX_PATH .$v);
+		}
+		echo "<span class=\"error\">", $v, "</span><br/>";
 	}
 
 }
 
-require_once("js/prototype.js.htm");
-require_once("js/scriptaculous.js.htm");
+require_once PGV_ROOT.'js/prototype.js.htm';
+require_once PGV_ROOT.'js/scriptaculous.js.htm';
 
 ?>
-<script type="text/javascript">
+<script>
 <!--
 function warnuser(cbox) {
 	if (cbox.checked) {
@@ -120,29 +121,35 @@ function warnuser(cbox) {
 		<ul id="reorder_list">
 		<?php
 
-		$locked_with_warning = array("lang_settings.php","pgv_changes.php");
+		$locked_with_warning = [ "lang_settings.php", "pgv_changes.php" ];
 		//-- lock the GEDCOM and settings files
 		foreach(get_all_gedcoms() as $ged_id=>$ged_name){
-			$locked_by_context[] = str_replace($INDEX_DIRECTORY,"",get_gedcom_setting($ged_id, 'privacy'));
-			$locked_by_context[] = str_replace($INDEX_DIRECTORY,"",get_gedcom_setting($ged_id, 'config'));
+			$file=get_privacy_file($ged_id);
+			if ($file!='privacy.php') {
+				$locked_by_context[] = str_replace(PHPGEDVIEW_PKG_INDEX_PATH , "", $file);
+			}
+			$file=get_config_file($ged_id);
+			if ($file!='config_gedcom.php') {
+				$locked_by_context[] = str_replace(PHPGEDVIEW_PKG_INDEX_PATH , "", $file);
+			}
 		}
-		$dir = dir($INDEX_DIRECTORY);
+		$dir = dir(PHPGEDVIEW_PKG_INDEX_PATH );
 
-		$path = $INDEX_DIRECTORY; // snag our path
-		$entryList = array();
+		$path = PHPGEDVIEW_PKG_INDEX_PATH ; // snag our path
+		$entryList = [];
 		while (false !== ($entry = $dir->read())) {
 			$entryList[] = $entry;
 		}
 		sort($entryList);
 		foreach ($entryList as $entry) {
-			//echo $entry."\n";
-			if ($entry{0} != '.') {
+			//echo $entry, "\n";
+			if ($entry[0] != '.') {
 				if ($ged_id=get_id_from_gedcom($entry)) {
 					print "<li class=\"facts_value\" name=\"$entry\" style=\"margin-bottom:2px;\" id=\"lock_$entry\" >";
 					print "<img src=\"./images/RESN_confidential.gif\" alt=\"\" />&nbsp;&nbsp;";
 					print "<span class=\"name2\">".$entry."</span>";
-					print "&nbsp;&nbsp;{$pgv_lang["associated_files"]}<i>&nbsp;&nbsp;".str_replace($path,"",get_gedcom_setting($ged_id, 'privacy'));
-					print "&nbsp;&nbsp;".str_replace($path,"",get_gedcom_setting($ged_id, 'config'))."</i>";
+					print "&nbsp;&nbsp;{$pgv_lang["associated_files"]}<i>&nbsp;&nbsp;".str_replace($path, "", get_privacy_file($ged_id));
+					print "&nbsp;&nbsp;".str_replace($path, "", get_config_file($ged_id))."</i>";
 				}
 				else if (in_array($entry, $locked_by_context)) {
 					print "<li class=\"facts_value\" name=\"$entry\" style=\"margin-bottom:2px;\" id=\"lock_$entry\" >";
@@ -180,14 +187,14 @@ function warnuser(cbox) {
 		print "</ul></td></tr></table>";
 		print "</div>";
 
-		?> <script type="text/javascript" language="javascript">
+		?> <script language="javascript">
 	<!--
 	new Effect.BlindDown('reorder_list', {duration: 1});
 
 		<?php
 		foreach($element as $key=>$val)
 		{
-			print "new Draggable('".$val."',{revert:true});";
+			print "new Draggable('".$val."', {revert:true});";
 		}
 		?>
 
@@ -232,7 +239,7 @@ function removeAll() {
 		<button type="submit"><?php print $pgv_lang["delete"];?></button>
 		<button type="button" onclick="ul_clear(); return false;"><?php print $pgv_lang["cancel"];?></button><br /><br />
 		<button type="button" onclick="removeAll(); return false;"><?php print $pgv_lang["remove_all_files"];?></button>
-		<?php print_help_link("help_dir_editor.php","qm", '', false, false); ?></td>
+		<?php print_help_link("help_dir_editor.php", "qm", '', false, false); ?></td>
 	</tr>
 </table>
 </form>

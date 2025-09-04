@@ -3,7 +3,7 @@
  * Login Page.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,17 +24,19 @@
  * @package PhpGedView
  * @subpackage Display
  * @version $Id$
- */ 
+ */
 
-require 'config.php';
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'login.php');
+require './config.php';
 
 // Extract query parameters
 $url     =safe_POST('url',      PGV_REGEX_URL);
-$type    =safe_POST('type',     array('full', 'simple'));
+$type    =safe_POST('type', [ 'full', 'simple' ]);
 $action  =safe_POST('action');
 $username=safe_POST('username', PGV_REGEX_USERNAME);
 $password=safe_POST('password', PGV_REGEX_PASSWORD);
-$remember=safe_POST('remember', 'yes','no');
 $usertime=safe_POST('usertime');
 $pid     =safe_POST('pid',      PGV_REGEX_XREF);
 $ged     =safe_POST('ged',      get_all_gedcoms(), $GEDCOM);
@@ -42,7 +44,7 @@ $help_message=safe_GET('help_messge');
 
 // Some variables can come from the URL as well as the form
 if (!$url)    $url   =safe_GET('url',  PGV_REGEX_URL);
-if (!$type)   $type  =safe_GET('type', array('full', 'simple'), 'full');
+if (!$type)   $type  =safe_GET('type', [ 'full', 'simple' ], 'full');
 if (!$action) $action=safe_GET('action');
 
 if (empty($url)) {
@@ -55,12 +57,9 @@ if (empty($url)) {
 $message='';
 
 if ($action=='login') {
+
 	if ($user_id=authenticateUser($username, $password)) {
-		if ($usertime) {
-			$_SESSION['usertime']=@strtotime($usertime);
-		} else {
-			$_SESSION['usertime']=time();
-		}
+		$_SESSION['usertime'] = $usertime ? @strtotime($usertime) : time();
 		$_SESSION['timediff']=time()-$_SESSION['usertime'];
 		$MyLanguage = get_user_setting($user_id, 'language');
 		if ($MyLanguage) {
@@ -92,12 +91,9 @@ if ($action=='login') {
 					break;
 				}
 			}
-			if ($pid) {
-				$url = "individual.php?pid=".$pid;
-			} else {
+			$url = $pid ? "individual.php?pid="
 				//-- user does not have a pid?  Go to mygedview portal
-				$url = "index.php?ctype=user";
-			}
+				: "index.php?ctype=user";
 		}
 
 		session_write_close();
@@ -107,18 +103,12 @@ if ($action=='login') {
 			$url='index.php';
 		}
 
-		$urlnew = $SERVER_URL;
-		if (substr($urlnew,-1,1)!="/") $urlnew .= "/";
-		$url = preg_replace("/logout=1/", "", $url);
-		$url = $urlnew . $url;
-		if ($remember=="yes") setcookie("pgv_rem", $username, time()+60*60*24*7);
-		else setcookie("pgv_rem", "", time()-60*60*24*7);
-
+		$url = str_replace("logout=1", "", $url);
 		$url .= "&";	// Simplify the preg_replace following
-		$url = preg_replace("/(&|\?)ged=.*&/", "$1", html_entity_decode(rawurldecode($url),ENT_COMPAT,'UTF-8'));	// Remove any existing &ged= parameter
+		$url = preg_replace('/(&|\?)ged=.*&/', "$1", html_entity_decode(rawurldecode($url),ENT_COMPAT,'UTF-8'));	// Remove any existing &ged= parameter
 		if (substr($url, -1)=="&") $url = substr($url, 0, -1);
 		$url .= "&ged=".$ged;
-		$url = str_replace(array("&&", ".php&", ".php?&"), array("&", ".php?", ".php?"), $url);
+		$url = str_replace( [ "&&", ".php&", ".php?&" ], [ "&", ".php?", ".php?" ], $url);
 
 		header("Location: ".encode_url($url, false));
 		exit;
@@ -126,10 +116,10 @@ if ($action=='login') {
 		$message = $pgv_lang["no_login"];
 	}
 } else {
-	$tSERVER_URL = preg_replace(array("'https?://'", "'www.'", "'/$'"), array("","",""), $SERVER_URL);
-	$tLOGIN_URL = preg_replace(array("'https?://'", "'www.'", "'/$'"), array("","",""), $LOGIN_URL);
+	$tSERVER_URL = preg_replace( [ "'https?://'", "'www.'", "'/$'" ], [ "", "", "" ], $SERVER_URL);
+	$tLOGIN_URL = preg_replace( [ "'https?://'", "'www.'", "'/$'" ], [ "", "", "" ], $LOGIN_URL);
 	if (empty($url)) {
-		if ((isset($_SERVER['HTTP_REFERER'])) && ((stristr($_SERVER['HTTP_REFERER'],$tSERVER_URL)!==false)||(stristr($_SERVER['HTTP_REFERER'],$tLOGIN_URL)!==false))) {
+		if (isset($_SERVER['HTTP_REFERER']) && ((stristr($_SERVER['HTTP_REFERER'],$tSERVER_URL)!==false)||(stristr($_SERVER['HTTP_REFERER'],$tLOGIN_URL)!==false))) {
 			$url = basename($_SERVER['HTTP_REFERER']);
 			if (stristr($url, ".php")===false) {
 				$url = "index.php?ctype=gedcom&ged=$GEDCOM";
@@ -155,12 +145,6 @@ if ($type=="full") print_header($pgv_lang["login_head"]);
 else print_simple_header($pgv_lang["login_head"]);
 print "<div class=\"center\">\n";
 
-if ($_SESSION["cookie_login"]) {
-	print "<div style=\"width:70%\" align=\"left\">\n";
-	print_text("cookie_login_help");
-	print "</div><br /><br />\n";
-}
-//if ($REQUIRE_AUTHENTICATION) {
 if ($WELCOME_TEXT_AUTH_MODE!="0") {
 	loadLangFile("pgv_help");
 	print "<table class=\"center width60 ".$TEXT_DIRECTION."\"><tr><td>";
@@ -215,18 +199,12 @@ $tab=0;		// initialize tab index
 			<tr><td class="topbottombar" colspan="2"><?php print $pgv_lang["login"]; ?></td></tr>
 			<tr>
 				<td class="descriptionbox <?php print $TEXT_DIRECTION; ?> wrap width50"><?php print_help_link("username_help", "qm", "username"); print $pgv_lang["username"]; ?></td>
-				<td class="optionbox <?php print $TEXT_DIRECTION; ?>"><input type="text" tabindex="<?php echo ++$tab; ?>" name="username" value="<?php print htmlentities($username,ENT_COMPAT,'UTF-8'); ?>" size="20" class="formField" /></td>
+				<td class="optionbox <?php print $TEXT_DIRECTION; ?>"><input type="text" tabindex="<?php echo ++$tab; ?>" name="username" value="<?php print htmlentities($username ?? '',ENT_COMPAT,'UTF-8'); ?>" size="20" class="formField" /></td>
 			</tr>
 			<tr>
 				<td class="descriptionbox <?php print $TEXT_DIRECTION; ?> wrap width50"><?php print_help_link("password_help", "qm", "password"); print $pgv_lang["password"]; ?></td>
 				<td class="optionbox <?php print $TEXT_DIRECTION; ?>"><input type="password" tabindex="<?php echo ++$tab; ?>" name="password" size="20" class="formField" /></td>
 			</tr>
-			<?php if ($ALLOW_REMEMBER_ME) { ?>
-			<tr>
-				<td class="descriptionbox <?php print $TEXT_DIRECTION; ?> wrap width50"><?php print_help_link("remember_me_help", "qm", "remember_me"); ?><label for="remember"><?php print $pgv_lang["remember_me"]; ?></label></td>
-				<td class="optionbox <?php print $TEXT_DIRECTION; ?> "><input type="checkbox" tabindex="<?php echo ++$tab; ?>" id="remember" name="remember" value="yes" <?php if (!empty($_COOKIE["pgv_rem"])) print "checked=\"checked\""; ?> class="formField" /></td>
-			</tr>
-			<?php } ?>
 			<tr>
 				<td class="topbottombar" colspan="2">
 					<?php
@@ -261,7 +239,7 @@ if ($USE_REGISTRATION_MODULE) { ?>
 }
 print "</div><br /><br />";
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 	document.loginform.username.focus();
 </script>
 <?php

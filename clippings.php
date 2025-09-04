@@ -27,29 +27,20 @@
  * @version $Id$
  */
 
-/**
- * Initialization
- */ 
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
+define('PGV_SCRIPT_NAME', 'clippings.php');
+require './config.php';
 
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
+loadlangfile('pgv_admin');		// we need some definitions from this file, even when not logged in as admin
 
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require("config.php");
-require_once("includes/controllers/clippings_ctrl.php");
 $controller = new ClippingsController();
 $controller->init();
 
 // -- print html header information
 print_header($pgv_lang["clip_cart"]);
 
-if ($ENABLE_AUTOCOMPLETE) require './js/autocomplete.js.htm';
-require './js/sorttable.js.htm';
+if ($ENABLE_AUTOCOMPLETE) require PGV_ROOT.'js/autocomplete.js.html';
 
 echo PGV_JS_START;
 echo 'function radAncestors(elementid) {var radFamilies=document.getElementById(elementid);radFamilies.checked=true;}';
@@ -144,9 +135,9 @@ if ($ct==0) {
 				<input type="text" name="id" id="cart_item_id" size="5"/>
 			</td>
 			<td class="optionbox">
-				<?php print_findindi_link('cart_item_id',''); ?>
-				<?php print_findfamily_link('cart_item_id',''); ?>
-				<?php print_findsource_link('cart_item_id',''); ?>
+				<?php print_findindi_link('cart_item_id', ''); ?>
+				<?php print_findfamily_link('cart_item_id', ''); ?>
+				<?php print_findsource_link('cart_item_id', ''); ?>
 				<input type="submit" value="<?php print $pgv_lang["add"];?>"/>
 
 			</td>
@@ -243,7 +234,7 @@ if ($ct==0) {
 		</table>
 		<br />
 
-		<script language="JavaScript" type="text/javascript">
+		<script>
 		<!--
 		var pastefield;
 		function paste_id(value)
@@ -265,9 +256,9 @@ if ($ct==0) {
 				<input type="text" name="id" id="cart_item_id" size="8" />
 			</td>
 			<td class="optionbox">
-				<?php print_findindi_link('cart_item_id',''); ?>
-				<?php print_findfamily_link('cart_item_id',''); ?>
-				<?php print_findsource_link('cart_item_id',''); ?>
+				<?php print_findindi_link('cart_item_id', ''); ?>
+				<?php print_findfamily_link('cart_item_id', ''); ?>
+				<?php print_findsource_link('cart_item_id', ''); ?>
 				<input type="submit" value="<?php print $pgv_lang["add"];?>"/>
 
 			</td>
@@ -293,7 +284,7 @@ if ($ct==0) {
 <?php
 	for ($i=0; $i<$ct; $i++) {
 		$clipping = $cart[$i];
-		$tag = strtoupper(substr($clipping['type'],0,4)); // source => SOUR
+		$tag = strtoupper(substr($clipping['type'], 0, 4)); // source => SOUR
 		//print_r($clipping);
 		//-- don't show clippings from other gedcoms
 		if ($clipping['gedcom']==$GEDCOM) {
@@ -305,16 +296,16 @@ if ($ct==0) {
 			if ($tag=='OBJE') $icon = "media";
 			?>
 			<tr><td class="list_value">
-				<?php if (!empty($icon)) { ?><img src="<?php echo $PGV_IMAGE_DIR."/".$PGV_IMAGES[$icon]["small"];?>" border="0" alt="<?php echo $tag;?>" title="<?php echo $tag;?>" /><?php } ?>
+				<?php if (!empty($icon)) { ?><img src="<?php echo $PGV_IMAGE_DIR, "/", $PGV_IMAGES[$icon]["small"];?>" border="0" alt="<?php echo $tag;?>" title="<?php echo $tag;?>" /><?php } ?>
 			</td>
 			<td class="list_value ltr"><?php echo $clipping['id']?></td>
 			<td class="list_value">
 			<?php
 			$record=GedcomRecord::getInstance($clipping['id']);
-			if ($record) echo '<a href="'.encode_url($record->getLinkUrl()).'">'.PrintReady($record->getListName()).'</a>';
+			if ($record) echo '<a href="', encode_url($record->getLinkUrl()), '">', PrintReady($record->getListName()), '</a>';
 			?>
 			</td>
-			<td class="list_value center vmiddle"><a href="clippings.php?action=remove&amp;item=<?php echo $i;?>"><img src="<?php echo $PGV_IMAGE_DIR."/".$PGV_IMAGES["remove"]["other"];?>" border="0" alt="<?php echo $pgv_lang["remove"]?>" title="<?php echo $pgv_lang["remove"];?>" /></a></td>
+			<td class="list_value center vmiddle"><a href="clippings.php?action=remove&amp;item=<?php echo $i;?>"><img src="<?php echo $PGV_IMAGE_DIR, "/", $PGV_IMAGES["remove"]["other"];?>" border="0" alt="<?php echo $pgv_lang["remove"]?>" title="<?php echo $pgv_lang["remove"];?>" /></a></td>
 		</tr>
 		<?php
 		}

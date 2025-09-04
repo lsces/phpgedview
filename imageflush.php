@@ -3,7 +3,7 @@
  * Flush an image to the browser
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2003  John Finlay and Others
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +19,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id$
  *
  * @package PhpGedView
  * @subpackage Charts
+ * @version $Id$
  */
- 
-/**
- * Initialization
- */
-require_once( '../kernel/setup_inc.php' );
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
+namespace Bitweaver\Phpgedview;
 
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require("config.php");
+define('PGV_SCRIPT_NAME', 'imageflush.php');
+require './config.php';
 
 /**
  * display any message as a PNG image

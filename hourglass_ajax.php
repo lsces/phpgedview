@@ -28,9 +28,10 @@
  * @version $Id$
  */
 
-require 'config.php';
+namespace Bitweaver\Phpgedview;
 
-require_once 'includes/controllers/hourglass_ctrl.php';
+define('PGV_SCRIPT_NAME', 'hourglass_ajax.php');
+require './config.php';
 
 /*
  * The purpose of this page is to build the left half of the Hourglass chart via Ajax.

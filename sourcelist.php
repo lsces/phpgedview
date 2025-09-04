@@ -3,7 +3,7 @@
  * Parses gedcom file and displays a list of the sources in the file.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2007  PGV Development Team
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,47 +19,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * @version $Id$
  * @package PhpGedView
  * @subpackage Lists
+ * @version $Id$
  */
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
+define('PGV_SCRIPT_NAME', 'sourcelist.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_print_lists.php';
 
-$addsourcelist = get_source_add_title_list();  //-- array of additional source titlesadd
-$sourcelist = get_source_list();               //-- array of regular source titles
-
-	$n = 0;
-	foreach($sourcelist as $key => $value) {
-		if (!isset($value["name"])) break;
-		$source = Source::getInstance($key); // from placelist
-		
-		$url = "source.php?ged=".$GEDCOM."&amp;sid=".urlencode($key);
-		$sourcelist["$key"]['n'] = ++$n;
-		$sourcelist["$key"]['url'] = $url;
-		$sourcelist["$key"]['place'] = $source->getAuth();
-	}
-
-//uasort($sourcelist, "itemsort");
-//uasort($addsourcelist, "itemsort");
-$ca = count($addsourcelist);
-$cs = count($sourcelist);
-$ctot = $ca + $cs;
-
-asort($sourcelist);
-asort($addsourcelist);
-
-$gBitSmarty->assign_by_ref( "sourcelist", array_merge($sourcelist, $addsourcelist) );
-
-$gBitSmarty->assign( "total", $n );
-$gBitSmarty->assign( "pagetitle", tra("Source reference list") );
-$gBitSystem->display( 'bitpackage:phpgedview/sourcelist.tpl', tra( 'Source reference list' ) );
+print_header($pgv_lang['source_list']);
+echo '<div class="center"><h2>', $pgv_lang['source_list'], '</h2>';
+print_sour_table(get_source_list(PGV_GED_ID));
+echo '</div>';
+print_footer();
 ?>

@@ -3,7 +3,7 @@
  * English Language Configure Help file for PHPGedView
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2007  PGV Development Team
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * @version $Id$
  * @package PhpGedView
  * @subpackage Admin
+ * @version $Id$
  */
-require "config.php";
-require $confighelpfile["english"];
-require $confighelpfile[$LANGUAGE];
-require $helptextfile["english"];
-if (file_exists($helptextfile[$LANGUAGE])) require $helptextfile[$LANGUAGE];
-require ("includes/help_text_vars.php");
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'editconfig_help.php');
+if (file_exists('./config.php')) {
+	require './config.php';
+} else {
+	require './config.dist';
+}
+
+loadLangFile("all");
+require PGV_ROOT.'includes/help_text_vars.php';
 
 $help = safe_GET('help');		// Make sure this input variable isn't a script
 if (empty($help)) exit;			// Quit if this isn't a legitimate request for help
@@ -43,8 +48,7 @@ print '<span class="helpheader">';
 print_text("config_help");
 print '</span><br /><br /><span class="helptext">';
 if ($help == "help_contents_help") {
-	global $gBitUser;
-	if ($gBitUser->IsAdmin()) {
+		if (PGV_USER_IS_ADMIN) {
 		$help = "admin_help_contents_help";
 		print_text("admin_help_contents_head_help");
 	}
@@ -63,4 +67,3 @@ print "<a href=\"javascript:;\" onclick=\"window.close();\"><b>";
 print_text("close_window");
 print "</b></a>";
 print_simple_footer();
-?>

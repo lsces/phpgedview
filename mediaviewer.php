@@ -27,9 +27,10 @@
  * @TODO use more theme specific CSS, allow a more fluid layout to take advantage of the page width
  */
 
-require 'config.php';
+namespace Bitweaver\Phpgedview;
 
-require_once 'includes/controllers/media_ctrl.php';
+define('PGV_SCRIPT_NAME', 'mediaviewer.php');
+require './config.php';
 
 $controller = new MediaController();
 $controller->init();
@@ -45,7 +46,7 @@ $filename = $controller->getLocalFilename();
 print_header($controller->getPageTitle());
 
 if (!$controller->mediaobject){
-	echo "<b>".$pgv_lang["unable_to_find_record"]."</b><br /><br />";
+	echo "<b>", $pgv_lang["unable_to_find_record"], "</b><br /><br />";
 	print_footer();
 	exit;
 }
@@ -53,10 +54,9 @@ global $tmb;
 
 // LBox =============================================================================
 // Get Javascript variables from lb_config.php ---------------------------
-if (file_exists("modules/lightbox/album.php")) {
-	include('modules/lightbox/lb_defaultconfig.php');
-	if (file_exists('modules/lightbox/lb_config.php')) include('modules/lightbox/lb_config.php');
-	include('modules/lightbox/functions/lb_call_js.php');
+if (PGV_USE_LIGHTBOX) {
+	require PGV_ROOT.'modules/lightbox/lb_defaultconfig.php';
+	require PGV_ROOT.'modules/lightbox/functions/lb_call_js.php';
 }
 // LBox  ============================================================================
 
@@ -119,8 +119,7 @@ if ((!$controller->isPrintPreview())&&(empty($SEARCH_SPIDER))&&!empty($controlle
 					// attempt to get the image size
 					$imgwidth = $controller->mediaobject->getWidth()+40;
 					$imgheight = $controller->mediaobject->getHeight()+150;
-					if (file_exists("modules/lightbox/album.php")) $dwidth = 200;
-					else $dwidth = 300;
+					$dwidth = ( PGV_USE_LIGHTBOX ) ? 200 : 300;
 					if ($imgwidth<$dwidth) $dwidth = $imgwidth;
 
 					$name = trim($controller->mediaobject->getFullName());
@@ -130,10 +129,10 @@ if ((!$controller->isPrintPreview())&&(empty($SEARCH_SPIDER))&&!empty($controlle
 
 					//-- Thumbnail field
 					echo '<a href="', $mediaInfo['url'], '">';
-					echo '<img src="', $mediaInfo['thumb'], '" border="0" align="', ($TEXT_DIRECTION=="rtl" ? "left":"right"), '" class="thumbnail"', $mediaInfo['width'];
+					echo '<img src="', $mediaInfo['thumb'], '" border="0" align="', $TEXT_DIRECTION=="rtl" ? "left":"right", '" class="thumbnail"', $mediaInfo['width'];
 
 					// Finish off anchor and tooltips
-					print " alt=\"" . PrintReady(htmlspecialchars($name,ENT_COMPAT,'UTF-8')) . "\" title=\"" . PrintReady(htmlspecialchars($name,ENT_COMPAT,'UTF-8')) . "\" /></a>";
+					print " alt=\"" . PrintReady(htmlspecialchars($name, ENT_COMPAT, 'UTF-8')) . "\" title=\"" . PrintReady(htmlspecialchars($name, ENT_COMPAT, 'UTF-8')) . "\" /></a>";
 
 					// If download
 					if ($SHOW_MEDIA_DOWNLOAD) {
@@ -143,7 +142,7 @@ if ((!$controller->isPrintPreview())&&(empty($SEARCH_SPIDER))&&!empty($controlle
 				 // else the file is not external and does not exist
 				} else {
 					?>
-					<img src="<?php print $controller->mediaobject->getThumbnail(); ?>" border="0" width="100" alt="<?php print $controller->mediaobject->getFullName(); ?>" title="<?php print PrintReady(htmlspecialchars($controller->mediaobject->getFullName(),ENT_COMPAT,'UTF-8')); ?>" />
+					<img src="<?php print $controller->mediaobject->getThumbnail(); ?>" border="0" width="100" alt="<?php print $controller->mediaobject->getFullName(); ?>" title="<?php print PrintReady(htmlspecialchars($controller->mediaobject->getFullName(), ENT_COMPAT, 'UTF-8')); ?>" />
 					<span class="error">
 						<?php print $pgv_lang["file_not_found"];?>
 					</span>
@@ -179,7 +178,7 @@ if ((!$controller->isPrintPreview())&&(empty($SEARCH_SPIDER))&&!empty($controlle
 			<br /><b><?php print $pgv_lang["relations_heading"]; ?></b><br /><br />
 			<?php
 				// PrintMediaLinks($links, "");
-				require_once 'includes/functions/functions_print_lists.php';
+				require_once PGV_ROOT.'includes/functions/functions_print_lists.php';
 				print_changes_table($links, $SHOW_LAST_CHANGE, $pgv_lang["total_links"]);
 			}	?>
 		</td>
@@ -189,7 +188,7 @@ if ((!$controller->isPrintPreview())&&(empty($SEARCH_SPIDER))&&!empty($controlle
 
 // These JavaScript functions are needed for the code to work properly with the menu.
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 <!--
 
 // javascript function to open the lightbox view
@@ -210,7 +209,7 @@ function openImageView(){
 function show_gedcom_record(shownew) {
 	fromfile="";
 	if (shownew=="yes") fromfile='&fromfile=1';
-	var recwin = window.open("gedrecord.php?pid=<?php print $controller->pid; ?>"+fromfile, "_blank", "top=50,left=50,width=600,height=400,scrollbars=1,scrollable=1,resizable=1");
+	var recwin = window.open("gedrecord.php?pid=<?php print $controller->pid; ?>"+fromfile, "_blank", "top=50, left=50, width=600, height=400, scrollbars=1, scrollable=1, resizable=1");
 }
 
 function showchanges() {
@@ -218,7 +217,7 @@ function showchanges() {
 }
 
 function ilinkitem(mediaid, type) {
-	window.open('inverselink.php?mediaid='+mediaid+'&linkto='+type+'&'+sessionname+'='+sessionid, '_blank', 'top=50,left=50,width=570,height=630,resizable=1,scrollbars=1');
+	window.open('inverselink.php?mediaid='+mediaid+'&linkto='+type+'&'+sessionname+'='+sessionid, '_blank', 'top=50, left=50, width=570, height=630, resizable=1, scrollbars=1');
 	return false;
 }
 //-->

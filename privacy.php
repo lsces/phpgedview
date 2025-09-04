@@ -4,7 +4,7 @@
  *
  * This is the default privacy.php module that is distributed
  * with phpGedView.  Whenever a gedcom file is added to the PGV system
- * a copy of this file is placed in the <var>$INDEX_DIRECTORY</var> for each gedcom
+ * a copy of this file is placed in the <var>PHPGEDVIEW_PKG_INDEX_PATH </var> for each gedcom
  * so that each gedcom may use different privacy settings.
  *
  * This privacy module allows you to hide the names and/or details of living people.  Allows
@@ -39,10 +39,8 @@
  * @package PhpGedView
  * @subpackage Privacy
  */
-if (stristr($_SERVER["SCRIPT_NAME"], "/".basename(__FILE__))!==false) {
-	print "Naughty, Naughty, Naughty!";
-	exit;
-}
+
+namespace Bitweaver\Phpgedview;
 
 global $PRIV_HIDE, $PRIV_PUBLIC, $PRIV_USER, $PRIV_NONE;
 
@@ -269,4 +267,3 @@ $global_facts["SSN"]["details"] = $PRIV_NONE;
 $person_facts = array();
 //-- end person facts privacy --//
 
-?>

@@ -21,7 +21,7 @@
  * Updates to one file almost certainly need to be made to the other one as well.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008 PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009 PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,291 +37,236 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id$
  * @package PhpGedView
  * @subpackage Lists
+ * @version $Id$
  */
 
-/**
- * Initialization
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-
-require_once( PHPGEDVIEW_PKG_PATH.'includes/bitsession.php' );
-
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-
-$gGedcom = new BitGEDCOM( 1 );
+define('PGV_SCRIPT_NAME', 'famlist.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_print_lists.php';
 
 // We show three different lists:
 $alpha   =safe_GET('alpha'); // All surnames beginning with this letter where "@"=unknown and ","=none
 $surname =safe_GET('surname', '[^<>&%{};]*'); // All fams with this surname.  NB - allow ' and "
 $show_all=safe_GET('show_all', array('no','yes'), 'no'); // All fams
 
-// Remove slashes
-if (isset($alpha)) {
-	$alpha = stripslashes($alpha);
-	$doctitle = "Family List : ".$alpha;
+// Don't show the list until we have some filter criteria
+$showList = isset($alpha) || isset($surname) || $show_all=='yes' ? true : false;
+
+// Long lists can be broken down by given name
+$falpha=safe_GET('falpha'); // All first names beginning with this letter
+$show_all_firstnames=safe_GET('show_all_firstnames', array('no','yes'), 'no');
+
+// We can show either a list of surnames or a list of names
+$surname_sublist=safe_GET('surname_sublist', array('no','yes'));
+if (!$surname_sublist) {
+	$surname_sublist=safe_COOKIE('surname_sublist', array('no','yes'), 'yes');
 }
-if (isset($surname)) {
-	$surname = stripslashes($surname);
-	$doctitle = "Family List : ";
-	if (empty($surname) or trim("@".$surname,"_")=="@" or $surname=="@N.N.") $doctitle .= $pgv_lang["NN"];
-	else $doctitle .= $surname;
+setcookie('surname_sublist', $surname_sublist);
+
+// We can either include or exclude married names.
+// We default to exclude.
+$show_marnm=safe_GET('show_marnm', array('no','yes'));
+if (!$show_marnm) {
+	$show_marnm=safe_COOKIE('show_marnm_famlist', array('no','yes'));
 }
-if (empty($show_all_firstnames)) $show_all_firstnames = "no";
-if (empty($DEBUG)) $DEBUG = false;
+if (!$show_marnm) {
+	$show_marnm='no';
+}
+setcookie('show_marnm_famlist', $show_marnm);
+// Override $SHOW_MARRIED_NAMES for this page
+$SHOW_MARRIED_NAMES= $show_marnm=='yes';
 
-/**
- * Check for the @ symbol
- *
- * This variable is used for checking if the @ symbol is present in the alphabet list.
- * @global boolean $pass
- */
-$pass = false;
-
-/**
- * Total famlist array
- *
- * The tfamlist array will contain families that are extracted from the database.
- * @global array $tfamlist
- */
-$tfamlist = array();
-
-/**
- * Family alpha array
- *
- * The famalpha array will contain all first letters that are extracted from families last names
- * @global array $famalpha
- */
-
-$famalpha = get_indilist_salpha( $SHOW_MARRIED_NAMES, false, $gGedcom->mGEDCOMId );
-//uasort($famalpha, "stringsort");
-asort($famalpha);
-
-if (empty($surname_sublist))
-        $surname_sublist = "yes";
-
-/**
- * In the first half of 2007, Google is only indexing the first 1,000 urls 
- * on a page.  We now produce 4 urls per line, instead of 12.  So, we divide 
- * 1000 by 5 for some breathing room, and adjust to do surname pages if the 
- * alphalist page would exceed that number minus the header urls and alphas.
- * 200 - letters - unknown and all - menu urls 
- * If you have over 200 families in the same surname, some will still not
- * get indexed through here, and will have to be caught by the close relatives
- * on the individual.php, family.php, or the indilist.php page.
- */
-if (!(empty($SEARCH_SPIDER))) {
-	$googleSplit = 200 - 26 - 2 - 4;
-	if (isset($alpha)) {
-       		$show_count = count($famalpha);
-	} else if (isset($surname)) {
-		$surnames = get_famlist_surns( $surname, $alpha, $SHOW_MARRIED_NAMES, false, $gGedcom->mGEDCOMId );
-    	$show_count = count($surnames);
-    } else {
-       	$show_count = count(get_fam_list());
-    }
-        if (($show_count > $googleSplit ) && (empty($surname)))  /* Generate extra surname pages if needed */
-                $surname_sublist = "yes";
-        else
-                $surname_sublist = "no";
+// Fetch a list of the initial letters of all surnames in the database
+$initials=get_indilist_salpha($SHOW_MARRIED_NAMES, true, PGV_GED_ID);
+// If there are no individuals in the database, do something sensible
+if (!$initials) {
+	$initials[]='@';
 }
 
-if (isset($alpha) && !isset($famalpha["$alpha"])) $alpha="";
+// Make sure selections are consistent.
+// i.e. can't specify show_all and surname at the same time.
+if ($show_all=='yes') {
+	$alpha='';
+	$surname='';
+	$legend=$pgv_lang['all'];
+	$url='famlist.php?show_all=yes';
+} elseif ($surname) {
+	$surname=UTF8_strtoupper($surname);
+	$alpha=UTF8_substr($surname, 0, 1);
+	foreach (db_collation_digraphs() as $from=>$to) {
+		if (strpos($surname, UTF8_strtoupper($to))===0) {
+			$alpha=UTF8_strtoupper($from);
+		}
+	}
+	$show_all='no';
+	$legend=$surname;
+	switch($falpha) {
+	case '':
+		break;
+	case '@':
+		$legend.=', '.$pgv_lang['NN'];
+		break;
+	default:
+		$legend.=', '.$falpha;
+		break;
+	}
+	$surname_sublist='no';
+	$url='famlist.php?surname='.urlencode($surname);
+} else {
+	$show_all='no';
+	$surname='';
+	if ($alpha=='@') {
+		$legend=$pgv_lang['NN'];
+		$surname_sublist='no';
+		$surname='@N.N.';
+	} elseif ($alpha==',') {
+		$legend=$pgv_lang['none'];
+		$surname_sublist='no';
+	} else {
+		$legend=$alpha;
+	}
+	$url='famlist.php?alpha='.urlencode($alpha);
+}
 
-if (count($famalpha) > 0) {
-	foreach($famalpha as $letter=>$list) {
-		if (empty($alpha)) {
-			if (!empty($surname)) {
-				$alpha = substr(preg_replace(array("/ [jJsS][rR]\.?,/", "/ I+,/", "/^[a-z. ]*/"), array(",",",",""), $surname),0,1);
+
+print_header($pgv_lang['family_list'].' : '.$legend);
+echo '<h2 class="center">', $pgv_lang['family_list'], '</h2>';
+
+// Print a selection list of initial letters
+foreach ($initials as $letter) {
+	switch ($letter) {
+	case '@':
+		$html=$pgv_lang['NN'];
+		break;
+	case ',':
+		$html=$pgv_lang['none'];
+		break;
+	default:
+		$html=$letter;
+		break;
+	}
+	$html = $showList && $letter==$alpha && $show_all=='no'
+		? ( $surname
+			? '<a href="famlist.php?alpha='.urlencode($letter).'" class="warning">'.$html.'</a>'
+			: '<span class="warning">'.$html.'</span>' )
+		: '<a href="famlist.php?alpha='.urlencode($letter).'">'.$html.'</a>';
+	$list[] = $html;
+}
+
+// Search spiders don't get the "show all" option as the other links give them everything.
+if (!$SEARCH_SPIDER) {
+	$list[] = $show_all=='yes'
+		? '<span class="warning">'.$pgv_lang['all'].'</span>'
+		: '<a href="famlist.php?show_all=yes">'.$pgv_lang['all'].'</a>';
+}
+echo '<div class="alpha_index"><p class="center">';
+print_help_link('alpha_help', 'qm', 'alpha_index');
+print $pgv_lang["first_letter_name"]."<br />";
+echo join(' | ', $list), '</p>';
+
+// Search spiders don't get an option to show/hide the surname sublists,
+// nor does it make sense on the all/unknown/surname views
+if (!$SEARCH_SPIDER) {
+	echo '<p class="center">';
+	if ($alpha!='@' && $alpha!=',' && !$surname) {
+		if ($surname_sublist=='yes') {
+			print_help_link('skip_sublist_help', 'qm', 'skip_surnames');
+			echo '<a href="', $url, '&amp;surname_sublist=no">', $pgv_lang['skip_surnames'], '</a>';
+		} else {
+			print_help_link('skip_sublist_help', 'qm', 'show_surnames');
+			echo '<a href="', $url, '&amp;surname_sublist=yes">', $pgv_lang['show_surnames'], '</a>';
+		}
+		echo '&nbsp;&nbsp;&nbsp;';
+	}
+	if ($showList) {
+		print_help_link('show_marnm_help', 'qm', 'show_marnms');
+		if ($SHOW_MARRIED_NAMES) {
+			echo '<a href="', $url, '&amp;show_marnm=no">', $pgv_lang['skip_marnms'], '</a>';
+		} else {
+			echo '<a href="', $url, '&amp;show_marnm=yes">', $pgv_lang['show_marnms'], '</a>';
+		}
+		echo '&nbsp;&nbsp;&nbsp;';
+	}
+	print_help_link('name_list_help', 'qm');
+	echo '</p>';
+}
+echo '</div>';
+
+if ($showList) {
+	$surns=get_famlist_surns($surname, $alpha, $SHOW_MARRIED_NAMES, PGV_GED_ID);
+	if ($surname_sublist=='yes') {
+		// Show the surname list
+		switch ($SURNAME_LIST_STYLE) {
+		case 'style3':
+			echo format_surname_tagcloud($surns, 'famlist', true);
+			break;
+		case 'style2':
+		default:
+			echo format_surname_table($surns, 'famlist');
+			break;
+		}
+	} else {
+		// Show the family list
+		$count=0;
+		foreach ($surns as $surnames) {
+			foreach ($surnames as $list) {
+				$count+=count($list);
 			}
 		}
-		if ($letter != "@") {
-			if (!isset($startalpha) && !isset($alpha)) {
-				$startalpha = $letter;
-				$alpha = $letter;
-			}
-		}
-		if ($letter === "@") $pass = true;
-	}
-	if (isset($startalpha)) $alpha = $startalpha;
-	$gBitSmarty->assign_by_ref( "indialpha", $famalpha );
-}
-
-if (($surname_sublist=="yes")&&($show_all=="yes")) {
-	get_fam_list();
-	if (!isset($alpha)) $alpha="";
-	$surnames = array();
-	$fam_hide = array();
-	foreach($famlist as $gid=>$fam) {
-		if (displayDetailsById($gid, "FAM")||showLivingNameById($gid, "FAM")) {
-			$names = preg_split("/\+/", $fam["name"]);
-			$foundnames = array();
-			for($i=0; $i<count($names); $i++) {
-				$name = trim($names[$i]);
-				$sname = extract_surname($name);
-				if (isset($foundnames[$sname])) {
-					if (isset($surnames[$sname]["match"])) $surnames[$sname]["match"]--;
-				}
-				else $foundnames[$sname]=1;
-			}
-		}
-		else $fam_hide[$gid."[".$fam["gedfile"]."]"] = 1;
-	}
-	uasort($surnames, "itemsort");
-asort($surnames);
-	$n = 0;
-	$total = 0;
-	$gBitSmarty->assign( 'url', "famlist.php?ged=".$GEDCOM."&amp;surname=" );
-	$surname_list = array();
-	foreach($surnames as $key => $value) {
-		if (!isset($value["name"])) break;
-		$surn = $value["name"];
-		if (empty($surn) or trim("@".$surn,"_")=="@" or $surn=="@N.N.") $surn = tra('(unknown)');
-		$surname_list[$n]['upper'] = $surn;
-		$surname_list[$n]['count'] = $value["match"];
-		$total += $value["match"];
-		$n++;
-	}
-	$listHash = $_REQUEST;
-	$listHash['sub_total'] = $total;
-	$listHash['total_records'] = $n;
-	$gBitSmarty->assign_by_ref( "surnames", $surname_list );
-	$gBitSmarty->assign_by_ref( 'listInfo', $listHash );
-}
-else if (($surname_sublist=="yes")&&(empty($surname))&&($show_all=="no")) {
-	if (!isset($alpha)) $alpha="";
-	$tfamlist = get_famlist_surns( $surname, $alpha, $SHOW_MARRIED_NAMES, $gGedcom->mGEDCOMId );
-	$surnames = array();
-	$fam_hide = array();
-	foreach( $tfamlist as $gid => $fam ) {
-		if ((displayDetailsByID($gid, "FAM"))||(showLivingNameById($gid, "FAM"))) {
-			foreach( $fam as $key => $name ) {
-//				$lname = strip_prefix($name);
-//				if (empty($lname)) $lname = $name;
-//				$firstLetter=get_first_letter($lname);
-//				if ($alpha==$firstLetter) surname_count(trim($name));
-				$surnames[$gid]['match'] = count($fam[$key]);
-			}
-		}
-		else $fam_hide[$gid."[".$fam["gedfile"]."]"] = 1;
-		$surnames[$gid]['name']= $gid;
-	}
-	$i = 0;
-//	uasort($surnames, "itemsort");
-	asort($surnames);
-	$n = 0;
-	$total = 0;
-	$gBitSmarty->assign( 'url', "famlist.php?ged=".$GEDCOM."&amp;surname=" );
-	$surname_list = array();
-	foreach($surnames as $key => $value) {
-		$surn = $value['name'];
-		if (empty($surn) or trim("@".$surn,"_")=="@" or $surn=="@N.N.") $surn = tra('(unknown)');
-		$surname_list[$n]['upper'] = $surn;
-		$surname_list[$n]['count'] = $value['match'];
-		$total += $value['match'];
-		$n++;
-	}
-	$listHash = $_REQUEST;
-	$listHash['sub_total'] = $total;
-	$listHash['total_records'] = $n;
-	$gBitSmarty->assign_by_ref( "surnames", $surname_list );
-	$gBitSmarty->assign_by_ref( 'listInfo', $listHash );
-}
-else {
-	$firstname_alpha = false;
-	//-- if the surname is set then only get the names in that surname list
-	if ((!empty($surname))&&($surname_sublist=="yes")) {
-		$surname = trim($surname);
-		$tfamlist = get_famlist_surns( $surname, $alpha, $SHOW_MARRIED_NAMES, $gGedcom->mGEDCOMId );
-		//-- split up long surname lists by first letter of first name
-		if ($SUBLIST_TRIGGER_F>0 && count($tfamlist)>$SUBLIST_TRIGGER_F) $firstname_alpha = true;
-	}
-
-	if (($surname_sublist=="no")&&(!empty($alpha))&&($show_all=="no")) {
-		$tfamlist = get_alpha_fams($alpha);
-	}
-
-	//-- simplify processing for ALL famlist
-	if( ( $surname_sublist == "no" ) && ( $show_all == "yes" ) ) {
-		$tfamlist = get_fam_list();
-		uasort($tfamlist, "itemsort");
-	}
-	else {
-		//--- the list is really long so divide it up again by the first letter of the first name
-		if ($firstname_alpha) {
-			if (!isset($_SESSION[$surname."_firstalphafams"])||$DEBUG) {
-				$firstalpha = array();
-				foreach($tfamlist as $gid=>$fam) {
-					$names = preg_split("/[,+] ?/", $fam["name"]);
-					$letter = str2upper(get_first_letter(trim($names[1])));
-					if (!isset($firstalpha[$letter])) {
-						if (isset($names[0])&&isset($names[1])&&$names[0]==$surname) $firstalpha[$letter] = array("letter"=>$letter, "ids"=>$gid);
+		// Don't sublists short lists.
+		if ($count<$SUBLIST_TRIGGER_F) {
+			$falpha='';
+			$show_all_firstnames='no';
+		} else {
+			$givn_initials=get_indilist_galpha($surname, $alpha, $SHOW_MARRIED_NAMES, true, PGV_GED_ID);
+			// Break long lists by initial letter of given name
+			if (($surname || $show_all=='yes') && $count>$SUBLIST_TRIGGER_F) {
+				// Don't show the list until we have some filter criteria
+				$showList= $falpha || $show_all_firstnames=='yes';
+				$list=array();
+				foreach ($givn_initials as $givn_initial) {
+					switch ($givn_initial) {
+					case '@':
+						$html=$pgv_lang['NN'];
+						break;
+					default:
+						$html=$givn_initial;
+						break;
 					}
-					else if ($names[0]==$surname) $firstalpha[$letter]["ids"] .= ",".$gid;
-					if (isset($names[2])&&isset($names[3])) {
-						$letter = str2upper(get_first_letter(trim($names[3])));
-						if (!isset($firstalpha[$letter])) {
-							if ($names[2]==$surname) $firstalpha[$letter] = array("letter"=>$letter, "ids"=>$gid);
-						}
-						else if ($names[2]==$surname) $firstalpha[$letter]["ids"] .= ",".$gid;
-// Make sure that the same gid is not already defined for the letter
-					}
+					$html = $showList && $givn_initial==$falpha && $show_all_firstnames=='no'
+						? '<span class="warning">'.$html.'</span>'
+						: '<a href="'.$url.'&amp;falpha='.$givn_initial.'">'.$html.'</a>';
+					$list[] = $html;
 				}
-
-				uasort($firstalpha, "lettersort");
-				//-- put the list in the session so that we don't have to calculate this the next time
-				$_SESSION[$surname."_firstalphafams"] = $firstalpha;
-			}
-			else $firstalpha = $_SESSION[$surname."_firstalphafams"];
-			if (isset($fstartalpha)) $falpha = $fstartalpha;
-			if ($show_all_firstnames=="no") {
-				$ffamlist = array();
-				$ids = preg_split("/,/", $firstalpha[$falpha]["ids"]);
-				foreach($ids as $indexval => $id) {
-					$ffamlist[$id] = $famlist[$id];
+				// Seach spiders don't get the "show all" option as the other links give them everything.
+				if (!$SEARCH_SPIDER) {
+					$list[] = $show_all_firstnames=='yes'
+						? '<span class="warning">'.$pgv_lang['all'].'</span>'
+						: '<a href="'.$url.'&amp;show_all_firstnames=yes">'.$pgv_lang['all'].'</a>';
 				}
-				$tfamlist = $ffamlist;
+				if ($show_all=='no') {
+					echo '<h2 class="center">';
+					print PrintReady(str_replace("#surname#", check_NN($surname), $pgv_lang['fams_with_surname']));
+					echo '</h2>';
+				}
+				echo '<div class="alpha_index"><p class="center">';
+				print_help_link('alpha_help', 'qm', 'alpha_index');
+				echo $pgv_lang['first_letter_sfname'], '<br />';
+				echo join(' | ', $list), '</p></div>';
 			}
 		}
-//		uasort($tfamlist, "itemsort");
-	}
-	// Fill family data
-	require_once ( PHPGEDVIEW_PKG_PATH.'includes/classes/class_family.php' );
-	foreach( $tfamlist as $fams ) {
-		foreach( $fams as $fam ) {
-			foreach( $fam as $gid => $val ) {
-				$family =  new Family($gid);
-				$ffamlist[$gid]['url'] = "family.php?ged=".$GEDCOM."&amp;pid=".$gid."#content";
-				$ffamlist[$gid]['marriagedate'] = $family->getMarriageDate();
-				$ffamlist[$gid]['marriageplace'] = $family->getMarriagePlace();
-//				$ffamlist[$gid]['placeurl'] = $family->getPlaceUrl($tfamlist[$gid]['marriageplace']);
+		if ($showList) {
+			if ($legend && $show_all=='no') {
+				$legend=PrintReady(str_replace("#surname#", check_NN($legend), $pgv_lang['fams_with_surname']));
 			}
+			$families=get_famlist_fams($surname, $alpha, $falpha, $SHOW_MARRIED_NAMES, PGV_GED_ID);
+			print_fam_table($families, $legend);
 		}
 	}
-	$tfamlist = $ffamlist;
 }
 
-if ($show_all=="yes") unset($alpha);
-if (!empty($surname) && $surname_sublist=="yes") $legend = "Families with surname ".check_NN($surname);
-else if (isset($alpha) and $show_all=="no") $legend = "Families with surname starting ".$alpha;
-else $legend = $pgv_lang["families"];
-if ($show_all_firstnames=="yes") $falpha = "@";
-if (isset($falpha) and $falpha!="@") $legend .= ", ".$falpha.".";
-
-if (!empty($surname) or $surname_sublist=="no") {
-//	print_fam_table($tfamlist, $legend);
-	$gBitSmarty->assign_by_ref( "families", $tfamlist );
-}
-if (isset($alpha)) {
-	$gBitSmarty->assign( "alpha", $alpha );
-    if (!isset($doctitle)) $doctitle = "Family List : ".$alpha;
-}
-else if (!isset($doctitle)) $doctitle = "Full Family List";
-$gBitSmarty->assign( "pagetitle", $doctitle );
-$gBitSystem->display( 'bitpackage:phpgedview/famlist.tpl', tra( 'Family selection list' ) );
-?>
+print_footer();

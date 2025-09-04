@@ -2,7 +2,7 @@
 /**
  * Script to test the Tree Navigation modules.
  * To embed the tree for use in mashups or on blogs use code such as this:
- * <script type="text/javascript" src="http://yourserver/phpgedview/treenav.php?navAjax=embed&rootid=I14&width=400&height=300"></script>
+ * <script src="http://yourserver/phpgedview/treenav.php?navAjax=embed&rootid=I14&width=400&height=300"></script>
  *
  * phpGedView: Genealogy Viewer
  * Copyright (C) 2008  PGV Development Team.  All rights reserved.
@@ -28,9 +28,10 @@
  * @version $Id$
  */
 
-require './config.php';
+namespace Bitweaver\Phpgedview;
 
-require_once("includes/classes/class_treenav.php");
+define('PGV_SCRIPT_NAME', 'treenav.php');
+require './config.php';
 
 $zoom = 0;
 $rootid = '';
@@ -44,4 +45,3 @@ $nav->zoomLevel-=1;
 print_header($pgv_lang["interactive_tree"]);
 $nav->drawViewport('', "", "600px");
 print_footer();
-?>

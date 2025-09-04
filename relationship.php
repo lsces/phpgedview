@@ -26,20 +26,11 @@
  * @version $Id$
  */
 
-/**
- * Initialization
- */
-require_once( '../kernel/setup_inc.php' );
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
+namespace Bitweaver\Phpgedview;
 
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require_once 'includes/functions/functions_charts.php';
-require_once 'includes/classes/class_person.php';
+define('PGV_SCRIPT_NAME', 'relationship.php');
+require './config.php';
+require_once PGV_ROOT.'includes/functions/functions_charts.php';
 
 function getRelationshipSentence($node, $pid1, $pid2) {
 	global $pgv_lang, $lang_short_cut, $LANGUAGE, $path_to_find;
@@ -91,11 +82,11 @@ function getRelationshipSentence($node, $pid1, $pid2) {
 				break;
 			case "father":
 				$generationsOlder++;
-				$sosa = $sosa * 2;
+				$sosa *= 2;
 				break;
 			case "son":
 				$generationsYounger++;
-				$bosa = $bosa * 2;
+				$bosa *= 2;
 				break;
 			case "daughter":
 				$generationsYounger++;
@@ -124,11 +115,11 @@ function getRelationshipSentence($node, $pid1, $pid2) {
 		return false;
 	}
 
-	$person1 = find_person_record($pid1);
-	$person2 = find_person_record($pid2);
+	$person1 = find_person_record($pid1, PGV_GED_ID);
+	$person2 = find_person_record($pid2, PGV_GED_ID);
 	$mf = "NN";
-	if (preg_match("/1 SEX F/", $person2, $smatch)>0) $mf="F";
-	if (preg_match("/1 SEX M/", $person2, $smatch)>0) $mf="M";
+	if (strpos($person2, "1 SEX F")!==false) $mf="F";
+	if (strpos($person2, "1 SEX M")!==false) $mf="M";
 
 	// now look to see if we can find some text to describe the relationship
 	//check if relationship is parent
@@ -157,32 +148,17 @@ function getRelationshipSentence($node, $pid1, $pid2) {
 		else {
 			// step relationship
 			if (isset($pgv_lang["stepmom"]) && $mf=="F") {
-				if (!empty($firstRelationshipIsSpouse) || $path_to_find>0) {
-					$relationshipDescription = $pgv_lang["sosa_3"];
-				}
-				else {
-					$relationshipDescription = $pgv_lang["stepmom"];
-				}
+				$relationshipDescription = (!empty($firstRelationshipIsSpouse) || $path_to_find>0) ? $pgv_lang["sosa_3"] : $pgv_lang["stepmom"];
 			}
 			else if (isset($pgv_lang["stepdad"])) {
-				if (!empty($firstRelationshipIsSpouse) || $path_to_find>0) {
-					$relationshipDescription = $pgv_lang["sosa_2"];
-				}
-				else {
-					$relationshipDescription = $pgv_lang["stepdad"];
-				}
+				$relationshipDescription = (!empty($firstRelationshipIsSpouse) || $path_to_find>0) ? $pgv_lang["sosa_2"] : $pgv_lang["stepdad"];
 			}
 		}
 	}
 	//checks for brother in law, sister in law realtionships
 	else if ($numberOfSpouses == 1 && $numberOfSiblings == 1 && $generationsYounger == 0 && $generationsOlder == 0) {
 		if (isset($pgv_lang["sister_in_law"]) && $mf=="F") {
-			if (in_arrayr("brother", $node)) {
-				$relationshipDescription = $pgv_lang["brothers_wife"];
-			}
-			else {
-				$relationshipDescription = $pgv_lang["sister_in_law"];
-			}
+			$relationshipDescription = (in_arrayr("brother", $node)) ? $pgv_lang["brothers_wife"] : $pgv_lang["sister_in_law"];
 		}
 		else if (isset($pgv_lang["brother_in_law"])) {
 			$relationshipDescription = $pgv_lang["brother_in_law"];
@@ -198,7 +174,8 @@ function getRelationshipSentence($node, $pid1, $pid2) {
 			else if (isset($pgv_lang["son_in_law"])) {
 				$relationshipDescription = $pgv_lang["son_in_law"];
 			}
-		} else {
+		}
+		else {
 			// step relationship
 			if (isset($pgv_lang["step_daughter"]) && $mf=="F") {
 				$relationshipDescription = $pgv_lang["step_daughter"];
@@ -477,12 +454,9 @@ $title_string = "";
 $pid1=safe_GET_xref('pid1');
 $pid2=safe_GET_xref('pid2');
 
-if (!isset($_REQUEST['followspouse'])) $followspouse = 0;
-else $followspouse = $_REQUEST['followspouse'];
-if (!isset($_REQUEST['pretty'])) $pretty = 0;
-else $pretty = $_REQUEST['pretty'];
-if (!isset($_REQUEST['asc'])) $asc=1;
-else $asc = $_REQUEST['asc'];
+$followspouse = (!isset($_REQUEST['followspouse'])) ? 0 : $_REQUEST['followspouse'];
+$pretty = (!isset($_REQUEST['pretty'])) ? 0 : $_REQUEST['pretty'];
+$asc = (!isset($_REQUEST['asc'])) ? 1 : $_REQUEST['asc'];
 if ($asc=="") $asc=1;
 if (empty($pid1)) {
 	$followspouse = 1;
@@ -495,13 +469,12 @@ $title_string .= $pgv_lang["relationship_chart"];
 // -- print html header information
 print_header($title_string);
 
-if ($ENABLE_AUTOCOMPLETE) require './js/autocomplete.js.htm';
+if ($ENABLE_AUTOCOMPLETE) require PGV_ROOT.'js/autocomplete.js.html';
 
 // Lbox additions if installed ---------------------------------------------------------------------------------------------
-if ($MULTI_MEDIA && file_exists("modules/lightbox/album.php")) {
-	include('modules/lightbox/lb_defaultconfig.php');
-	if (file_exists('modules/lightbox/lb_config.php')) include('modules/lightbox/lb_config.php');
-	include_once('modules/lightbox/functions/lb_call_js.php');
+if (PGV_USE_LIGHTBOX) {
+	require PGV_ROOT.'modules/lightbox/lb_defaultconfig.php';
+	require_once PGV_ROOT.'modules/lightbox/functions/lb_call_js.php';
 }
 // ------------------------------------------------------------------------------------------------------------------------------
 
@@ -553,7 +526,7 @@ if ($pid2) {
 }
 //	print_help_link("relationship_help", "page_help");
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 var pastefield;
 function paste_id(value) {
 	pastefield.value=value;
@@ -674,331 +647,375 @@ if ($view!="preview") {
 	<!-- // Show path -->
 	<tr><td class="descriptionbox">
 	<?php $pass = false;
-	if ((isset($_SESSION["relationships"]))&&((!empty($pid1))&&(!empty($pid2)))) {
+	if (isset( $_SESSION["relationships"] ) && ( ( !empty( $pid1 ) ) && ( !empty( $pid2 ) ) )) {
 		$pass = true;
-		$i=0;
-		$new_path=true;
-		if (isset($_SESSION["relationships"][$path_to_find])) $node = $_SESSION["relationships"][$path_to_find];
-		else $node = get_relationship($pid1, $pid2, $followspouse, 0, true, $path_to_find);
+		$i = 0;
+		$new_path = true;
+		$node = isset( $_SESSION["relationships"][$path_to_find] ) ? $_SESSION["relationships"][$path_to_find] : get_relationship($pid1, $pid2, $followspouse, 0, true, $path_to_find);
+		$node = get_relationship( $pid1, $pid2, $followspouse, 0, true, $path_to_find );
 		if (!$node) {
 			$path_to_find--;
-			$check_node=$node;
+			$check_node = $node;
 		}
-		foreach($_SESSION["relationships"] as $indexval => $node) {
-			if ($i==0) print $pgv_lang["show_path"].": </td><td class=\"list_value\" style=\"padding: 3px;\">";
-			if ($i>0) print " | ";
-			if ($i==$path_to_find){
-				print "<span class=\"error\" style=\"valign: middle\">".($i+1)."</span>";
-				$new_path=false;
+		foreach ( $_SESSION["relationships"] as $indexval => $node ) {
+			if ($i == 0)
+				print $pgv_lang["show_path"] . ": </td><td class=\"list_value\" style=\"padding: 3px;\">";
+			if ($i > 0)
+				print " | ";
+			if ($i == $path_to_find) {
+				print "<span class=\"error\" style=\"valign: middle\">" . ( $i + 1 ) . "</span>";
+				$new_path = false;
 			}
 			else {
-				print "<a href=\"".encode_url("relationship.php?pid1={$pid1}&pid2={$pid2}&path_to_find={$i}&followspouse={$followspouse}&pretty={$pretty}&show_full={$show_full}&asc={$asc}")."\">".($i+1)."</a>\n";
+				print "<a href=\"" . encode_url( "relationship.php?pid1={$pid1}&pid2={$pid2}&path_to_find=[$i]&followspouse={$followspouse}&pretty={$pretty}&show_full={$show_full}&asc={$asc}" ) . "\">" . ( $i + 1 ) . "</a>\n";
 			}
 			$i++;
 		}
-		if (($new_path)&&($path_to_find<$i+1)&&($check_node)) print " | <span class=\"error\">".($i+1)."</span>";
+		if ($new_path && ( $path_to_find < $i + 1 ) && $check_node)
+			print " | <span class=\"error\">" . ( $i + 1 ) . "</span>";
 		print "</td>";
 	}
 	else {
-		if ((!empty($pid1))&&(!empty($pid2))) {
-			if ((!displayDetailsById($pid1))&&(!showLivingNameById($pid1))) $disp = false;
-			else if ((!displayDetailsById($pid2))&&(!showLivingNameById($pid2))) $disp = false;
+		if (( !empty( $pid1 ) ) && ( !empty( $pid2 ) )) {
+			if (( !displayDetailsById( $pid1 ) ) && ( !showLivingNameById( $pid1 ) )) {
+				$disp = false;
+			}
+			elseif (( !displayDetailsById( $pid2 ) ) && ( !showLivingNameById( $pid2 ) )) {
+				$disp = false;
+			}
 			if ($disp) {
-				print $pgv_lang["show_path"].": </td>";
-				print "\n\t\t<td class=\"optionbox\">";
-				print " <span class=\"error vmmiddle\">";
-				$check_node = get_relationship($pid1, $pid2, $followspouse, 0, true, $path_to_find);
-				print ($check_node?"1":"&nbsp;".$pgv_lang["no_results"])."</span></td>";
+				echo $pgv_lang["show_path"], ": </td>";
+				echo "\n\t\t<td class=\"optionbox\">";
+				echo " <span class=\"error vmmiddle\">";
+				$check_node = get_relationship( $pid1, $pid2, $followspouse, 0, true, $path_to_find );
+				echo $check_node ? "1" : "&nbsp;" . $pgv_lang["no_results"], "</span></td>";
 				$prt = true;
 			}
 		}
-		if (!isset($prt)) print "&nbsp;</td><td class=\"optionbox\">&nbsp;</td>";
+		if (!isset( $prt )) {
+			echo "&nbsp;</td><td class=\"optionbox\">&nbsp;</td>";
+		}
 	}
-?>
+	?>
 	<!-- // Empty space -->
 	<td></td>
 
 	<!-- // Check relationships by marriage -->
 	<td class="descriptionbox">
 	<?php
-	print_help_link("follow_spouse_help", "qm");
-	print $pgv_lang["follow_spouse"];?>
+
+	print_help_link( "follow_spouse_help", "qm" );
+	print $pgv_lang["follow_spouse"]; ?>
 	</td>
 	<td class="optionbox" id="followspousebox">
 	<input tabindex="6" type="checkbox" name="followspouse" value="1"
 	<?php
-	if ($followspouse) print " checked=\"checked\"";
-	print " onclick=\"document.people.path_to_find.value='-1';\""?> />
+
+	if ($followspouse) {
+		echo " checked=\"checked\"";
+	}
+	echo " onclick=\"document.people.path_to_find.value='-1';\"" ?> />
 	</td>
 	<?php
-	if ((!empty($pid1))&&(!empty($pid2))&&($disp)) {
-		print "</tr><tr>";
-		if (($disp)&&(!$check_node)) {
-			print "<td class=\"topbottombar wrap vmiddle center\" colspan=\"2\">";
-			if (isset($_SESSION["relationships"]))
-				if ($path_to_find==0) print "<span class=\"error\">".$pgv_lang["no_link_found"]."</span><br />";
-				else print "<span class=\"error\">".$pgv_lang["no_other_link_found"]."</span><br />";
+
+	if (( !empty( $pid1 ) ) && ( !empty( $pid2 ) ) && $disp) {
+		echo "</tr><tr>";
+		if ($disp && ( !$check_node )) {
+			echo "<td class=\"topbottombar wrap vmiddle center\" colspan=\"2\">";
+			if (isset( $_SESSION["relationships"] )) {
+				if ($path_to_find == 0) {
+					echo "<span class=\"error\">", $pgv_lang["no_link_found"], "</span><br />";
+				}
+				else {
+					echo "<span class=\"error\">", $pgv_lang["no_other_link_found"], "</span><br />";
+				}
+			}
 			if (!$followspouse) {
 				?>
-				<script language="JavaScript" type="text/javascript">
+				<script>
 				document.getElementById("followspousebox").className='facts_valuered';
 				</script>
 				<?php
-				print "<input class=\"error\" type=\"submit\" value=\"".$pgv_lang["follow_spouse"]."\" onclick=\"people.followspouse.checked='checked';\"/>";
+
+				echo "<input class=\"error\" type=\"submit\" value=\"", $pgv_lang["follow_spouse"], "\" onclick=\"people.followspouse.checked='checked';\"/>";
 			}
-			print "</td>";
+			echo "</td>";
 		}
-		else print "<td class=\"topbottombar vmiddle center\" colspan=\"2\"><input type=\"submit\" value=\"".$pgv_lang["next_path"]."\" onclick=\"document.people.path_to_find.value='".($path_to_find+1)."';\" /></td>\n";
+		else {
+			echo "<td class=\"topbottombar vmiddle center\" colspan=\"2\"><input type=\"submit\" value=\"", $pgv_lang["next_path"], "\" onclick=\"document.people.path_to_find.value='", $path_to_find + 1, "';\" /></td>\n";
+		}
 		$pass = true;
 	}
 
-	if ($pass == false) print "</tr><tr><td colspan=\"2\" class=\"topbottombar wrap\">&nbsp;</td>";?>
+	if ($pass == false)
+		echo "</tr><tr><td colspan=\"2\" class=\"topbottombar wrap\">&nbsp;</td>"; ?>
 
 	<!-- // Empty space -->
 	<td></td>
 
 	<!-- // View button -->
 	<td class="topbottombar vmiddle center" colspan="2">
-	<input tabindex="7" type="submit" value="<?php print $pgv_lang["view"]?>" />
+	<input tabindex="7" type="submit" value="<?php print $pgv_lang["view"] ?>" />
 	</td></tr>
 
 
 	</table></form>
 	<?php
+
 }
 else {
-	$Dbaseyoffset=55;
-	$Dbasexoffset=10;
+	$Dbaseyoffset = 55;
+	$Dbasexoffset = 10;
 }
 ?>
-</div>
+</$node = (isset($_SESSION["relationships"][$path_to_find])) ? $_SESSION["relationships"][$path_to_find] : get_relationship($pid1, $pid2, $followspouse, 0, true, $path_to_find);
 <?php
-if ($show_full==0) {
-	echo '<br /><span class="details2">', $pgv_lang['charts_click_box'], '</span><br />';
+if ($show_full == 0) {
+	echo '<br /><span class="details2">'. $pgv_lang['charts_click_box']. '</span><br />';
 }
 ?>
-<div id="relationship_chart<?php print ($TEXT_DIRECTION=="ltr")?"":"_rtl";?>" style="position:relative; z-index:1; width:98%;">
+<div id="relationship_chart<?php print ( $TEXT_DIRECTION == "ltr" ) ? "" : "_rtl"; ?>" style="position:relative; z-index:1; width:98%;">
 <?php
+
 $maxyoffset = $Dbaseyoffset;
-if ((!empty($pid1))&&(!empty($pid2))) {
+if (( !empty( $pid1 ) ) && ( !empty( $pid2 ) )) {
 	if (!$disp) {
 		print "<br /><br />";
-		print_privacy_error($CONTACT_EMAIL);
+		print_privacy_error( $CONTACT_EMAIL );
 	}
 	else {
-		if (isset($_SESSION["relationships"][$path_to_find])) $node = $_SESSION["relationships"][$path_to_find];
-		else $node = get_relationship($pid1, $pid2, $followspouse, 0, true, $path_to_find);
-		if ($node!==false) {
+		$node = $_SESSION["relationships"][$path_to_find] ?? get_relationship( $pid1, $pid2, $followspouse, 0, true, $path_to_find );
+		if ($node !== false) {
 			$_SESSION["pid1"] = $pid1;
 			$_SESSION["pid2"] = $pid2;
-			if (!isset($_SESSION["relationships"])) $_SESSION["relationships"] = array();
+			if (!isset( $_SESSION["relationships"] ))
+				$_SESSION["relationships"] = array();
 			$_SESSION["relationships"][$path_to_find] = $node;
 			$yoffset = $Dbaseyoffset + 20;
 			$xoffset = $Dbasexoffset;
 			$colNum = 0;
 			$rowNum = 0;
 			$boxNum = 0;
-			$previous="";
-			$previous2="";
-			$xs = $Dbxspacing+70;
-			$ys = $Dbyspacing+50;
+			$previous = "";
+			$previous2 = "";
+			$xs = $Dbxspacing + 70;
+			$ys = $Dbyspacing + 50;
 			// step1 = tree depth calculation
 			if ($pretty) {
-				$dmin=0;
-				$dmax=0;
-				$depth=0;
-				foreach($node["path"] as $index=>$pid) {
-					if (($node["relations"][$index]=="father")||($node["relations"][$index]=="mother")) {
+				$dmin = 0;
+				$dmax = 0;
+				$depth = 0;
+				foreach ( $node["path"] as $index => $pid ) {
+					if (( $node["relations"][$index] == "father" ) || ( $node["relations"][$index] == "mother" )) {
 
-					$depth++;
-					if ($depth>$dmax) $dmax=$depth;
-					if ($asc==0) $asc=1; // the first link is a parent link
+						$depth++;
+						if ($depth > $dmax)
+							$dmax = $depth;
+						if ($asc == 0)
+							$asc = 1; // the first link is a parent link
 					}
-					if ($node["relations"][$index]=="child") {
+					if ($node["relations"][$index] == "child") {
 						$depth--;
-						if ($depth<$dmin) $dmin=$depth;
-						if ($asc==0) $asc=-1; // the first link is a child link
+						if ($depth < $dmin)
+							$dmin = $depth;
+						if ($asc == 0)
+							$asc = -1; // the first link is a child link
 					}
 				}
-				$depth=$dmax+$dmin;
+				$depth = $dmax + $dmin;
 				// need more yoffset before the first box ?
-				if ($asc==1) $yoffset -= $dmin*($Dbheight+$ys);
-				if ($asc==-1) $yoffset += $dmax*($Dbheight+$ys);
-				$rowNum = ($asc==-1) ? $depth : 0;
+				if ($asc == 1)
+					$yoffset -= $dmin * ( $Dbheight + $ys );
+				if ($asc == -1)
+					$yoffset += $dmax * ( $Dbheight + $ys );
+				$rowNum = ( $asc == -1 ) ? $depth : 0;
 			}
-			$maxxoffset = -1*$Dbwidth-20;
+			$maxxoffset = -1 * $Dbwidth - 20;
 			$maxyoffset = $yoffset;
-			if ($TEXT_DIRECTION=="ltr") {
+			if ($TEXT_DIRECTION == "ltr") {
 				$rArrow = $PGV_IMAGES["rarrow"]["other"];
 				$lArrow = $PGV_IMAGES["larrow"]["other"];
-			} else {
-				$rArrow = $PGV_IMAGES["larrow"]["other"];
+			}
+			else {
+				$rArrow = ($asc==1) ? $yoffset-$lh : $yoffset+$Dbheight;
 				$lArrow = $PGV_IMAGES["rarrow"]["other"];
 			}
-			foreach($node["path"] as $index=>$pid) {
+			foreach ( $node["path"] as $index => $pid ) {
 				print "\r\n\r\n<!-- Node:{$index} -->\r\n";
 				$linex = $xoffset;
 				$liney = $yoffset;
 				$mfstyle = "NN";
-				$indirec = find_person_record($pid);
-				if (preg_match("/1 SEX F/", $indirec, $smatch)>0) $mfstyle="F";
-				if (preg_match("/1 SEX M/", $indirec, $smatch)>0) $mfstyle="";
-				$arrow_img = $PGV_IMAGE_DIR."/".$PGV_IMAGES["darrow"]["other"];
-				if (($node["relations"][$index]=="father")||($node["relations"][$index]=="mother")) {
+				$indirec = find_person_record( $pid, PGV_GED_ID );
+				if ( $liney = ($asc==-1) ? $yoffset+$Dbheight : $yoffset-($lh ?? 0) )
+					$mfstyle = "F";
+				if (strpos( $indirec, "1 SEX M" ) !== false)
+					$mfstyle = "";
+				$arrow_img = $PGV_IMAGE_DIR . "/" . $PGV_IMAGES["darrow"]["other"];
+				if (( $node["relations"][$index] == "father" ) || ( $node["relations"][$index] == "mother" )) {
 					$line = $PGV_IMAGES["vline"]["other"];
 					$liney += $Dbheight;
-					$linex += $Dbwidth/2;
+					$linex += $Dbwidth / 2;
 					$lh = 54;
 					$lw = 3;
 					//check for paternal grandparent relationship
 					if ($pretty) {
-						if ($asc==0) $asc=1;
-						if ($asc==-1) $arrow_img = $PGV_IMAGE_DIR."/".$PGV_IMAGES["uarrow"]["other"];
-						$lh=$ys;
-						$linex=$xoffset+$Dbwidth/2;
+						if ($asc == 0)
+							$asc = 1;
+						if ($asc == -1)
+							$arrow_img = $PGV_IMAGE_DIR . "/" . $PGV_IMAGES["uarrow"]["other"];
+						$lh = $ys;
+						$linex = $xoffset + $Dbwidth / 2;
 						// put the box up or down ?
-						$yoffset += $asc*($Dbheight+$lh);
+						$yoffset += $asc * ( $Dbheight + $lh );
 						$rowNum += $asc;
-						if ($asc==1) $liney = $yoffset-$lh; else $liney = $yoffset+$Dbheight;
+						$liney = ( $asc == 1 ) ? $yoffset - $lh : $yoffset + $Dbheight;
 						// need to draw a joining line ?
-						if ($previous=="child" and $previous2!="parent") {
+						if ($previous == "child" and $previous2 != "parent") {
 							$joinh = 3;
-							$joinw = $xs/2+2;
-							$xoffset += $Dbwidth+$xs;
-							$colNum ++;
+							$joinw = $xs / 2 + 2;
+							$xoffset += $Dbwidth + $xs;
+							$colNum++;
 							//$rowNum is inherited from the box immediately to the left
-							$linex = $xoffset-$xs/2;
-							if ($asc==-1) $liney=$yoffset+$Dbheight; else $liney=$yoffset-$lh;
-							$joinx = $xoffset-$xs;
-							$joiny = $liney-2-($asc-1)/2*$lh;
-							print "<div id=\"joina$index\" style=\"position:absolute; ".($TEXT_DIRECTION=="ltr"?"left":"right").":".($joinx+$Dbxspacing)."px; top:".($joiny+$Dbyspacing)."px; z-index:-100; \" align=\"center\"><img src=\"".$PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]."\" align=\"left\" width=\"".$joinw."\" height=\"".$joinh."\" alt=\"\" /></div>\n";
-							$joinw = $xs/2+2;
-							$joinx = $joinx+$xs/2;
-							$joiny = $joiny+$asc*$lh;
-							print "<div id=\"joinb$index\" style=\"position:absolute; ".($TEXT_DIRECTION=="ltr"?"left":"right").":".($joinx+$Dbxspacing)."px; top:".($joiny+$Dbyspacing)."px; z-index:-100; \" align=\"center\"><img src=\"".$PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]."\" align=\"left\" width=\"".$joinw."\" height=\"".$joinh."\" alt=\"\" /></div>\n";
+							$linex = $xoffset - $xs / 2;
+							$liney = ( $asc == -1 ) ? $yoffset + $Dbheight : $yoffset - $lh;
+							$joinx = $xoffset - $xs;
+							$joiny = $liney - 2 - ( $asc - 1 ) / 2 * $lh;
+							echo "<div id=\"joina", $index, "\" style=\"position:absolute; ", $TEXT_DIRECTION == "ltr" ? "left" : "right", ":", $joinx + $Dbxspacing, "px; top:", $joiny + $Dbyspacing, "px; z-index:-100; \" align=\"center\"><img src=\"", $PGV_IMAGE_DIR, "/", $PGV_IMAGES["hline"]["other"], "\" align=\"left\" width=\"", $joinw, "\" height=\"", $joinh, "\" alt=\"\" /></div>\n";
+							$joinw = $xs / 2 + 2;
+							$joinx += $xs / 2;
+							$joiny += $asc * $lh;
+							echo "<div id=\"joinb", $index, "\" style=\"position:absolute; ", $TEXT_DIRECTION == "ltr" ? "left" : "right", ":", $joinx + $Dbxspacing, "px; top:", $joiny + $Dbyspacing, "px; z-index:-100; \" align=\"center\"><img src=\"", $PGV_IMAGE_DIR, "/", $PGV_IMAGES["hline"]["other"], "\" align=\"left\" width=\"", $joinw, "\" height=\"", $joinh, "\" alt=\"\" /></div>\n";
 						}
-						$previous2=$previous;;
-						$previous="parent";
+						$previous2 = $previous;
+						$previous = "parent";
 					}
-					else $yoffset += $Dbheight+$Dbyspacing+50;
+					else
+						$yoffset += $Dbheight + $Dbyspacing + 50;
 				}
-				if ($node["relations"][$index]=="sibling") {
-					$arrow_img = $PGV_IMAGE_DIR."/".$rArrow;
-					if ($mfstyle=="F") $node["relations"][$index]="sister";
-					if ($mfstyle=="") $node["relations"][$index]="brother";
-					$xoffset += $Dbwidth+$Dbxspacing+70;
-					$colNum ++;
+				if ($node["relations"][$index] == "sibling") {
+					$arrow_img = $PGV_IMAGE_DIR . "/" . $rArrow;
+					if ($mfstyle == "F")
+						$node["relations"][$index] = "sister";
+					if ($mfstyle == "")
+						$node["relations"][$index] = "brother";
+					$xoffset += $Dbwidth + $Dbxspacing + 70;
+					$colNum++;
 					//$rowNum is inherited from the box immediately to the left
 					$line = $PGV_IMAGES["hline"]["other"];
 					$linex += $Dbwidth;
-					$liney += $Dbheight/2;
+					$liney += $Dbheight / 2;
 					$lh = 3;
 					$lw = 70;
 					if ($pretty) {
 						$lw = $xs;
-						$linex = $xoffset-$lw;
-						$liney = $yoffset+$Dbheight/4;
-						$previous2=$previous;;
-						$previous="";
+						$linex = $xoffset - $lw;
+						$liney = $yoffset + $Dbheight / 4;
+						$liney = ($asc==-1) ? $yoffset-$lh : $yoffset+$Dbheight;
+						$previous = "";
 					}
 				}
-				if ($node["relations"][$index]=="spouse") {
-					$arrow_img = $PGV_IMAGE_DIR."/".$rArrow;
-					if ($mfstyle=="F") $node["relations"][$index]="wife";
-					if ($mfstyle=="") $node["relations"][$index]="husband";
-					$xoffset += $Dbwidth+$Dbxspacing+70;
-					$colNum ++;
+				if ($node["relations"][$index] == "spouse") {
+					$arrow_img = $PGV_IMAGE_DIR . "/" . $rArrow;
+					if ($mfstyle == "F")
+						$node["relations"][$index] = "wife";
+					if ($mfstyle == "")
+						$$liney = ($asc==1) ? $yoffset+$Dbheight : $yoffset-($lh+$Dbyspacing);
+					$xoffset += $Dbwidth + $Dbxspacing + 70;
+					$colNum++;
 					//$rowNum is inherited from the box immediately to the left
 					$line = $PGV_IMAGES["hline"]["other"];
 					$linex += $Dbwidth;
-					$liney += $Dbheight/2;
+					$liney += $Dbheight / 2;
 					$lh = 3;
 					$lw = 70;
 					if ($pretty) {
 						$lw = $xs;
-						$linex = $xoffset-$lw;
-						$liney = $yoffset+$Dbheight/4;
-						$previous2=$previous;;
-						$previous="";
+						$linex = $xoffset - $lw;
+						$liney = $yoffset + $Dbheight / 4;
+						$previous2 = $previous;
+						$previous = "";
 					}
 				}
-				if ($node["relations"][$index]=="child") {
-					if ($mfstyle=="F") $node["relations"][$index]="daughter";
-					if ($mfstyle=="") $node["relations"][$index]="son";
+				if ($node["relations"][$index] == "child") {
+					if ($mfstyle == "F")
+						$node["relations"][$index] = "daughter";
+					if ($mfstyle == "")
+						$node["relations"][$index] = "son";
 					$line = $PGV_IMAGES["vline"]["other"];
 					$liney += $Dbheight;
-					$linex += $Dbwidth/2;
+					$linex += $Dbwidth / 2;
 					$lh = 54;
 					$lw = 3;
 					if ($pretty) {
-						if ($asc==0) $asc=-1;
-						if ($asc==1) $arrow_img = $PGV_IMAGE_DIR."/".$PGV_IMAGES["uarrow"]["other"];
-						$lh=$ys;
-						$linex = $xoffset+$Dbwidth/2;
+						if ($asc == 0)
+							$asc = -1;
+						if ($asc == 1)
+							$arrow_img = $PGV_IMAGE_DIR . "/" . $PGV_IMAGES["uarrow"]["other"];
+						$lh = $ys;
+						$linex = $xoffset + $Dbwidth / 2;
 						// put the box up or down ?
-						$yoffset -= $asc*($Dbheight+$lh);
+						$yoffset -= $asc * ( $Dbheight + $lh );
 						$rowNum -= $asc;
-						if ($asc==-1) $liney = $yoffset-$lh; else $liney = $yoffset+$Dbheight;
+						$liney = ( $asc == -1 ) ? $yoffset - $lh : $yoffset + $Dbheight;
 						// need to draw a joining line ?
-						if ($previous=="parent" and $previous2!="child") {
-							$joinh = 3;
-							$joinw = $xs/2+2;
-							$xoffset += $Dbwidth+$xs;
-							$colNum ++;
-							//$rowNum is inherited from the box immediately to the left
-							$linex = $xoffset-$xs/2;
-							if ($asc==1) $liney=$yoffset+$Dbheight; else $liney=$yoffset-($lh+$Dbyspacing);
-							$joinx = $xoffset-$xs;
-							$joiny = $liney-2+($asc+1)/2*$lh;
-							print "<div id=\"joina$index\" style=\"position:absolute; ".($TEXT_DIRECTION=="ltr"?"left":"right").":".($joinx+$Dbxspacing)."px; top:".($joiny+$Dbyspacing)."px; z-index:-100; \" align=\"center\"><img src=\"".$PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]."\" align=\"left\" width=\"".$joinw."\" height=\"".$joinh."\" alt=\"\" /></div>\n";
-							$joinw = $xs/2+2;
-							$joinx = $joinx+$xs/2;
-							$joiny = $joiny-$asc*$lh;
-							print "<div id=\"joinb$index\" style=\"position:absolute; ".($TEXT_DIRECTION=="ltr"?"left":"right").":".($joinx+$Dbxspacing)."px; top:".($joiny+$Dbyspacing)."px; z-index:-100; \" align=\"center\"><img src=\"".$PGV_IMAGE_DIR."/".$PGV_IMAGES["hline"]["other"]."\" align=\"left\" width=\"".$joinw."\" height=\"".$joinh."\" alt=\"\" /></div>\n";
+						if ($previous == "parent" and $previous2 != "child") {
+					$zIndex = $pretty ? ($colNum * $depth - $rowNum + $depth) : $boxNum;
+							$xoffset += $Dbwidth + $xs;
+					$zIndex = $pretty ? 200 - ($colNum * $depth + $rowNum) : 200 - $boxNum; // the box immediately to the left
+							$linex = $xoffset - $xs / 2;
+							$liney = ( $asc == 1 ) ? $yoffset + $Dbheight : $yoffset - ( $lh + $Dbyspacing );
+							$joinx = $xoffset - $xs;
+							$joiny = $liney - 2 + ( $asc + 1 ) / 2 * $lh;
+							print "<div id=\"joina$index\" style=\"position:absolute; " . ( $TEXT_DIRECTION == "ltr" ? "left" : "right" ) . ":" . ( $joinx + $Dbxspacing ) . "px; top:" . ( $joiny + $Dbyspacing ) . "px; z-index:-100; \" align=\"center\"><img src=\"" . $PGV_IMAGE_DIR . "/" . $PGV_IMAGES["hline"]["other"] . "\" align=\"left\" width=\"" . $joinw . "\" height=\"" . $joinh . "\" alt=\"\" /></div>\n";
+							$joinw = $xs / 2 + 2;
+							$joinx += $xs / 2;
+							$joiny -= $asc * $lh;
+							print "<div id=\"joinb$index\" style=\"position:absolute; " . ( $TEXT_DIRECTION == "ltr" ? "left" : "right" ) . ":" . ( $joinx + $Dbxspacing ) . "px; top:" . ( $joiny + $Dbyspacing ) . "px; z-index:-100; \" align=\"center\"><img src=\"" . $PGV_IMAGE_DIR . "/" . $PGV_IMAGES["hline"]["other"] . "\" align=\"left\" width=\"" . $joinw . "\" height=\"" . $joinh . "\" alt=\"\" /></div>\n";
 						}
-						$previous2=$previous;;
-						$previous="child";
+						$previous2 = $previous;
+						$previous = "child";
 					}
-					else $yoffset += $Dbheight+$Dbyspacing+50;
+					else
+						$yoffset += $Dbheight + $Dbyspacing + 50;
 				}
-				if ($yoffset > $maxyoffset) $maxyoffset = $yoffset;
+				if ($yoffset > $maxyoffset)
+					$maxyoffset = $yoffset;
 				$plinex = $linex;
 				$pxoffset = $xoffset;
 
 				// Adjust all box positions for proper placement with respect to other page elements
-				if ($BROWSERTYPE=="mozilla" && $TEXT_DIRECTION=="rtl") $pxoffset += 10;
-				else $pxoffset -= 3;
+				if ($BROWSERTYPE == "mozilla" && $TEXT_DIRECTION == "rtl")
+					$pxoffset += 10;
+				else
+					$pxoffset -= 3;
 				$pyoffset = $yoffset - 2;
 
-				if ($index>0) {
-					if ($TEXT_DIRECTION=="rtl" && $line!=$PGV_IMAGES["hline"]["other"]) {
-						print "<div id=\"line$index\" dir=\"ltr\" style=\"background:none; position:absolute; right:".($plinex+$Dbxspacing)."px; top:".($liney+$Dbyspacing)."px; width:".($lw+$lh*2)."px; z-index:-100; \" align=\"right\">";
+				if ($index > 0) {
+					if ($TEXT_DIRECTION == "rtl" && $line != $PGV_IMAGES["hline"]["other"]) {
+						print "<div id=\"line$index\" dir=\"ltr\" style=\"background:none; position:absolute; right:" . ( $plinex + $Dbxspacing ) . "px; top:" . ( $liney + $Dbyspacing ) . "px; width:" . ( $lw + $lh * 2 ) . "px; z-index:-100; \" align=\"right\">";
 						print "<img src=\"$PGV_IMAGE_DIR/$line\" align=\"right\" width=\"$lw\" height=\"$lh\" alt=\"\" />\n";
 						print "<br />";
-						print $pgv_lang[$node["relations"][$index]]."\n";
+						print $pgv_lang[$node["relations"][$index]] . "\n";
 						print "<img src=\"$arrow_img\" border=\"0\" align=\"middle\" alt=\"\" />\n";
 					}
 					else {
-						print "<div id=\"line$index\" style=\"background:none;  position:absolute; ".($TEXT_DIRECTION=="ltr"?"left":"right").":".($plinex+$Dbxspacing)."px; top:".($liney+$Dbyspacing)."px; width:".($lw+$lh*2)."px; z-index:-100; \" align=\"".($lh==3?"center":"left")."\"><img src=\"$PGV_IMAGE_DIR/$line\" align=\"left\" width=\"$lw\" height=\"$lh\" alt=\"\" />\n";
+						print "<div id=\"line$index\" style=\"background:none;  position:absolute; " . ( $TEXT_DIRECTION == "ltr" ? "left" : "right" ) . ":" . ( $plinex + $Dbxspacing ) . "px; top:" . ( $liney + $Dbyspacing ) . "px; width:" . ( $lw + $lh * 2 ) . "px; z-index:-100; \" align=\"" . ( $lh == 3 ? "center" : "left" ) . "\"><img src=\"$PGV_IMAGE_DIR/$line\" align=\"left\" width=\"$lw\" height=\"$lh\" alt=\"\" />\n";
 						print "<br />";
 						print "<img src=\"$arrow_img\" border=\"0\" align=\"middle\" alt=\"\" />\n";
-						if ($lh == 3) print "<br />"; // note: $lh==3 means horiz arrow
-						print $pgv_lang[$node["relations"][$index]]."\n";
+						if ($lh == 3)
+							print "<br />"; // note: $lh==3 means horiz arrow
+						print $pgv_lang[$node["relations"][$index]] . "\n";
 					}
 					print "</div>\n";
 				}
 				// Determine the z-index for this box
-				$boxNum ++;
-				if ($TEXT_DIRECTION=="rtl" && $BROWSERTYPE=="mozilla") {
-					if ($pretty) $zIndex = ($colNum * $depth - $rowNum + $depth);
-						else $zIndex = $boxNum;
-				} else {
-					if ($pretty) $zIndex = 200 - ($colNum * $depth + $rowNum);
-					else $zIndex = 200 - $boxNum;
-				}
+				$boxNum++;
+				$zIndex = ( $TEXT_DIRECTION == "rtl" && $BROWSERTYPE == "mozilla" ) 
+					? ( $pretty ? $colNum * $depth - $rowNum + $depth : $boxNum )
+					: ( $pretty ? 200 - ( $colNum * $depth + $rowNum ) : 200 - $boxNum );
 
-				print "<div id=\"box$pid.0\" style=\"position:absolute; ".($TEXT_DIRECTION=="ltr"?"left":"right").":".$pxoffset."px; top:".$pyoffset."px; width:".$Dbwidth."px; height:".$Dbheight."px; z-index:".$zIndex."; \"><table><tr><td colspan=\"2\" width=\"$Dbwidth\" height=\"$Dbheight\">";
-				print_pedigree_person($pid, 1, ($view!="preview"));
+				print "<div id=\"box$pid.0\" style=\"position:absolute; " . ( $TEXT_DIRECTION == "ltr" ? "left" : "right" ) . ":" . $pxoffset . "px; top:" . $pyoffset . "px; width:" . $Dbwidth . "px; height:" . $Dbheight . "px; z-index:" . $zIndex . "; \"><table><tr><td colspan=\"2\" width=\"$Dbwidth\" height=\"$Dbheight\">";
+				print_pedigree_person( $pid, 1, $view != "preview" );
 				print "</td></tr></table></div>\n";
 			}
 
@@ -1016,7 +1033,7 @@ if ((!empty($pid1))&&(!empty($pid2))) {
 $maxyoffset += 100;
 ?>
 </div>
-<script language="JavaScript" type="text/javascript">
+<script>
 	relationship_chart_div = document.getElementById("relationship_chart");
 	if (!relationship_chart_div) relationship_chart_div = document.getElementById("relationship_chart_rtl");
 	if (relationship_chart_div) {

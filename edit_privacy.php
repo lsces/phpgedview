@@ -24,29 +24,18 @@
  * @subpackage Privacy
  * @version $Id$
  */
+namespace Bitweaver\Phpgedview;
 
-/**
- * Initialization
- */
-require_once( '../kernel/setup_inc.php' );
+define('PGV_SCRIPT_NAME', 'edit_privacy.php');
+require './config.php';
+require PGV_ROOT.'includes/functions/functions_print_facts.php';
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require 'config.php';
-
-require 'includes/functions/functions_print_facts.php';
 loadLangFile('pgv_confighelp, pgv_help');
 
-
 if (empty($ged)) $ged = $GEDCOM;
+$ged_id=get_id_from_gedcom($GEDCOM);
 
-if (!userGedcomAdmin(PGV_USER_ID, $ged)) {
+if (!userGedcomAdmin(PGV_USER_ID, $ged_id)) {
 	header('Location: editgedcoms.php');
 	exit;
 }
@@ -135,16 +124,16 @@ function search_ID_details($checkVar, $outputVar) {
 }
 
 
-$PRIVACY_MODULE = get_privacy_file();
+$PRIVACY_MODULE = get_privacy_file(PGV_GED_ID);
 
 print_header($pgv_lang["privacy_header"]);
 
-if ($ENABLE_AUTOCOMPLETE) require './js/autocomplete.js.htm';
+if ($ENABLE_AUTOCOMPLETE) require PGV_ROOT.'js/autocomplete.js.html';
 ?>
 <table class="facts_table <?php print $TEXT_DIRECTION; ?>">
 	<tr>
 		<td colspan="2" class="facts_label"><?php
-			print "<h2>".$pgv_lang["edit_privacy_title"]." - ".PrintReady(strip_tags(get_gedcom_setting($ged, 'title'))). "</h2>";
+			print "<h2>".$pgv_lang["edit_privacy_title"]." - ".PrintReady(strip_tags(get_gedcom_setting(get_id_from_gedcom($ged), 'title'))). "</h2>";
 			print "(" . getLRM() . $PRIVACY_MODULE.")";
 			print "<br /><br /><a href=\"editgedcoms.php\"><b>";
 			print $pgv_lang["lang_back_manage_gedcoms"];
@@ -171,7 +160,7 @@ if ($action=="update") {
 	$configtext = preg_replace('/\$SHOW_SOURCES\s*=\s*.*;/', "\$SHOW_SOURCES = ".$_POST["v_SHOW_SOURCES"].";", $configtext);
 	$configtext = preg_replace('/\$MAX_ALIVE_AGE\s*=\s*".*";/', "\$MAX_ALIVE_AGE = \"".$_POST["v_MAX_ALIVE_AGE"]."\";", $configtext);
 	if ($MAX_ALIVE_AGE!=$_POST["v_MAX_ALIVE_AGE"]) reset_isdead(get_id_from_gedcom($ged));
-	if (file_exists("modules/research_assistant.php")) {
+	if (file_exists(PGV_ROOT.'modules/research_assistant.php')) {
 		$configtext = preg_replace('/\$SHOW_RESEARCH_ASSISTANT\s*=\s*.*;/', "\$SHOW_RESEARCH_ASSISTANT = ".$_POST["v_SHOW_RESEARCH_ASSISTANT"].";", $configtext);
 	}
 	$configtext = preg_replace('/\$SHOW_MULTISITE_SEARCH\s*=\s*.*;/', "\$SHOW_MULTISITE_SEARCH = ".$_POST["v_SHOW_MULTISITE_SEARCH"].";", $configtext);
@@ -189,13 +178,13 @@ if ($action=="update") {
 	$configtext_end = substr($configtext, strpos($configtext, "//-- end person privacy --//"));
 	$person_privacy_text = "//-- start person privacy --//\n\$person_privacy = array();\n";
 	if (!isset($v_person_privacy) || !is_array($v_person_privacy)) $v_person_privacy = array();
-	foreach($person_privacy as $key=>$value) {
+	foreach ($person_privacy as $key=>$value) {
 		if (isset($v_person_privacy_del[$key]) || $key==$v_new_person_privacy_access_ID) continue;
 		if (isset($v_person_privacy[$key])) $person_privacy_text .= "\$person_privacy['$key'] = ".$v_person_privacy[$key].";\n";
 		else $person_privacy_text .= "\$person_privacy['$key'] = ".$PRIVACY_CONSTANTS[$value].";\n";
 	}
 	if ($v_new_person_privacy_access_ID && $v_new_person_privacy_access_option) {
-		$gedobj = new GedcomRecord(find_gedcom_record($v_new_person_privacy_access_ID));
+		$gedobj = new GedcomRecord(find_gedcom_record($v_new_person_privacy_access_ID, PGV_GED_ID));
 		$v_new_person_privacy_access_ID = $gedobj->getXref();
 		if ($v_new_person_privacy_access_ID) $person_privacy_text .= "\$person_privacy['$v_new_person_privacy_access_ID'] = ".$v_new_person_privacy_access_option.";\n";
 	}
@@ -206,15 +195,15 @@ if ($action=="update") {
 	$configtext_end = substr($configtext, strpos($configtext, "//-- end user privacy --//"));
 	$person_privacy_text = "//-- start user privacy --//\n\$user_privacy = array();\n";
 	if (!isset($v_user_privacy) || !is_array($v_user_privacy)) $v_user_privacy = array();
-	foreach($user_privacy as $key=>$value) {
-		foreach($value as $id=>$setting) {
+	foreach ($user_privacy as $key=>$value) {
+		foreach ($value as $id=>$setting) {
 			if (isset($v_user_privacy_del[$key][$id]) || ($key==$v_new_user_privacy_username && $id==$v_new_user_privacy_access_ID)) continue;
 			if (isset($v_user_privacy[$key][$id])) $person_privacy_text .= "\$user_privacy['$key']['$id'] = ".$v_user_privacy[$key][$id].";\n";
 			else $person_privacy_text .= "\$user_privacy['$key']['$id'] = ".$PRIVACY_CONSTANTS[$setting].";\n";
 		}
 	}
 	if ($v_new_user_privacy_username && $v_new_user_privacy_access_ID && $v_new_user_privacy_access_option) {
-		$gedobj = new GedcomRecord(find_gedcom_record($v_new_user_privacy_access_ID));
+		$gedobj = new GedcomRecord(find_gedcom_record($v_new_user_privacy_access_ID, PGV_GED_ID));
 		$v_new_user_privacy_access_ID = $gedobj->getXref();
 		if ($v_new_user_privacy_access_ID) $person_privacy_text .= "\$user_privacy['$v_new_user_privacy_username']['$v_new_user_privacy_access_ID'] = ".$v_new_user_privacy_access_option.";\n";
 	}
@@ -225,8 +214,8 @@ if ($action=="update") {
 	$configtext_end = substr($configtext, strpos($configtext, "//-- end global facts privacy --//"));
 	$person_privacy_text = "//-- start global facts privacy --//\n\$global_facts = array();\n";
 	if (!isset($v_global_facts) || !is_array($v_global_facts)) $v_global_facts = array();
-	foreach($global_facts as $tag=>$value) {
-		foreach($value as $key=>$setting) {
+	foreach ($global_facts as $tag=>$value) {
+		foreach ($value as $key=>$setting) {
 			if (isset($v_global_facts_del[$tag][$key]) || ($tag==$v_new_global_facts_abbr && $key==$v_new_global_facts_choice)) continue;
 			if (isset($v_global_facts[$tag][$key])) $person_privacy_text .= "\$global_facts['$tag']['$key'] = ".$v_global_facts[$tag][$key].";\n";
 			else $person_privacy_text .= "\$global_facts['$tag']['$key'] = ".$PRIVACY_CONSTANTS[$setting].";\n";
@@ -242,9 +231,9 @@ if ($action=="update") {
 	$configtext_end = substr($configtext, strpos($configtext, "//-- end person facts privacy --//"));
 	$person_privacy_text = "//-- start person facts privacy --//\n\$person_facts = array();\n";
 	if (!isset($v_person_facts) || !is_array($v_person_facts)) $v_person_facts = array();
-	foreach($person_facts as $id=>$value) {
-		foreach($value as $tag=>$value1) {
-			foreach($value1 as $key=>$setting) {
+	foreach ($person_facts as $id=>$value) {
+		foreach ($value as $tag=>$value1) {
+			foreach ($value1 as $key=>$setting) {
 				if (isset($v_person_facts_del[$id][$tag][$key]) || ($id==$v_new_person_facts_access_ID && $tag==$v_new_person_facts_abbr && $key==$v_new_person_facts_choice)) continue;
 				if (isset($v_person_facts[$id][$tag][$key])) $person_privacy_text .= "\$person_facts['$id']['$tag']['$key'] = ".$v_person_facts[$id][$tag][$key].";\n";
 				else $person_privacy_text .= "\$person_facts['$id']['$tag']['$key'] = ".$PRIVACY_CONSTANTS[$setting].";\n";
@@ -252,13 +241,13 @@ if ($action=="update") {
 		}
 	}
 	if ($v_new_person_facts_access_ID && $v_new_person_facts_abbr && $v_new_global_facts_choice && $v_new_global_facts_access_option) {
-		$gedobj = new GedcomRecord(find_gedcom_record($v_new_person_facts_access_ID));
+		$gedobj = new GedcomRecord(find_gedcom_record($v_new_person_facts_access_ID, PGV_GED_ID));
 		$v_new_person_facts_access_ID = $gedobj->getXref();
 		if ($v_new_person_facts_access_ID) $person_privacy_text .= "\$person_facts['$v_new_person_facts_access_ID']['$v_new_person_facts_abbr']['$v_new_person_facts_choice'] = ".$v_new_person_facts_access_option.";\n";
 	}
 	$configtext = $configtext_beg . $person_privacy_text . $configtext_end;
 
-	$PRIVACY_MODULE = $INDEX_DIRECTORY.$GEDCOM."_priv.php";
+	$PRIVACY_MODULE = PHPGEDVIEW_PKG_INDEX_PATH .$GEDCOM."_priv.php";
 	$fp = @fopen($PRIVACY_MODULE, "wb");
 	if (!$fp) {
 		global $whichFile;
@@ -269,17 +258,17 @@ if ($action=="update") {
 		fclose($fp);
 	}
 	// NOTE: load the new variables
-	include $INDEX_DIRECTORY.$GEDCOM."_priv.php";
+	require PHPGEDVIEW_PKG_INDEX_PATH .$GEDCOM.'_priv.php';
 	$logline = AddToLog("Privacy file $PRIVACY_MODULE updated");
  	$gedcomprivname = $GEDCOM."_priv.php";
- 	check_in($logline, $gedcomprivname, $INDEX_DIRECTORY);
+ 	check_in($logline, $gedcomprivname, PHPGEDVIEW_PKG_INDEX_PATH );
 
  	//-- delete the cache files for the welcome page blocks
-	include_once 'includes/index_cache.php';
+	require_once PGV_ROOT.'includes/index_cache.php';
 	clearCache();
 }
 ?>
-<script language="JavaScript" type="text/javascript">
+<script>
 <!--
 		var pastefield;
 	function paste_id(value) {
@@ -347,7 +336,7 @@ if ($action=="update") {
 				</td>
 			</tr>
 
-			<?php if (file_exists("modules/research_assistant.php")) { ?>
+			<?php if (file_exists(PGV_ROOT.'modules/research_assistant.php')) { ?>
 			<tr>
 				<td class="descriptionbox wrap">
 					<?php print_help_link("SHOW_RESEARCH_ASSISTANT_help", "qm", "SHOW_RESEARCH_ASSISTANT"); print $pgv_lang["SHOW_RESEARCH_ASSISTANT"]; ?>
@@ -498,7 +487,7 @@ if ($action=="update") {
 				<td class="descriptionbox"><?php print $pgv_lang["full_name"]; ?></td>
 				<td class="descriptionbox"><?php print $pgv_lang["accessible_by"]; ?></td>
 			</tr>
-			<?php foreach($person_privacy as $key=>$value) { ?>
+			<?php foreach ($person_privacy as $key=>$value) { ?>
 			<tr>
 				<td class="optionbox">
 					<input type="checkbox" name="v_person_privacy_del[<?php print $key; ?>]" value="1" />
@@ -550,7 +539,7 @@ if ($action=="update") {
 			<td class="optionbox width20">
 				<select size="1" name="v_new_user_privacy_username">
 				<?php
-				foreach(get_all_users() as $user_id=>$user_name) {
+				foreach (get_all_users() as $user_id=>$user_name) {
 					echo '<option value="', $user_id, '">';
 					if ($TEXT_DIRECTION == 'ltr') {
 						echo $user_id, ' (', getUserFullName($user_id), ')</option>';
@@ -593,8 +582,8 @@ if ($action=="update") {
 		</tr>
 
 		<?php
-		foreach($user_privacy as $key=>$value) {
-			foreach($value as $id=>$setting) {
+		foreach ($user_privacy as $key=>$value) {
+			foreach ($value as $id=>$setting) {
 		?>
 		<tr class="<?php print $TEXT_DIRECTION; ?>">
 			<td class="optionbox">
@@ -649,7 +638,7 @@ if ($action=="update") {
 				<select size="1" name="v_new_global_facts_abbr">
 				<?php
 				print "<option value=\"\">".$pgv_lang["choose"]."</option>";
-				foreach($factarray as $tag=>$label) {
+				foreach ($factarray as $tag=>$label) {
 					print "<option";
 					print " value=\"";
 					print $tag;
@@ -685,8 +674,8 @@ if ($action=="update") {
 			<td class="descriptionbox"><?php print $pgv_lang["accessible_by"]; ?></td>
 		</tr>
 		<?php
-		foreach($global_facts as $tag=>$value) {
-			foreach($value as $key=>$setting) {
+		foreach ($global_facts as $tag=>$value) {
+			foreach ($value as $key=>$setting) {
 		?>
 		<tr class="<?php print $TEXT_DIRECTION; ?>">
 			<td class="optionbox">
@@ -751,7 +740,7 @@ if ($action=="update") {
 			<td class="optionbox">
 				<select size="1" name="v_new_person_facts_abbr">
 				<?php
-				foreach($factarray as $tag=>$label) {
+				foreach ($factarray as $tag=>$label) {
 					print "<option";
 					print " value=\"";
 					print $tag;
@@ -787,9 +776,9 @@ if ($action=="update") {
 			<td class="descriptionbox"><?php print $pgv_lang["accessible_by"]; ?></td>
 		</tr>
 		<?php
-		foreach($person_facts as $id=>$value) {
-				foreach($value as $tag=>$value1) {
-					foreach($value1 as $key=>$setting) {
+		foreach ($person_facts as $id=>$value) {
+				foreach ($value as $tag=>$value1) {
+					foreach ($value1 as $key=>$setting) {
 		?>
 		<tr class="<?php print $TEXT_DIRECTION; ?>">
 			<td class="optionbox">
@@ -821,9 +810,9 @@ if ($action=="update") {
 	<table class="facts_table" border="0">
 		<tr>
 			<td class="topbottombar">
-				<input type="submit" tabindex="<?php $i++; print $i; ?>" value="<?php print $pgv_lang["save_config"]; ?>" onclick="closeHelp();" />
+				<input type="submit" value="<?php print $pgv_lang["save_config"]; ?>" onclick="closeHelp();" />
 				&nbsp;&nbsp;
-				<input type="reset" tabindex="<?php $i++; print $i; ?>" value="<?php print $pgv_lang["reset"]; ?>" /><br />
+				<input type="reset" value="<?php print $pgv_lang["reset"]; ?>" /><br />
 			</td>
 		</tr>
 	</table>

@@ -3,7 +3,7 @@
  * Shows helptext to the users
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2007  PGV Development Team
+ * Copyright (C) 2002 to 2009 PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,24 +27,14 @@
  * @version $Id$
  */
 
-/**
- * Initialization
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
+define('PGV_SCRIPT_NAME', 'help_text.php');
+require './config.php';
 
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
+loadLangFile('pgv_help, pgv_admin, pgv_editor, research_assistant:lang, googlemap:lang, googlemap:help_text, lightbox:lang, lightbox:help_text, sitemap:lang, sitemap:help_text');
 
-$gGedcom = new BitGEDCOM();
-
-// leave manual config until we can move it to bitweaver table 
-require "config.php";
-
-loadLangFile("pgv_help, pgv_admin, pgv_editor, ra_lang, gm_lang, gm_help, sm_lang, sm_help");	// Load language keys
-
-require 'includes/help_text_vars.php';
+require PGV_ROOT.'includes/help_text_vars.php';
 
 print_simple_header($pgv_lang['help_header']);
 

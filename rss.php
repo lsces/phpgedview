@@ -4,7 +4,7 @@
  * in the index page.
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2004  John Finlay and Others
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id$
  * @package PhpGedView
  * @subpackage RSS
  * @TODO add Basic HTTP authentication to allow RSS aggregators to "log on"
+ * @version $Id$
  */
+
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'rss.php');
+require './config.php';
 
 if (isset($_SESSION["CLANGUAGE"])) $oldlang = $_SESSION["CLANGUAGE"];
 else $oldlang = "english";
@@ -32,10 +37,9 @@ if (!empty($lang)) {
 	$changelanguage = "yes";
 	$NEWLANGUAGE = $lang;
 }
-require("config.php");
-require_once 'includes/classes/class_feedcreator.php';
-require_once 'includes/functions/functions_rss.php';
-require_once 'includes/index_cache.php';
+
+require_once PGV_ROOT.'includes/functions/functions_rss.php';
+require_once PGV_ROOT.'includes/index_cache.php';
 
 $feedCacheName = "fullFeed";
 
@@ -99,7 +103,7 @@ if(!loadCachedBlock($cacheControl, $rssStyle)){
 	//$feed->descriptionTruncSize = 500; // does not make sense to truncate HTML since it will result in unpredictable output
 	$feed->link = $SERVER_URL;
 	$syndURL = $SERVER_URL."rss.php?".$_SERVER['QUERY_STRING'];
-	$syndURL = preg_replace("/&/", "&amp;", $syndURL);
+	$syndURL = str_replace("&", "&amp;", $syndURL);
 	$feed->syndicationURL = $syndURL;
 
 	$feedDesc = str_replace("#GEDCOM_TITLE#", $feed->title, $pgv_lang["rss_descr"]);

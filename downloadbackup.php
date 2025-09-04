@@ -23,21 +23,14 @@
  * @subpackage Admin
  * @version $Id$
  */
+namespace Bitweaver\Phpgedview;
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+define('PGV_SCRIPT_NAME', 'downloadbackup.php');
+require './config.php';
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
+$fname=safe_GET('fname');
 
-// leave manual config until we can move it to bitweaver table 
-require 'config.php';
-
-if ((!userGedcomAdmin(getUserName()))||(empty($fname))||(preg_match("/\.zip$/", $fname)==0)) {
+if (!PGV_USER_GEDCOM_ADMIN || !preg_match('/\.zip$/', $fname)) {
 	print $pgv_lang['access_denied'];
 	exit;
 }
@@ -50,8 +43,7 @@ header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 header('Cache-Control: private',false); // required for certain browsers
 header('Content-Type: application/zip');
 header('Content-Disposition: attachment; filename="'.$fname.'"');
-header('Content-length: '.filesize($INDEX_DIRECTORY.$fname));
+header('Content-length: '.filesize(PHPGEDVIEW_PKG_INDEX_PATH .$fname));
 header('Content-Transfer-Encoding: binary');
-readfile($INDEX_DIRECTORY.basename($fname));
+readfile(PHPGEDVIEW_PKG_INDEX_PATH .basename($fname));
 exit();
-?>

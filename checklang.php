@@ -23,8 +23,11 @@
  * @subpackage Languages
  * @version $Id$
  */
-// -- include config file
-require("config.php");
+
+namespace Bitweaver\Phpgedview;
+
+define('PGV_SCRIPT_NAME', 'checklang.php');
+require './config.php';
 
 print_header("checklang");
 
@@ -34,7 +37,7 @@ if (!isset($lang)) $lang="";
 
 // reading flags directory
 $flags = array();
-$rep = opendir('../users/icons/flags/');
+$rep = opendir('./images/flags/');
 while ($file = readdir($rep)) {
 	if (stristr($file, ".gif") and $file!="new.gif" and $file!="en.gif") {
 		$flags[] = substr($file, 0, strlen($file)-4);

@@ -5,7 +5,7 @@
  * Provides links for administrators to get to other administrative areas of the site
  *
  * phpGedView: Genealogy Viewer
- * Copyright (C) 2002 to 2008  PGV Development Team.  All rights reserved.
+ * Copyright (C) 2002 to 2009  PGV Development Team.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,28 +21,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
-	$Id$
+ * @version $Id$
  */
 
-/**
- * load the main configuration and context
- */
-require_once( '../kernel/setup_inc.php' );
+namespace Bitweaver\Phpgedview;
 
-// Is package installed and enabled
-$gBitSystem->verifyPackage( 'phpgedview' );
-include_once( PHPGEDVIEW_PKG_PATH.'BitGEDCOM.php' );
-$gGedcom = new BitGEDCOM();
+define('PGV_SCRIPT_NAME', 'pgvinfo.php');
+require './config.php';
 
-// leave manual config until we can move it to bitweaver table 
-require "config.php";
-if (!userGedcomAdmin(getUserName())) {
-	 header("Location: login.php?url=pgvinfo.php?action=".$action);
+if (!PGV_USER_GEDCOM_ADMIN) {
+	header("Location: login.php?url=pgvinfo.php?action=".$action);
 exit;
 }
 
-require  $confighelpfile["english"];
-if (file_exists( $confighelpfile[$LANGUAGE])) require  $confighelpfile[$LANGUAGE];
+loadLangFile("pgv_confighelp");
+
 if (isset($_REQUEST['action'])) $action = $_REQUEST['action'];
 
 if (!isset($action)) $action = "";
@@ -94,10 +87,10 @@ if ($action == "phpinfo") {
 
 if ($action=="confighelp") {
 
-	require "includes/functions/functions_editlang.php";
+	require PGV_ROOT.'includes/functions/functions_editlang.php';
 	$helpindex = "config_help_help";
 	print_header($pgv_lang["config_help"]);
-	print "<h2 class=\"center\">".UTF8_strtoupper($pgv_lang["config_help"])."</h2><br />";
+	echo "<h2 class=\"center\">", UTF8_strtoupper($pgv_lang["config_help"]), "</h2><br />";
 	$language_array = array();
 	$language_array = read_export_file_into_array($confighelpfile[$LANGUAGE], "pgv_lang[");
 	$new_language_array = array();
@@ -114,7 +107,7 @@ if ($action=="confighelp") {
 		}
 	}
 
-	print "<ol>";
+	echo "<ol>";
 
 	for ($z = 0, $zmax = sizeof($new_language_array); $z < $zmax; $z++) {
 		for ($x = 0, $xmax = sizeof($language_array); $x < $xmax; $x++) {
@@ -137,7 +130,7 @@ if ($action=="confighelp") {
 	for ($z = 0, $zmax = sizeof($new_language_array); $z < $zmax; $z++) {
 		if ($new_language_array[$z][0] != "config_help" and $new_language_array[$z][0] != "welcome_help") {
 			echo '<li>';
-			echo stripslashes(print_text($new_language_array[$z][1],0,2)) . "<br /><br /></li>\r\n";
+			echo print_text($new_language_array[$z][1], 0, 2), "<br /><br /></li>\r\n";
 		}
 	}
 	echo '</ol>';
