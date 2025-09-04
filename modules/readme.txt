@@ -38,7 +38,7 @@ detailed licensing information.
 INTRODUCTION
 
 Modules are additional software that can be added to the core PhpGedView.
-They provide additional functionality not part of the core PhpGedView 
+They provide additional functionality not part of the core PhpGedView
 distribution. Some modules integrate very tightly with the PhpGedView
 software while others are separate software that loosely links to PhpGedView,
 such as the PunBB bulletin board system
@@ -46,7 +46,7 @@ such as the PunBB bulletin board system
 Like PhpGedView, modules available for download are Open Source software that
 has been produced by people from many countries freely donating their time
 and talents to the project, though there is nothing to prevent someone from
-developing a source module that is not open source. 
+developing a source module that is not open source.
 
 
 -------------------------------------------------------
@@ -54,16 +54,16 @@ CUSTOM MENUS
 
 With PGV version 4.0, there is a new system in place for adding menus to the
 main PGV Menu bar.  To do this, create a file called menu.php in your module
-folder.  This menu.php should implement an interface which implements the 
-getMenu() method. The name of the class must be prefixed by the module name 
-and an underscore.  
+folder.  This menu.php should implement an interface which implements the
+getMenu() method. The name of the class must be prefixed by the module name
+and an underscore.
 
 As an example, if you were building the "acme" module, you would could the file
 "acme/menu.php" which would have a class definition similar to the following:
- 
-class acme_ModuleMenu { 
-	function &getMenu() { 
-		$menu = new Menu(); 
-		return $menu; 
-	} 
-} 
+
+class acme_ModuleMenu {
+	function getMenu() {
+		$menu = new Menu();
+		return $menu;
+	}
+}
